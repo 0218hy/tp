@@ -274,14 +274,16 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+| Priority | As a …​              | I want to …​                                                    | So that I can…​                                                                |
+| -------- | -------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `* * *`  | mobile pet groomer   | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | mobile pet groomer   | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
+| `* * *`  | mobile pet groomer   | easily find the address for my next appointment                 | know exactly where to drive                                                    |
+| `* *`    | mobile pet groomer   | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
+| `* *`    | mobile pet groomer   | make changes to my upcoming appointments easily                 |                                                                                |
+| `* *`    | mobile pet groomer   | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
+| `*`      | mobile pet groomer   | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
+| `*`      | mobile pet groomer   | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
 
 *{More to be added}*
 
