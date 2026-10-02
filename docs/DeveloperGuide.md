@@ -285,34 +285,270 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 *{More to be added}*
 
-### Use cases
+# Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+## UC1 - Add a client and their pet
 
-**Use case: Delete a person**
+**System:** BuBu
 
-**MSS**
+**Use case:** UC1 - Add a client and their pet
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+**Actor:** Groomer
 
-    Use case ends.
+**Preconditions:** Groomer has the client's name, phone number, email, address and the pet's details ready.
 
-**Extensions**
+**Guarantees:**
 
-* 2a. The list is empty.
+- A client or pet is saved only if all of its details are valid.
+- The pet is linked to the client it was added under.
+- No two clients share the same phone number or email.
 
-  Use case ends.
+**MSS:**
 
-* 3a. The given index is invalid.
+1. Groomer requests to add a client, providing the client's name, phone number, email and address.
+2. BuBu adds the client and shows a confirmation.
+3. Groomer requests to add a pet under the client, providing the pet's name, species, optional breed and grooming requirements.
+4. BuBu adds the pet under the client and shows a confirmation.
+5. Groomer requests to view the client's pets.
+6. BuBu shows the client's pets and their details.
 
-    * 3a1. AddressBook shows an error message.
+Use case ends.
 
-      Use case resumes at step 2.
+**Extensions:**
 
-*{More to be added}*
+- 1a. BuBu detects a missing, repeated or invalid client detail.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters the corrected details.
+    - Steps 1a1-1a2 are repeated until the details are valid.
+    - Use case resumes from step 2.
+- 1b. The phone number or email already belongs to another client.
+    - 1b1. BuBu informs Groomer that the client already exists.
+    - 1b2. Groomer enters a different phone number or email.
+    - Steps 1b1-1b2 are repeated until the phone number and email are unique.
+    - Use case resumes from step 2.
+- 3a. A pet detail is missing, repeated or invalid (e.g. unsupported species, requirements containing a slash).
+    - 3b1. BuBu informs Groomer of the problem.
+    - 3b2. Groomer enters the corrected details.
+    - Steps 3b1-3b2 are repeated until the details are valid.
+    - Use case resumes from step 4.
+- 3b. The client already has a pet with the same name.
+    - 3c1. BuBu informs Groomer of the duplicate.
+    - Use case ends.
+
+---
+
+## UC2 - Book a grooming appointment
+
+**System:** BuBu
+
+**Use case:** UC2 - Book a grooming appointment
+
+**Actor:** Groomer
+
+**Preconditions:** The client and their pet are already saved.
+
+**Guarantees:**
+
+- The new appointment does not overlap any existing appointment.
+- The appointment lies within working hours (08:00-20:00) and starts in the future.
+
+**MSS:**
+
+1. Groomer searches for the client.
+2. BuBu shows the matching clients and their details.
+3. Groomer requests to view the client's pets.
+4. BuBu shows the pets and their care requirements.
+5. Groomer requests to view the appointments on the intended date.
+6. BuBu shows the appointments on that date.
+7. Groomer requests to schedule an appointment for the pet, specifying the date, start time, end time and service.
+8. BuBu adds the appointment, shows a confirmation and shows the updated appointment list.
+
+Use case ends.
+
+**Extensions:**
+
+- 2a. No client matches the search.
+    - 2a1. BuBu informs Groomer that no clients match.
+    - 2a2. Groomer enters a different search keyword.
+    - Steps 2a1-2a2 are repeated until a client is found.
+    - Use case resumes from step 3.
+- 5a. The date is not a valid date.
+    - 5a1. BuBu informs Groomer of the problem.
+    - 5a2. Groomer enters a corrected date.
+    - Steps 5a1-5a2 are repeated until the date is valid.
+    - Use case resumes from step 6.
+- 6a. There are no appointments on that date.
+    - 6a1. BuBu informs Groomer that nothing is scheduled.
+    - Use case resumes from step 7.
+- 7a. A scheduling detail is missing, repeated or invalid (e.g. past date, outside working hours, not on 30-minute intervals, end less than 30 minutes after start, unsupported service).
+    - 7a1. BuBu informs Groomer of the problem.
+    - 7a2. Groomer enters corrected details.
+    - Steps 7a1-7a2 are repeated until the details are valid.
+    - Use case resumes from step 8.
+- 7b. The time slot overlaps an existing appointment.
+    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b2. Groomer enters a different time slot.
+    - Steps 7b1-7b2 are repeated until the slot is free.
+    - Use case resumes from step 8.
+
+---
+
+## UC3 - Reschedule an appointment
+
+**System:** BuBu
+
+**Use case:** UC3 - Reschedule an appointment
+
+**Actor:** Groomer
+
+**Preconditions:** The appointment to be moved exists.
+
+**Guarantees:**
+
+- The old appointment is removed only after Groomer confirms.
+- The new appointment does not overlap any existing appointment.
+
+*BuBu has no edit feature, so rescheduling is a deletion followed by a new booking.*
+
+**MSS:**
+
+1. Groomer requests to view the appointments on the date of the appointment to be moved.
+2. BuBu shows the appointments on that date.
+3. Groomer requests to delete the appointment, identifying it by date and a time within it.
+4. BuBu requests confirmation of the deletion.
+5. Groomer confirms.
+6. BuBu deletes the appointment and shows a confirmation.
+7. Groomer requests to schedule the same pet for the new slot, specifying the date, start time, end time and service.
+8. BuBu adds the appointment and shows a confirmation.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The date is not a valid date.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters a corrected date.
+    - Steps 1a1-1a2 are repeated until the date is valid.
+    - Use case resumes from step 2.
+- 2a. There are no appointments on that date.
+    - 2a1. BuBu informs Groomer that nothing is scheduled.
+    - 2a2. Groomer requests to view the appointments on a different date.
+    - Steps 2a1-2a2 are repeated until a date with appointments is found.
+    - Use case resumes from step 3.
+- 3a. The date or time is invalid.
+    - 3a1. BuBu informs Groomer that no matching appointment was found.
+    - 3a2. Groomer enters a corrected date or time.
+    - Steps 3a1-3a2 are repeated until an appointment is matched.
+    - Use case resumes from step 4.
+- 5a. Groomer cancels the deletion.
+    - 5a1. BuBu leaves the schedule unchanged.
+    - Use case ends.
+- 7a. The new slot is invalid or overlaps another appointment.
+    - 7a1. BuBu informs Groomer of the problem.
+    - 7a2. Groomer enters a different slot.
+    - Steps 7a1-7a2 are repeated until the slot is valid.
+    - The original appointment remains deleted.
+    - Use case resumes from step 8.2
+
+---
+
+## UC4 - Remove a client who has pets and appointments
+
+**System:** BuBu
+
+**Use case:** UC4 - Remove a client who has pets and appointments
+
+**Actor:** Groomer
+
+**Preconditions:** The client has at least one saved pet and one upcoming appointment.
+
+**Guarantees:**
+
+- Nothing is deleted without Groomer's confirmation.
+- A client is deleted only when no pets or appointments are linked to them.
+
+**MSS:**
+
+1. Groomer requests to view the upcoming appointments.
+2. BuBu shows the upcoming appointments.
+3. Groomer requests to delete the client's appointment.
+4. BuBu requests confirmation.
+5. Groomer confirms.
+6. BuBu deletes the appointment and shows a confirmation.
+7. Groomer requests to delete the client's pet.
+8. BuBu requests confirmation.
+9. Groomer confirms.
+10. BuBu deletes the pet and shows a confirmation.
+11. Groomer requests to delete the client.
+12. BuBu requests confirmation.
+13. Groomer confirms.
+14. BuBu deletes the client and shows a confirmation.
+
+Use case ends.
+
+**Extensions:**
+
+- 3a. The date or time is invalid.
+    - 3a1. BuBu informs Groomer that no matching appointment was found.
+    - 3a2. Groomer enters a corrected date or time.
+    - Steps 3a1-3a2 are repeated until an appointment is matched.
+    - Use case resumes from step 4.
+- 5a. Groomer cancels the appointment deletion.
+    - 5a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+- 7a. The pet still has a future appointment.
+    - 7a1. BuBu informs Groomer which appointment must be cancelled first.
+    - Use case resumes from step 3.
+- 9a. Groomer cancels the pet deletion.
+    - 9a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+- 11a. The client still has pets or appointments linked to them.
+    - 11b1. BuBu informs Groomer which linked records remain.
+    - Use case resumes from step 3 (if appointments remain) or step 7 (if only pets remain).
+- 13a. Groomer cancels the client deletion.
+    - 13a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+
+---
+
+## UC5 - Prepare for a day's appointments
+
+**System:** BuBu
+
+**Use case:** UC5 - Prepare for a day's appointments
+
+**Actor:** Groomer
+
+**Preconditions:** Clients, pets and appointments are already saved.
+
+**MSS:**
+
+1. Groomer requests to view the appointments on a given date.
+2. BuBu shows the appointments in start-time order.
+3. Groomer searches for the client of an appointment.
+4. BuBu shows the client's phone number, email and address.
+5. Groomer requests to view the client's pets.
+6. BuBu shows the pets and their care requirements.
+
+Steps 3-6 are repeated for each appointment on the date.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The date is not a valid date.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters a corrected date.
+    - Steps 1a1-1a2 are repeated until the date is valid.
+    - Use case resumes from step 2.
+- 2a. There are no appointments on that date.
+    - 2a1. BuBu informs Groomer that nothing is scheduled.
+    - Use case ends.
+- 3a. No client matches the search.
+    - 3b1. BuBu informs Groomer that no clients match.
+    - 3b2. Groomer enters a different search keyword.
+    - Steps 3b1-3b2 are repeated until the intended client is found.
+    - Use case resumes from step 4.
 
 ### Non-Functional Requirements
 
