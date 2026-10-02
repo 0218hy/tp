@@ -19,6 +19,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 * Role: Project Advisor
 
+
+### Anders Chow
+
+<img src="images/anderschow.png" width="200px">
+
+[[github](http://github.com/anderschow)]
+
 ### Zhou XinYu
 
 <img src="images/xinyu-zxy.png" width="200px">
