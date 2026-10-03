@@ -1,14 +1,52 @@
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+# BuBu
 
-![Ui](docs/images/Ui.png)
+[![Java CI](https://github.com/AY2627S1-CS2103T-W08-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W08-2/tp/actions/workflows/gradle.yml)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+**Client contacts, pet care details, and grooming appointments in one place.**
+
+BuBu is designed for freelance mobile pet groomers. It helps groomers to keep track of their clients, remember each pet's grooming requirements, and plan upcoming appointments. A command-line interface supports quick keyboard input, while a graphical interface keeps records and schedules easy to read.
+
+![BuBu UI mockup showing the command box, client and pet navigation, and upcoming grooming appointments](docs/images/BuBu_UI.png)
+
+*Mockup of the intended product. BuBu is under development; the features below describe the planned MVP.*
+
+## Planned features
+
+* **Manage clients:** Add, list, search, and delete client records containing names, Singapore mobile numbers, email addresses, and service addresses.
+* **Keep pet profiles:** Link pets to their owners and record species, optional breed information, and grooming or care requirements. View all pets or filter by owner.
+* **Plan appointments:** Schedule grooming services for registered pets, view upcoming bookings or appointments on a specific date, and delete cancelled bookings. Overlapping appointments are rejected.
+* **Protect linked records:** Confirm deletions and prevent removing clients with linked pets or appointments, or pets with future appointments.
+
+## Planned commands
+
+| Task | Commands |
+| --- | --- |
+| Manage client records | `add-client`, `list-clients`, `delete-client` |
+| Manage pet profiles | `add-pet`, `list-pets`, `delete-pet` |
+| Manage grooming appointments | `schedule`, `list-appointments`, `delete-appointment` |
+
+For example, `list-clients q/amelia` searches client records, `list-pets o/Amelia Tan` shows that client's pets, and `list-appointments` displays upcoming appointments in chronological order.
+
+## Documentation
+
+* [User Guide](docs/UserGuide.md)
+* [Developer Guide](docs/DeveloperGuide.md)
+* [About Us](docs/AboutUs.md)
+* [MVP Feature Specification](https://docs.google.com/document/d/1FkVnp8Y37VR8ZQ9TC2qKz3bctjJC6KtlW0KcylmdCfQ/edit?usp=sharing)
+
+The guides are being adapted for BuBu and currently include inherited AddressBook documentation. The MVP feature specification describes the planned BuBu commands and behaviour.
+
+## Development
+
+BuBu is built with Java and JavaFX. With JDK 25 installed, run the current development version from the repository root:
+
+```sh
+./gradlew run
+```
+
+Run the automated checks with `./gradlew check`. On Windows, use `gradlew.bat` in place of `./gradlew`.
+
+## Acknowledgements
+
+This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
+
