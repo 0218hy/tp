@@ -285,9 +285,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 *{More to be added}*
 
-# Use cases
-
-## UC1 - Add a client and their pet
+### Use cases
 
 **System:** BuBu
 
@@ -295,10 +293,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **Actor:** Groomer
 
-**Preconditions:** Groomer has the client's name, phone number, email, address and the pet's details ready.
+**Preconditions:** -
 
 **Guarantees:**
-
 - A client or pet is saved only if all of its details are valid.
 - The pet is linked to the client it was added under.
 - No two clients share the same phone number or email.
@@ -336,8 +333,6 @@ Use case ends.
     - Use case ends.
 
 ---
-
-## UC2 - Book a grooming appointment
 
 **System:** BuBu
 
@@ -393,15 +388,13 @@ Use case ends.
 
 ---
 
-## UC3 - Reschedule an appointment
-
 **System:** BuBu
 
 **Use case:** UC3 - Reschedule an appointment
 
 **Actor:** Groomer
 
-**Preconditions:** The appointment to be moved exists.
+**Preconditions:** At least one upcoming appointment is saved in BuBu.
 
 **Guarantees:**
 
@@ -452,15 +445,13 @@ Use case ends.
 
 ---
 
-## UC4 - Remove a client who has pets and appointments
-
 **System:** BuBu
 
 **Use case:** UC4 - Remove a client who has pets and appointments
 
 **Actor:** Groomer
 
-**Preconditions:** The client has at least one saved pet and one upcoming appointment.
+**Preconditions:** The client has at least one saved pet and one upcoming appointment saved in BuBu.
 
 **Guarantees:**
 
@@ -511,15 +502,13 @@ Use case ends.
 
 ---
 
-## UC5 - Prepare for a day's appointments
-
 **System:** BuBu
 
 **Use case:** UC5 - Prepare for a day's appointments
 
 **Actor:** Groomer
 
-**Preconditions:** Clients, pets and appointments are already saved.
+**Preconditions:** At least one client with at least one pet profile is saved in BuBu.
 
 **MSS:**
 
