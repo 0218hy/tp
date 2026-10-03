@@ -13,11 +13,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/khangsian0412.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
 [[github](https://github.com/khangsian0412)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Project Advisor
 
 
 ### Anders Chow
@@ -26,30 +22,23 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/anderschow)]
 
+
 ### Zhou XinYu
 
 <img src="images/xinyu-zxy.png" width="200px">
 
 [[github](http://github.com/xinyu-zxy)]
 
-* Role: Team Lead
-* Responsibilities: UI
 
 ### Lee Hayoung
 
 <img src="images/0218hy.png" width="200px">
 
-[[github](http://github.com/0218hy)] [[portfolio](team/johndoe.md)]
+[[github](http://github.com/0218hy)]
 
-* Role: Developer
-* Responsibilities: Data
 
 ### Chung Hean
 
 <img src="images/chunghean.png" width="200px">
 
 [[github](http://github.com/chunghean)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Developer
-* Responsibilities: UI
