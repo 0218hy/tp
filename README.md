@@ -6,7 +6,7 @@
 
 BuBu is designed for freelance mobile pet groomers. It helps groomers to keep track of their clients, remember each pet's grooming requirements, and plan upcoming appointments. A command-line interface supports quick keyboard input, while a graphical interface keeps records and schedules easy to read.
 
-![BuBu UI mockup showing the command box, client and pet navigation, and upcoming grooming appointments](docs/images/BuBu_UI.png)
+![BuBu UI mockup showing the command box, client and pet navigation, and upcoming grooming appointments](docs/images/Ui.png)
 
 *Mockup of the intended product. BuBu is under development; the features below describe the planned MVP.*
 
