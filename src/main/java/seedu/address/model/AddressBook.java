@@ -15,7 +15,8 @@ import seedu.address.model.pet.UniquePetList;
 
 /**
  * Wraps all data at the address-book level.
- * Duplicates are not allowed (by .isSamePerson comparison).
+ * Stores unique persons and pets. Persons are unique by {@code Person#isSamePerson}, while pets are unique by
+ * {@code Pet#isSamePet}.
  */
 public class AddressBook implements ReadOnlyAddressBook {
 
