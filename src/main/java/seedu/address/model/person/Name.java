@@ -10,13 +10,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
-
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+            "Client names must be 2-60 characters and use valid name characters.";
 
     public final String fullName;
 
@@ -35,7 +29,10 @@ public class Name {
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        if (!(test.length() >= 2 && test.length() <= 60)) {
+            return false;
+        }
+        return !test.isBlank() && test.matches("[A-Za-z .'-]+");
     }
 
 

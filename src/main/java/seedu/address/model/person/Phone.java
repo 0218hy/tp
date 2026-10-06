@@ -11,8 +11,8 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.";
+    public static final String VALIDATION_REGEX = "[89][0-9]{7}";
     public final String value;
 
     /**
