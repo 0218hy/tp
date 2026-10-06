@@ -21,6 +21,8 @@ public class DeletePetCommandParserTest {
     public void parse_allFieldsPresent_success() {
         assertParseSuccess(parser, " p/Milo i/98765432",
                 new DeletePetCommand(new PetName("Milo"), new Phone("98765432")));
+        assertParseSuccess(parser, " p/Milo the dog i/98765432 ",
+                new DeletePetCommand(new PetName("Milo the dog"), new Phone("98765432")));
         assertParseSuccess(parser, " i/98765432 p/Milo",
                 new DeletePetCommand(new PetName("Milo"), new Phone("98765432")));
     }
@@ -46,6 +48,8 @@ public class DeletePetCommandParserTest {
     @Test
     public void parse_invalidValues_failure() {
         assertParseFailure(parser, " p/M@lo i/98765432", PetName.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " p/ i/98765432", PetName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " p/Milo i/123a", Phone.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " p/Milo i/", Phone.MESSAGE_CONSTRAINTS);
     }
 }
