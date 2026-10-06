@@ -142,7 +142,7 @@ Examples:
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all contacts from the address book. Any saved appointments are retained separately.
 
 Format: `clear`
 
@@ -154,7 +154,9 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+Contact data is saved automatically after successful contact commands. Appointments have a separate save file,
+`data/appointments.json`, which loads when the app starts. Scheduling in the app is pending owner/pet lookup integration;
+once enabled, each successful booking is saved automatically. You do not need to save manually.
 
 ### Editing the data file
 

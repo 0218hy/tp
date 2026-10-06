@@ -19,6 +19,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -64,8 +65,9 @@ public class MainApp extends Application {
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Appointments load independently; a missing or invalid appointment file starts an empty schedule.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -83,7 +85,15 @@ public class MainApp extends Application {
             initialData = new AddressBook();
         }
 
-        return new ModelManager(initialData, userPrefs);
+        ModelManager modelManager = new ModelManager(initialData, userPrefs);
+        try {
+            modelManager.setAppointmentBook(storage.readAppointmentBook().orElseGet(AppointmentBook::new));
+        } catch (DataLoadingException e) {
+            logger.warning("Appointment file at " + storage.getAppointmentBookFilePath()
+                    + " could not be loaded. Will be starting with an empty schedule. "
+                    + "The existing file is left unchanged.");
+        }
+        return modelManager;
     }
 
     /**

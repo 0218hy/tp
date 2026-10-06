@@ -105,6 +105,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook) {
+        this.appointmentBook.resetData(appointmentBook);
+    }
+
+    @Override
     public void addAppointment(Appointment appointment) {
         appointmentBook.addAppointment(appointment);
     }

@@ -41,6 +41,9 @@ public interface Model {
     /** Returns the read-only appointment schedule. */
     ReadOnlyAppointmentBook getAppointmentBook();
 
+    /** Replaces the appointment schedule with a validated copy of the supplied data. */
+    void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook);
+
     /**
      * Adds an appointment that does not overlap an existing appointment.
      * Participant and future-start checks are performed by the scheduling command.
