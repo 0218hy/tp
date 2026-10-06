@@ -4,6 +4,8 @@ import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.person.Person;
 
 /**
@@ -35,6 +37,17 @@ public interface Model {
 
     /** Returns the AddressBook */
     ReadOnlyAddressBook getAddressBook();
+
+    /** Returns the read-only appointment schedule. */
+    ReadOnlyAppointmentBook getAppointmentBook();
+
+    /**
+     * Adds an appointment that does not overlap an existing appointment.
+     * Participant and future-start checks are performed by the scheduling command.
+     *
+     * @throws seedu.address.model.appointment.exceptions.OverlappingAppointmentException if a slot overlaps.
+     */
+    void addAppointment(Appointment appointment);
 
     /**
      * Returns true if a person with the same identity as {@code person} exists in the address book.

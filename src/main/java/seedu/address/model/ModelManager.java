@@ -10,6 +10,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentBook;
+import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.person.Person;
 
 /**
@@ -19,6 +22,7 @@ public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
     private final AddressBook addressBook;
+    private final AppointmentBook appointmentBook = new AppointmentBook();
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
 
@@ -93,6 +97,18 @@ public class ModelManager implements Model {
         addressBook.setPerson(target, editedPerson);
     }
 
+    //=========== Appointments ==============================================================================
+
+    @Override
+    public ReadOnlyAppointmentBook getAppointmentBook() {
+        return appointmentBook;
+    }
+
+    @Override
+    public void addAppointment(Appointment appointment) {
+        appointmentBook.addAppointment(appointment);
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**
@@ -122,6 +138,7 @@ public class ModelManager implements Model {
         }
 
         return addressBook.equals(otherModelManager.addressBook)
+                && appointmentBook.equals(otherModelManager.appointmentBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
