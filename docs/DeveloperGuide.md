@@ -281,6 +281,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
 | `* * *`  | user                                       | add a new person               |                                                                        |
 | `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
+| `* * *`  | user                                       | delete a pet using its name and owner's phone number | remove pet records that I no longer need                 |
 | `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
 | `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
 | `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
@@ -313,6 +314,30 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 3a1. AddressBook shows an error message.
 
       Use case resumes at step 2.
+
+**Use case: Delete a pet**
+
+**MSS**
+
+1.  User requests to delete a pet by providing the pet's name and its owner's phone number.
+2.  AddressBook finds the pet matching both values.
+3.  AddressBook deletes the pet.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The command format, pet name, or owner phone number is invalid.
+
+    * 1a1. AddressBook shows an error message.
+
+      Use case ends.
+
+* 2a. No pet matches the given name and owner phone number.
+
+    * 2a1. AddressBook shows an error message.
+
+      Use case ends.
 
 *{More to be added}*
 
@@ -372,6 +397,27 @@ testers are expected to do more *exploratory* testing.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
+
+### Deleting a pet
+
+1. Deleting a pet using its name and owner's phone number
+
+   1. Prerequisites: The address book contains a pet named `Milo` whose owner's phone number is `98765432`.
+
+   1. Test case: `delete-pet p/Milo i/98765432`<br>
+      Expected: `Milo` is deleted. The status message is `Deleted pet: Milo`.
+
+   1. Test case: `delete-pet p/Milo i/12345678`<br>
+      Expected: No pet is deleted. The status message states that no pet matches the specified name and owner phone number.
+
+   1. Test case: `delete-pet p/Milo`<br>
+      Expected: No pet is deleted. The status message shows the command usage.
+
+   1. Test case: `delete-pet p/Milo i/123a`<br>
+      Expected: No pet is deleted. The status message states that phone numbers must contain only digits and have at least three digits.
+
+   1. With two pets named `Milo` owned by people with different phone numbers, repeat the valid test case for one owner.<br>
+      Expected: Only that owner's `Milo` is deleted.
 
 1. _{ more test cases …​ }_
 
