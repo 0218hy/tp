@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
@@ -18,7 +19,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.pet.Pet;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class AddressBookTest {
 
@@ -27,6 +30,7 @@ public class AddressBookTest {
     @Test
     public void constructor() {
         assertEquals(List.of(), addressBook.getPersonList());
+        assertEquals(List.of(), addressBook.getPetList());
     }
 
     @Test
@@ -82,8 +86,21 @@ public class AddressBookTest {
     }
 
     @Test
+    public void setPerson_ownerOfPet_replacesPetOwner() {
+        addressBook.addPerson(ALICE);
+        Pet pet = new PetBuilder(ALICE).build();
+        addressBook.addPet(pet);
+        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
+
+        addressBook.setPerson(ALICE, editedAlice);
+
+        assertSame(editedAlice, addressBook.getPetList().get(0).getOwner());
+    }
+
+    @Test
     public void toStringMethod() {
-        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList() + "}";
+        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList()
+                + ", pets=" + addressBook.getPetList() + "}";
         assertEquals(expected, addressBook.toString());
     }
 
@@ -100,6 +117,11 @@ public class AddressBookTest {
         @Override
         public ObservableList<Person> getPersonList() {
             return persons;
+        }
+
+        @Override
+        public ObservableList<Pet> getPetList() {
+            return FXCollections.emptyObservableList();
         }
     }
 
