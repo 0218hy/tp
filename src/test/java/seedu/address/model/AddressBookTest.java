@@ -19,6 +19,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PetBuilder;
@@ -78,6 +79,26 @@ public class AddressBookTest {
         Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
         assertTrue(addressBook.hasPerson(editedAlice));
+    }
+
+    @Test
+    public void addPet_ownerNotInAddressBook_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> addressBook.addPet(new PetBuilder(ALICE).build()));
+    }
+
+    @Test
+    public void addPet_ownerInAddressBook_addsPet() {
+        Pet pet = new PetBuilder(ALICE).build();
+        addressBook.addPerson(ALICE);
+
+        addressBook.addPet(pet);
+
+        assertTrue(addressBook.hasPet(pet));
+    }
+
+    @Test
+    public void getPetList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getPetList().remove(0));
     }
 
     @Test

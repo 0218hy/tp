@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.UniquePetList;
 
@@ -45,6 +46,11 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Replaces the contents of the pet list with {@code pets}.
      */
     public void setPets(List<Pet> pets) {
+        for (Pet pet : pets) {
+            if (!hasPerson(pet.getOwner())) {
+                throw new PersonNotFoundException();
+            }
+        }
         this.pets.setPets(pets);
     }
 
@@ -111,6 +117,9 @@ public class AddressBook implements ReadOnlyAddressBook {
      * The pet must not already exist in the address book.
      */
     public void addPet(Pet pet) {
+        if (!hasPerson(pet.getOwner())) {
+            throw new PersonNotFoundException();
+        }
         pets.add(pet);
     }
 
@@ -119,6 +128,9 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public void setPet(Pet target, Pet editedPet) {
         requireNonNull(editedPet);
+        if (!hasPerson(editedPet.getOwner())) {
+            throw new PersonNotFoundException();
+        }
         pets.setPet(target, editedPet);
     }
 

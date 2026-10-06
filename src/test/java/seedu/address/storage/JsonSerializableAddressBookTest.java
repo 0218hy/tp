@@ -1,10 +1,12 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +55,16 @@ public class JsonSerializableAddressBookTest {
         AddressBook convertedAddressBook = new JsonSerializableAddressBook(addressBook).toModelType();
 
         assertEquals(addressBook, convertedAddressBook);
+        assertSame(convertedAddressBook.getPersonList().get(0), convertedAddressBook.getPetList().get(0).getOwner());
+    }
+
+    @Test
+    public void toModelType_duplicatePets_throwsIllegalValueException() {
+        JsonAdaptedPerson owner = new JsonAdaptedPerson(TypicalPersons.ALICE);
+        JsonAdaptedPet pet = new JsonAdaptedPet("Milo", TypicalPersons.ALICE.getName().fullName, "DOG", "Daily walk");
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(owner), List.of(pet, pet));
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PET, data::toModelType);
     }
 
 }
