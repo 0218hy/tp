@@ -81,7 +81,7 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.deletePet(pet);
 
-        assertCommandSuccess("delete-pet p/Milo i/11111111",
+        assertCommandSuccess("delete-pet p/Milo i/" + AMY.getPhone().value,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
 
         ReadOnlyAddressBook savedAddressBook = new JsonAddressBookStorage(
@@ -91,7 +91,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_deletePetWithNoMatch_throwsCommandException() {
-        assertCommandException("delete-pet p/Milo i/11111111", DeletePetCommand.MESSAGE_PET_NOT_FOUND);
+        assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
+                DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
 
     @Test

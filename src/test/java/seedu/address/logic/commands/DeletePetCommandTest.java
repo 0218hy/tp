@@ -70,7 +70,7 @@ public class DeletePetCommandTest {
 
     @Test
     public void execute_matchingNameWithWrongOwnerPhone_throwsCommandException() {
-        DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), new Phone("11111111"));
+        DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), new Phone("81111112"));
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
