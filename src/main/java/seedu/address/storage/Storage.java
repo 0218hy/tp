@@ -8,11 +8,12 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
+import seedu.address.storage.appointment.AppointmentStorage;
 
 /**
  * API of the Storage component
  */
-public interface Storage {
+public interface Storage extends AppointmentStorage {
 
     /**
      * Returns the file path of the UserPrefs data file.
