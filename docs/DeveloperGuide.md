@@ -122,8 +122,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the address book data: `Person` objects in a `UniquePersonList` and `Pet` objects in a `UniquePetList`.
+* represents each `Pet` using a name, owner, species, and grooming requirement. A pet holds a reference to its owning `Person`; when a person is replaced, any pets owned by that person are updated to reference the replacement person.
+* stores the `Person` and `Pet` objects selected by their current filters in separate _filtered_ lists. It exposes these as unmodifiable `ObservableList<Person>` and `ObservableList<Pet>` instances that the UI can observe and bind to, so the UI updates when the lists change.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -143,6 +144,7 @@ The `Model` component,
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name; when loading, that name is resolved to the corresponding `Person` object before the `Pet` is created.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes

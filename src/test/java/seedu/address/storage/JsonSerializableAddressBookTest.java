@@ -1,16 +1,19 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
+import seedu.address.testutil.PetBuilder;
 import seedu.address.testutil.TypicalPersons;
 
 public class JsonSerializableAddressBookTest {
@@ -42,6 +45,26 @@ public class JsonSerializableAddressBookTest {
                 JsonSerializableAddressBook.class).get();
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
+    }
+
+    @Test
+    public void toModelType_petWithOwner_success() throws Exception {
+        AddressBook addressBook = TypicalPersons.getTypicalAddressBook();
+        addressBook.addPet(new PetBuilder(TypicalPersons.ALICE).build());
+
+        AddressBook convertedAddressBook = new JsonSerializableAddressBook(addressBook).toModelType();
+
+        assertEquals(addressBook, convertedAddressBook);
+        assertSame(convertedAddressBook.getPersonList().get(0), convertedAddressBook.getPetList().get(0).getOwner());
+    }
+
+    @Test
+    public void toModelType_duplicatePets_throwsIllegalValueException() {
+        JsonAdaptedPerson owner = new JsonAdaptedPerson(TypicalPersons.ALICE);
+        JsonAdaptedPet pet = new JsonAdaptedPet("Milo", TypicalPersons.ALICE.getName().fullName, "DOG", "Daily walk");
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(owner), List.of(pet, pet));
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PET, data::toModelType);
     }
 
 }
