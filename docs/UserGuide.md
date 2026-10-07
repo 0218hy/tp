@@ -149,6 +149,18 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Deleting a pet: `delete-pet`
+
+Deletes the specified pet from the address book.
+
+Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+
+* Both the pet name and its owner's phone number are required to identify the pet.
+* The owner phone number must contain at least three digits.
+
+Example:
+* `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
+
 ### Clearing all entries: `clear`
 
 Clears all contacts from the address book. Any saved appointments are retained separately.
@@ -204,6 +216,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [i/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **Help** | `help`

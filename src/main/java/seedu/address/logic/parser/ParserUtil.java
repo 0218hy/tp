@@ -13,6 +13,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.pet.PetName;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -63,6 +64,21 @@ public class ParserUtil {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
         return new Phone(trimmedPhone);
+    }
+
+    /**
+     * Parses a {@code String petName} into a {@code PetName}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given pet name is invalid.
+     */
+    public static PetName parsePetName(String petName) throws ParseException {
+        requireNonNull(petName);
+        String trimmedPetName = petName.trim();
+        if (!PetName.isValidName(trimmedPetName)) {
+            throw new ParseException(PetName.MESSAGE_CONSTRAINTS);
+        }
+        return new PetName(trimmedPetName);
     }
 
     /**
