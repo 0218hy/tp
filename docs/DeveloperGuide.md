@@ -142,10 +142,36 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* saves address book data, appointments, and user preferences in separate JSON files and reads them back into objects.
+* is implemented by `StorageManager`, which delegates file access to `JsonAddressBookStorage`, `JsonAppointmentBookStorage`, and `JsonUserPrefsStorage`.
 * serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name; when loading, that name is resolved to the corresponding `Person` object before the `Pet` is created.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+
+#### Appointment persistence
+
+Persistence keeps appointments after the application closes. `AppointmentBook` holds the working schedule in memory;
+`data/appointments.json` holds the saved schedule on disk. Appointment storage classes live in `storage/appointment/`:
+
+* `AppointmentStorage` defines the read, save, and file-path operations.
+* `JsonAdaptedAppointment` converts one appointment's phone, pet name, date, times, and service into JSON fields and back.
+* `JsonSerializableAppointmentBook` converts the complete list and rejects invalid or overlapping records on loading.
+* `JsonAppointmentBookStorage` reads and writes the file. It finishes writing a temporary file before replacing the
+  saved file, using an atomic move where the filesystem supports it.
+
+The flow is `ScheduleCommand` → `AppointmentBook` → `StorageManager` → `data/appointments.json`.
+`LogicManager` reports success only after saving. If saving fails, it restores the previous in-memory schedule and
+reports the error, so the user can retry. Contact commands continue to save only the contact file; `clear` retains
+appointments.
+
+At startup, `MainApp` loads the appointment file and passes the result to `Model.setAppointmentBook`.
+Loading allows historical appointments and does not depend on current owner/pet lookup. If the file is absent, the
+schedule starts empty. Invalid files produce a log warning and an empty schedule without modifying the file.
+Contact loading remains independent. A later successful scheduling command replaces the appointment file.
+
+**Pending integration:** the default app parser reports scheduling as unavailable until the real owner/pet lookup is
+provided. Once that feature is ready, startup can construct
+`new LogicManager(model, storage, new AddressBookParser(participantLookup))`.
+The full parse, execute, save, and restart flow is tested with a test-only lookup; production has no permissive stub.
 
 ### Common classes
 

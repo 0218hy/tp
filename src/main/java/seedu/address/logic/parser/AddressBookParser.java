@@ -3,6 +3,7 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,18 +18,36 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.parser.appointment.ScheduleCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.appointment.AppointmentParticipantLookup;
 
 /**
  * Parses user input.
  */
 public class AddressBookParser {
+    public static final String MESSAGE_SCHEDULING_UNAVAILABLE =
+            "Scheduling is not available until owner and pet lookup is connected.";
 
     /**
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
+
+    private final Optional<ScheduleCommandParser> scheduleParser;
+
+    /** Creates a parser without the unfinished owner/pet lookup integration. */
+    public AddressBookParser() {
+        // TODO: Supply the real owner/pet lookup from application startup when those features are ready.
+        scheduleParser = Optional.empty();
+    }
+
+    /** Enables scheduling using the supplied owner/pet lookup implementation. */
+    public AddressBookParser(AppointmentParticipantLookup participantLookup) {
+        scheduleParser = Optional.of(new ScheduleCommandParser(participantLookup));
+    }
 
     /**
      * Parses user input into command for execution.
@@ -52,6 +71,8 @@ public class AddressBookParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
+            case ScheduleCommand.COMMAND_WORD -> scheduleParser.orElseThrow(() ->
+                    new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);

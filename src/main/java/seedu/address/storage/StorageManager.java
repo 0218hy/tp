@@ -10,6 +10,9 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.ReadOnlyAppointmentBook;
+import seedu.address.storage.appointment.AppointmentStorage;
+import seedu.address.storage.appointment.JsonAppointmentBookStorage;
 
 /**
  * Manages storage of AddressBook data in local storage.
@@ -19,13 +22,39 @@ public class StorageManager implements Storage {
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
     private JsonAddressBookStorage addressBookStorage;
     private JsonUserPrefsStorage userPrefsStorage;
+    private final AppointmentStorage appointmentStorage;
 
     /**
      * Creates a {@code StorageManager} with the given address book and user prefs storage.
      */
     public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this(addressBookStorage, userPrefsStorage, new JsonAppointmentBookStorage(
+                addressBookStorage.getAddressBookFilePath().resolveSibling("appointments.json")));
+    }
+
+    /** Creates storage with a separately configurable appointment file. */
+    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage,
+            AppointmentStorage appointmentStorage) {
         this.addressBookStorage = addressBookStorage;
         this.userPrefsStorage = userPrefsStorage;
+        this.appointmentStorage = appointmentStorage;
+    }
+
+    // ================ Appointment methods ==============================
+
+    @Override
+    public Path getAppointmentBookFilePath() {
+        return appointmentStorage.getAppointmentBookFilePath();
+    }
+
+    @Override
+    public Optional<ReadOnlyAppointmentBook> readAppointmentBook() throws DataLoadingException {
+        return appointmentStorage.readAppointmentBook();
+    }
+
+    @Override
+    public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
+        appointmentStorage.saveAppointmentBook(appointmentBook);
     }
 
     // ================ UserPrefs methods ==============================
