@@ -3,19 +3,25 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.UniquePersonList;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.UniquePetList;
 
 /**
  * Wraps all data at the address-book level.
- * Duplicates are not allowed (by .isSamePerson comparison).
+ * Stores unique persons and pets. Persons are unique by {@code Person#isSamePerson}, while pets are unique by
+ * {@code Pet#isSamePet}.
  */
 public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniquePersonList persons = new UniquePersonList();
+    private final UniquePetList pets = new UniquePetList();
 
     public AddressBook() {}
 
@@ -38,12 +44,25 @@ public class AddressBook implements ReadOnlyAddressBook {
     }
 
     /**
+     * Replaces the contents of the pet list with {@code pets}.
+     */
+    public void setPets(List<Pet> pets) {
+        for (Pet pet : pets) {
+            if (!hasPerson(pet.getOwner())) {
+                throw new PersonNotFoundException();
+            }
+        }
+        this.pets.setPets(pets);
+    }
+
+    /**
      * Resets the existing data of this {@code AddressBook} with {@code newData}.
      */
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
 
         setPersons(newData.getPersonList());
+        setPets(newData.getPetList());
     }
 
     //// person-level operations
@@ -73,6 +92,7 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(editedPerson);
 
         persons.setPerson(target, editedPerson);
+        pets.updateOwner(target, editedPerson);
     }
 
     /**
@@ -83,18 +103,64 @@ public class AddressBook implements ReadOnlyAddressBook {
         persons.remove(key);
     }
 
+    //// pet-level operations
+
+    /**
+     * Returns true if a pet with the same identity as {@code pet} exists in the address book.
+     */
+    public boolean hasPet(Pet pet) {
+        requireNonNull(pet);
+        return pets.contains(pet);
+    }
+
+    /**
+     * Adds a pet to the address book.
+     * The pet must not already exist in the address book.
+     */
+    public void addPet(Pet pet) {
+        if (!hasPerson(pet.getOwner())) {
+            throw new PersonNotFoundException();
+        }
+        pets.add(pet);
+    }
+
+    /**
+     * Replaces the given pet with {@code editedPet}.
+     */
+    public void setPet(Pet target, Pet editedPet) {
+        requireNonNull(editedPet);
+        if (!hasPerson(editedPet.getOwner())) {
+            throw new PersonNotFoundException();
+        }
+        pets.setPet(target, editedPet);
+    }
+
+    /**
+     * Removes the given pet from the address book.
+     * The pet must exist in the address book.
+     */
+    public void removePet(Pet pet) {
+        pets.remove(pet);
+    }
+
     //// util methods
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("persons", persons)
+                .add("pets", pets)
                 .toString();
     }
 
     @Override
     public ObservableList<Person> getPersonList() {
         return persons.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public ObservableList<Pet> getPetList() {
+        return pets.asUnmodifiableObservableList();
     }
 
     @Override
@@ -108,11 +174,12 @@ public class AddressBook implements ReadOnlyAddressBook {
             return false;
         }
 
-        return persons.equals(otherAddressBook.persons);
+        return persons.equals(otherAddressBook.persons)
+                && pets.equals(otherAddressBook.pets);
     }
 
     @Override
     public int hashCode() {
-        return persons.hashCode();
+        return Objects.hash(persons, pets);
     }
 }

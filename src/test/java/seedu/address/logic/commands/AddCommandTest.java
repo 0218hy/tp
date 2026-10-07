@@ -20,7 +20,10 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.pet.Pet;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandTest {
@@ -87,6 +90,21 @@ public class AddCommandTest {
      */
     private class ModelStub implements Model {
         @Override
+        public void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ReadOnlyAppointmentBook getAppointmentBook() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addAppointment(Appointment appointment) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ReadOnlyUserPrefs getUserPrefs() {
             throw new AssertionError("This method should not be called.");
         }
@@ -132,12 +150,42 @@ public class AddCommandTest {
         }
 
         @Override
+        public boolean hasPet(Pet pet) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void deletePet(Pet pet) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void addPet(Pet pet) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setPet(Pet target, Pet editedPet) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ObservableList<Person> getFilteredPersonList() {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Pet> getFilteredPetList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void updateFilteredPetList(Predicate<Pet> predicate) {
             throw new AssertionError("This method should not be called.");
         }
     }

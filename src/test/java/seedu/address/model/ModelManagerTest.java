@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -14,7 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.Species;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class ModelManagerTest {
 
@@ -71,6 +75,59 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void hasPet_nullPet_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.hasPet(null));
+    }
+
+    @Test
+    public void hasPet_petNotInAddressBook_returnsFalse() {
+        assertFalse(modelManager.hasPet(new PetBuilder(ALICE).build()));
+    }
+
+    @Test
+    public void addPet_petAdded_isPresentAndShown() {
+        Pet pet = new PetBuilder(ALICE).build();
+        modelManager.addPerson(ALICE);
+
+        modelManager.addPet(pet);
+
+        assertTrue(modelManager.hasPet(pet));
+        assertEquals(List.of(pet), modelManager.getFilteredPetList());
+    }
+
+    @Test
+    public void updateFilteredPetList_filtersPets() {
+        Pet dog = new PetBuilder(ALICE).withSpecies(Species.DOG).build();
+        Pet cat = new PetBuilder(ALICE).withName("Luna").withSpecies(Species.CAT).build();
+        modelManager.addPerson(ALICE);
+        modelManager.addPet(dog);
+        modelManager.addPet(cat);
+
+        modelManager.updateFilteredPetList(pet -> pet.getSpecies() == Species.CAT);
+
+        assertEquals(List.of(cat), modelManager.getFilteredPetList());
+        modelManager.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
+        assertEquals(List.of(dog, cat), modelManager.getFilteredPetList());
+    }
+
+    @Test
+    public void deletePet_petInAddressBook_removesPet() {
+        Pet pet = new PetBuilder(ALICE).build();
+        modelManager.addPerson(ALICE);
+        modelManager.addPet(pet);
+
+        modelManager.deletePet(pet);
+
+        assertFalse(modelManager.hasPet(pet));
+        assertEquals(List.of(), modelManager.getFilteredPetList());
+    }
+
+    @Test
+    public void getFilteredPetList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPetList().remove(0));
     }
 
     @Test
