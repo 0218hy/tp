@@ -181,4 +181,17 @@ public class EditCommandTest {
         assertEquals(expected, editCommand.toString());
     }
 
+
+    @Test
+    public void execute_changeOnlyPhoneOrEmailToHiddenClient_failure() {
+        Person other = model.getAddressBook().getPersonList().get(1);
+        showPersonAtIndex(model, INDEX_FIRST_PERSON);
+        EditCommand duplicateEmail = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail(other.getEmail().value).build());
+        EditCommand duplicatePhone = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(other.getPhone().value).build());
+        assertCommandFailure(duplicateEmail, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(duplicatePhone, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
 }

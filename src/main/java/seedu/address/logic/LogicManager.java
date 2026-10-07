@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.appointment.ScheduleCommand;
@@ -23,6 +24,7 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
+    public static final String MESSAGE_CLIENT_SAVE_FAILURE = "Unable to save client.";
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -67,6 +69,9 @@ public class LogicManager implements Logic {
         } catch (IOException ioe) {
             if (previousAppointments != null) {
                 model.setAppointmentBook(previousAppointments);
+            }
+            if (command instanceof AddCommand) {
+                throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);
             }
             if (ioe instanceof AccessDeniedException) {
                 throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, ioe.getMessage()), ioe);

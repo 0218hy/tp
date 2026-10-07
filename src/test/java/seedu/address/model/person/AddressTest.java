@@ -28,10 +28,17 @@ public class AddressTest {
         assertFalse(Address.isValidAddress("")); // empty string
         assertFalse(Address.isValidAddress(" ")); // spaces only
 
+        assertFalse(Address.isValidAddress("A".repeat(4)));
+        assertTrue(Address.isValidAddress("A".repeat(5)));
+        assertTrue(Address.isValidAddress("A".repeat(120)));
+        assertFalse(Address.isValidAddress("A".repeat(121)));
+        assertFalse(Address.isValidAddress("     "));
+        assertFalse(Address.isValidAddress("12 Road / 3"));
+
         // valid addresses
         assertTrue(Address.isValidAddress("Blk 456, Den Road, #01-355"));
-        assertTrue(Address.isValidAddress("-")); // one character
-        assertTrue(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
+        assertFalse(Address.isValidAddress("-")); // one character
+        assertFalse(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
     }
 
     @Test

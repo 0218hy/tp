@@ -7,7 +7,6 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -34,7 +33,7 @@ public class AddCommandIntegrationTest {
         expectedModel.addPerson(validPerson);
 
         assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+                String.format(AddCommand.MESSAGE_SUCCESS, validPerson.getName(), validPerson.getPhone()),
                 expectedModel);
     }
 
@@ -43,6 +42,28 @@ public class AddCommandIntegrationTest {
         Person personInList = model.getAddressBook().getPersonList().get(0);
         assertCommandFailure(new AddCommand(personInList), model,
                 AddCommand.MESSAGE_DUPLICATE_PERSON);
+    }
+
+
+    @Test
+    public void execute_sharedNameAndAddress_success() {
+        Person existing = model.getAddressBook().getPersonList().get(0);
+        Person client = new PersonBuilder(existing).withPhone("81234567")
+                .withEmail("another@example.com").build();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(client);
+        assertCommandSuccess(new AddCommand(client), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, client.getName(), client.getPhone()), expectedModel);
+    }
+
+    @Test
+    public void execute_sharedPhoneOrEmailInFilteredList_failure() {
+        Person existing = model.getAddressBook().getPersonList().get(0);
+        model.updateFilteredPersonList(person -> false);
+        Person samePhone = new PersonBuilder().withPhone(existing.getPhone().value).build();
+        Person sameEmail = new PersonBuilder().withEmail(existing.getEmail().value).build();
+        assertCommandFailure(new AddCommand(samePhone), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(new AddCommand(sameEmail), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
 }
