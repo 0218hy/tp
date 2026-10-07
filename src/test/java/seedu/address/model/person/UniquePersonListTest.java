@@ -170,4 +170,16 @@ public class UniquePersonListTest {
     public void toStringMethod() {
         assertEquals(uniquePersonList.asUnmodifiableObservableList().toString(), uniquePersonList.toString());
     }
+
+    @Test
+    public void setPerson_changeOnlyPhoneOrEmailToExistingClient_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        Person duplicateEmail = new PersonBuilder(ALICE).withEmail(BOB.getEmail().value).build();
+        Person duplicatePhone = new PersonBuilder(ALICE).withPhone(BOB.getPhone().value).build();
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, duplicateEmail));
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, duplicatePhone));
+        assertEquals(List.of(ALICE, BOB), uniquePersonList.asUnmodifiableObservableList());
+    }
+
 }
