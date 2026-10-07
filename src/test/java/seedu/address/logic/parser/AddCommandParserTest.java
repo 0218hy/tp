@@ -142,7 +142,7 @@ public class AddCommandParserTest {
 
         // missing phone prefix
         assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: p/.");
+                "Missing required field: i/.");
 
         // missing email prefix
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + ADDRESS_DESC_BOB,
@@ -162,8 +162,8 @@ public class AddCommandParserTest {
         assertParseFailure(parser, "", "Missing required field: n/.");
         assertParseFailure(parser, " n/ " + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
                 "Missing required field: n/.");
-        assertParseFailure(parser, NAME_DESC_BOB + " p/ " + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: p/.");
+        assertParseFailure(parser, NAME_DESC_BOB + " i/ " + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
+                "Missing required field: i/.");
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/ " + ADDRESS_DESC_BOB,
                 "Missing required field: e/.");
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " a/ ",

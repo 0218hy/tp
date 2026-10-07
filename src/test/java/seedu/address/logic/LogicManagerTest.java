@@ -173,7 +173,7 @@ public class LogicManagerTest {
     @Test
     public void execute_addClient_savesAndDisplaysClient() throws Exception {
         model.updateFilteredPersonList(person -> false);
-        CommandResult result = logic.execute("add-client n/Amelia Tan p/91234567 "
+        CommandResult result = logic.execute("add-client n/Amelia Tan i/91234567 "
                 + "e/amelia@example.com a/12 Punggol Drive t/regular");
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredPersonList().size());
