@@ -122,8 +122,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the address book data: `Person` objects in a `UniquePersonList` and `Pet` objects in a `UniquePetList`.
+* represents each `Pet` using a name, owner, species, and grooming requirement. A pet holds a reference to its owning `Person`; when a person is replaced, any pets owned by that person are updated to reference the replacement person.
+* stores the `Person` and `Pet` objects selected by their current filters in separate _filtered_ lists. It exposes these as unmodifiable `ObservableList<Person>` and `ObservableList<Pet>` instances that the UI can observe and bind to, so the UI updates when the lists change.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -143,6 +144,7 @@ The `Model` component,
 The `Storage` component,
 * saves address book data, appointments, and user preferences in separate JSON files and reads them back into objects.
 * is implemented by `StorageManager`, which delegates file access to `JsonAddressBookStorage`, `JsonAppointmentBookStorage`, and `JsonUserPrefsStorage`.
+* serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name; when loading, that name is resolved to the corresponding `Person` object before the `Pet` is created.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 #### Appointment persistence
@@ -287,71 +289,322 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* freelance mobile pet groomer
+* manages a significant number of contacts, appointments and pet care requirements
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Manage contacts, track grooming preferences and care requirements,
+and schedule upcoming appointments faster than with a typical mouse-driven GUI application.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+| Priority | As a …​              | I want to …​                                                    | So that I can…​                                                                |
+| -------- | -------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `* * *`  | mobile pet groomer   | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | mobile pet groomer   | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
+| `* * *`  | mobile pet groomer   | easily find the address for my next appointment                 | know exactly where to drive                                                    |
+| `* *`    | mobile pet groomer   | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
+| `* *`    | mobile pet groomer   | make changes to my upcoming appointments easily                 |                                                                                |
+| `* *`    | mobile pet groomer   | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
+| `*`      | mobile pet groomer   | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
+| `*`      | mobile pet groomer   | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
 
 *{More to be added}*
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+**System:** BuBu
 
-**Use case: Delete a person**
+**Use case:** UC1 - Add a client and their pet
 
-**MSS**
+**Actor:** Groomer
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+**Preconditions:** -
 
-    Use case ends.
+**Guarantees:**
+- A client or pet is saved only if all of its details are valid.
+- The pet is linked to the client it was added under.
+- No two clients share the same phone number or email.
 
-**Extensions**
+**MSS:**
 
-* 2a. The list is empty.
+1. Groomer requests to add a client, providing the client's name, phone number, email and address.
+2. BuBu adds the client and shows a confirmation.
+3. Groomer requests to add a pet under the client, providing the pet's name, species, optional breed and grooming requirements.
+4. BuBu adds the pet under the client and shows a confirmation.
+5. Groomer requests to view the client's pets.
+6. BuBu shows the client's pets and their details.
 
-  Use case ends.
+Use case ends.
 
-* 3a. The given index is invalid.
+**Extensions:**
 
-    * 3a1. AddressBook shows an error message.
+- 1a. BuBu detects a missing, repeated or invalid client detail.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters the corrected details.
+    - Steps 1a1-1a2 are repeated until the details are valid.
+    - Use case resumes from step 2.
+- 1b. The phone number or email already belongs to another client.
+    - 1b1. BuBu informs Groomer that the client already exists.
+    - 1b2. Groomer enters a different phone number or email.
+    - Steps 1b1-1b2 are repeated until the phone number and email are unique.
+    - Use case resumes from step 2.
+- 3a. A pet detail is missing, repeated or invalid (e.g. unsupported species, requirements containing a slash).
+    - 3b1. BuBu informs Groomer of the problem.
+    - 3b2. Groomer enters the corrected details.
+    - Steps 3b1-3b2 are repeated until the details are valid.
+    - Use case resumes from step 4.
+- 3b. The client already has a pet with the same name.
+    - 3c1. BuBu informs Groomer of the duplicate.
+    - Use case ends.
 
-      Use case resumes at step 2.
+---
 
-*{More to be added}*
+**System:** BuBu
+
+**Use case:** UC2 - Book a grooming appointment
+
+**Actor:** Groomer
+
+**Preconditions:** The client and their pet are already saved.
+
+**Guarantees:**
+
+- The new appointment does not overlap any existing appointment.
+- The appointment lies within working hours (08:00-20:00) and starts in the future.
+
+**MSS:**
+
+1. Groomer searches for the client.
+2. BuBu shows the matching clients and their details.
+3. Groomer requests to view the client's pets.
+4. BuBu shows the pets and their care requirements.
+5. Groomer requests to view the appointments on the intended date.
+6. BuBu shows the appointments on that date.
+7. Groomer requests to schedule an appointment for the pet, specifying the date, start time, end time and service.
+8. BuBu adds the appointment, shows a confirmation and shows the updated appointment list.
+
+Use case ends.
+
+**Extensions:**
+
+- 2a. No client matches the search.
+    - 2a1. BuBu informs Groomer that no clients match.
+    - 2a2. Groomer enters a different search keyword.
+    - Steps 2a1-2a2 are repeated until a client is found.
+    - Use case resumes from step 3.
+- 5a. The date is not a valid date.
+    - 5a1. BuBu informs Groomer of the problem.
+    - 5a2. Groomer enters a corrected date.
+    - Steps 5a1-5a2 are repeated until the date is valid.
+    - Use case resumes from step 6.
+- 6a. There are no appointments on that date.
+    - 6a1. BuBu informs Groomer that nothing is scheduled.
+    - Use case resumes from step 7.
+- 7a. A scheduling detail is missing, repeated or invalid (e.g. past date, outside working hours, not on 30-minute intervals, end less than 30 minutes after start, unsupported service).
+    - 7a1. BuBu informs Groomer of the problem.
+    - 7a2. Groomer enters corrected details.
+    - Steps 7a1-7a2 are repeated until the details are valid.
+    - Use case resumes from step 8.
+- 7b. The time slot overlaps an existing appointment.
+    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b2. Groomer enters a different time slot.
+    - Steps 7b1-7b2 are repeated until the slot is free.
+    - Use case resumes from step 8.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC3 - Reschedule an appointment
+
+**Actor:** Groomer
+
+**Preconditions:** At least one upcoming appointment is saved in BuBu.
+
+**Guarantees:**
+
+- The old appointment is removed only after Groomer confirms.
+- The new appointment does not overlap any existing appointment.
+
+*BuBu has no edit feature, so rescheduling is a deletion followed by a new booking.*
+
+**MSS:**
+
+1. Groomer requests to view the appointments on the date of the appointment to be moved.
+2. BuBu shows the appointments on that date.
+3. Groomer requests to delete the appointment, identifying it by date and a time within it.
+4. BuBu requests confirmation of the deletion.
+5. Groomer confirms.
+6. BuBu deletes the appointment and shows a confirmation.
+7. Groomer requests to schedule the same pet for the new slot, specifying the date, start time, end time and service.
+8. BuBu adds the appointment and shows a confirmation.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The date is not a valid date.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters a corrected date.
+    - Steps 1a1-1a2 are repeated until the date is valid.
+    - Use case resumes from step 2.
+- 2a. There are no appointments on that date.
+    - 2a1. BuBu informs Groomer that nothing is scheduled.
+    - 2a2. Groomer requests to view the appointments on a different date.
+    - Steps 2a1-2a2 are repeated until a date with appointments is found.
+    - Use case resumes from step 3.
+- 3a. The date or time is invalid.
+    - 3a1. BuBu informs Groomer that no matching appointment was found.
+    - 3a2. Groomer enters a corrected date or time.
+    - Steps 3a1-3a2 are repeated until an appointment is matched.
+    - Use case resumes from step 4.
+- 5a. Groomer cancels the deletion.
+    - 5a1. BuBu leaves the schedule unchanged.
+    - Use case ends.
+- 7a. The new slot is invalid or overlaps another appointment.
+    - 7a1. BuBu informs Groomer of the problem.
+    - 7a2. Groomer enters a different slot.
+    - Steps 7a1-7a2 are repeated until the slot is valid.
+    - The original appointment remains deleted.
+    - Use case resumes from step 8.2
+
+---
+
+**System:** BuBu
+
+**Use case:** UC4 - Remove a client who has pets and appointments
+
+**Actor:** Groomer
+
+**Preconditions:** The client has at least one saved pet and one upcoming appointment saved in BuBu.
+
+**Guarantees:**
+
+- Nothing is deleted without Groomer's confirmation.
+- A client is deleted only when no pets or appointments are linked to them.
+
+**MSS:**
+
+1. Groomer requests to view the upcoming appointments.
+2. BuBu shows the upcoming appointments.
+3. Groomer requests to delete the client's appointment.
+4. BuBu requests confirmation.
+5. Groomer confirms.
+6. BuBu deletes the appointment and shows a confirmation.
+7. Groomer requests to delete the client's pet.
+8. BuBu requests confirmation.
+9. Groomer confirms.
+10. BuBu deletes the pet and shows a confirmation.
+11. Groomer requests to delete the client.
+12. BuBu requests confirmation.
+13. Groomer confirms.
+14. BuBu deletes the client and shows a confirmation.
+
+Use case ends.
+
+**Extensions:**
+
+- 3a. The date or time is invalid.
+    - 3a1. BuBu informs Groomer that no matching appointment was found.
+    - 3a2. Groomer enters a corrected date or time.
+    - Steps 3a1-3a2 are repeated until an appointment is matched.
+    - Use case resumes from step 4.
+- 5a. Groomer cancels the appointment deletion.
+    - 5a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+- 7a. The pet still has a future appointment.
+    - 7a1. BuBu informs Groomer which appointment must be cancelled first.
+    - Use case resumes from step 3.
+- 9a. Groomer cancels the pet deletion.
+    - 9a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+- 11a. The client still has pets or appointments linked to them.
+    - 11b1. BuBu informs Groomer which linked records remain.
+    - Use case resumes from step 3 (if appointments remain) or step 7 (if only pets remain).
+- 13a. Groomer cancels the client deletion.
+    - 13a1. BuBu leaves all further records unchanged.
+    - Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC5 - Prepare for a day's appointments
+
+**Actor:** Groomer
+
+**Preconditions:** At least one client with at least one pet profile is saved in BuBu.
+
+**MSS:**
+
+1. Groomer requests to view the appointments on a given date.
+2. BuBu shows the appointments in start-time order.
+3. Groomer searches for the client of an appointment.
+4. BuBu shows the client's phone number, email and address.
+5. Groomer requests to view the client's pets.
+6. BuBu shows the pets and their care requirements.
+
+Steps 3-6 are repeated for each appointment on the date.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The date is not a valid date.
+    - 1a1. BuBu informs Groomer of the problem.
+    - 1a2. Groomer enters a corrected date.
+    - Steps 1a1-1a2 are repeated until the date is valid.
+    - Use case resumes from step 2.
+- 2a. There are no appointments on that date.
+    - 2a1. BuBu informs Groomer that nothing is scheduled.
+    - Use case ends.
+- 3a. No client matches the search.
+    - 3b1. BuBu informs Groomer that no clients match.
+    - 3b2. Groomer enters a different search keyword.
+    - Steps 3b1-3b2 are repeated until the intended client is found.
+    - Use case resumes from step 4.
 
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+2.  Should be able to hold up to 1,000 total records (clients, pets, and appointments combined) and display schedules without noticeable sluggishness in performance.
+3.  A user with above-average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+4.  Should respond to any user command and refresh the interface display within 1 second during typical usage.
+5.  Should not consume excessive memory, maintaining an active runtime memory footprint below 500 MB under normal operation.
+6.  Should persist all data immediately to the local storage file upon the completion of each mutating command so that data is preserved in the event of an abrupt application exit or crash.
+7.  Should be distributed as a single standalone executable JAR file and run without requiring an external installer, setup wizard, or administrative privileges.
+8.  Should store all application data locally in a human-editable plain-text file without requiring an external database management system.
+9.  Should operate completely offline without requiring an active internet connection, cloud services, or external server components.
+10. Should be designed for a single user per instance, relying on the host operating system's user account security without managing separate in-app user accounts or access levels.
+11. Should maintain atomic state updates such that any command that encounters a parsing or execution error leaves stored data completely unmodified.
+12. Should start safely and inform the user if the local data file is missing, empty, or corrupted, rather than terminating unexpectedly.
+13. Should remain fully functional and legible on standard laptop screen resolutions (1920x1080, 1440x900, 1366x768) across 13- to 16-inch displays without text truncation or horizontal scrolling.
+14. Will not perform any background automated tasks (such as sending scheduled reminder messages or running background daemons) when the application is idle or closed.
 
 ### Glossary
 
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **JSON (JavaScript Object Notation)**: The lightweight, human-readable plain-text format used by BuBu for local persistent file storage.
+* **CLI (Command Line Interface)**: A text-based user interface where the groomer issues discrete text commands to execute operations.
+* **GUI (Graphical User Interface)**: The visual layout built with JavaFX that displays formatted client lists, pet profiles and schedule information.
+* **Appointment**: A scheduled mobile grooming engagement linking a specific client and pet to a date, time, and care requirements.
+* **Care Requirements**: Special notes, medical conditions, temperamental traits, behavioral warnings, or styling preferences associated with a pet.
+* **Behavioral Quirks**: Custom tags attached to a pet profile indicating temperamental traits or handling considerations (e.g., `cage-anxious`, `nipper`, `hyperactive`) to help the groomer prepare appropriate equipment.
+* **Client**: A pet owner profile containing  contact information, including name, phone number, email and home address.
+* **Confirmation**: An explicit verification step required by BuBu before completing destructive actions (such as deletions) to avoid accidental data loss.
+* **Groomer**: The primary user and actor of BuBu; an independent mobile pet groomer managing appointments, client contacts, and pet profiles on-the-go.
+* **Pet Profile**: A distinct record belonging to a specific client that tracks the pet's name, species, optional breed, and care requirements.
+* **Rescheduling**: The composite workflow of deleting an existing appointment followed by booking a new slot for the same pet.
+* **Service**: A supported grooming option (e.g., full groom, basic bath, nail trim) assigned to an appointment.
+* **Time Slot**: A continuous duration on a given date during which a grooming appointment takes place, constrained to 30-minute intervals within working hours.
+* **Working Hours**: The allowable operating time frame within which appointments can be booked, defined in BuBu as 08:00 to 20:00.
 
 --------------------------------------------------------------------------------------------------------------------
 

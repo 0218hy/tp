@@ -14,6 +14,7 @@ import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.person.Person;
+import seedu.address.model.pet.Pet;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -25,6 +26,7 @@ public class ModelManager implements Model {
     private final AppointmentBook appointmentBook = new AppointmentBook();
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final FilteredList<Pet> filteredPets;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -37,6 +39,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        filteredPets = new FilteredList<>(this.addressBook.getPetList());
     }
 
     public ModelManager() {
@@ -97,6 +100,31 @@ public class ModelManager implements Model {
         addressBook.setPerson(target, editedPerson);
     }
 
+    //=========== Pet ================================================================================
+
+    @Override
+    public boolean hasPet(Pet pet) {
+        requireNonNull(pet);
+        return addressBook.hasPet(pet);
+    }
+
+    @Override
+    public void deletePet(Pet pet) {
+        addressBook.removePet(pet);
+    }
+
+    @Override
+    public void addPet(Pet pet) {
+        addressBook.addPet(pet);
+        updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
+    }
+
+    @Override
+    public void setPet(Pet target, Pet editedPet) {
+        requireAllNonNull(target, editedPet);
+        addressBook.setPet(target, editedPet);
+    }
+
     //=========== Appointments ==============================================================================
 
     @Override
@@ -131,6 +159,19 @@ public class ModelManager implements Model {
         filteredPersons.setPredicate(predicate);
     }
 
+    //=========== Filtered Pet List Accessors ========================================================
+
+    @Override
+    public ObservableList<Pet> getFilteredPetList() {
+        return filteredPets;
+    }
+
+    @Override
+    public void updateFilteredPetList(Predicate<Pet> predicate) {
+        requireNonNull(predicate);
+        filteredPets.setPredicate(predicate);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -145,7 +186,8 @@ public class ModelManager implements Model {
         return addressBook.equals(otherModelManager.addressBook)
                 && appointmentBook.equals(otherModelManager.appointmentBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && filteredPets.equals(otherModelManager.filteredPets);
     }
 
 }
