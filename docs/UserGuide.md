@@ -21,7 +21,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+   ![Ui](images/screenshots/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
@@ -68,7 +68,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 Shows a message explaining how to access the help page.
 
-![help message](images/helpMessage.png)
+![help message](images/screenshots/helpMessage.png)
 
 Format: `help`
 
@@ -133,7 +133,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+  ![result for 'find alex david'](images/screenshots/findAlexDavidResult.png)
 
 ### Deleting a person: `delete`
 

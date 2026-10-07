@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 !include style.puml
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
@@ -13,12 +14,20 @@ package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
 }
 
-package "AddressBook Storage" #F4F6F6{
-Class JsonAddressBookStorage
-Class JsonSerializableAddressBook
-Class JsonAdaptedPerson
+package "Client and pet storage" #F4F6F6{
+Class ClientPetData
+Class JsonClientPetStorage
+Class JsonSerializableClientPetData
+Class JsonAdaptedClient
 Class JsonAdaptedPet
 Class JsonAdaptedTag
+}
+
+package "Appointment storage" #F4F6F6{
+Class "<<interface>>\nAppointmentStorage" as AppointmentStorage
+Class JsonAppointmentBookStorage
+Class JsonSerializableAppointmentBook
+Class JsonAdaptedAppointment
 }
 
 }
@@ -27,12 +36,18 @@ Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage
 
 StorageManager .up.|> Storage
+Storage .up.|> AppointmentStorage
+JsonAppointmentBookStorage .up.|> AppointmentStorage
 StorageManager -down-> "1" JsonUserPrefsStorage
-StorageManager -down-> "1" JsonAddressBookStorage
+StorageManager -down-> "1" JsonClientPetStorage
 
-JsonAddressBookStorage ..> JsonSerializableAddressBook
-JsonSerializableAddressBook --> "*" JsonAdaptedPerson
-JsonSerializableAddressBook --> "*" JsonAdaptedPet
-JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonClientPetStorage ..> JsonSerializableClientPetData
+JsonClientPetStorage ..> ClientPetData
+StorageManager --> JsonAppointmentBookStorage
+JsonAppointmentBookStorage ..> JsonSerializableAppointmentBook
+JsonSerializableAppointmentBook --> "*" JsonAdaptedAppointment
+JsonSerializableClientPetData --> "*" JsonAdaptedClient
+JsonSerializableClientPetData --> "*" JsonAdaptedPet
+JsonAdaptedClient --> "*" JsonAdaptedTag
 
 @enduml

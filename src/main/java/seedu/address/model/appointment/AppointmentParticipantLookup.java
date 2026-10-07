@@ -1,6 +1,6 @@
 package seedu.address.model.appointment;
 
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 /**
  * Owner and pet lookup required by appointment scheduling.

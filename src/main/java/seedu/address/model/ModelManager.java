@@ -13,37 +13,53 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.ClientBook;
+import seedu.address.model.client.ReadOnlyClientBook;
+import seedu.address.model.client.exceptions.ClientNotFoundException;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetBook;
+import seedu.address.model.pet.ReadOnlyPetBook;
 
 /**
- * Represents the in-memory model of the address book data.
+ * Owns the client, pet, and appointment books and coordinates relationships between them.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
+    private final ClientBook clientBook;
+    private final PetBook petBook;
     private final AppointmentBook appointmentBook = new AppointmentBook();
     private final UserPrefs userPrefs;
-    private final FilteredList<Person> filteredPersons;
+    private final FilteredList<Client> filteredClients;
     private final FilteredList<Pet> filteredPets;
 
-    /**
-     * Initializes a ModelManager with the given addressBook and userPrefs.
-     */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
-
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
-
-        this.addressBook = new AddressBook(addressBook);
+    /** Initializes the model with clients, pets, and user preferences. */
+    public ModelManager(ReadOnlyClientBook clientBook, ReadOnlyPetBook petBook, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(clientBook, petBook, userPrefs);
+        logger.fine("Initializing client and pet books with user prefs " + userPrefs);
+        this.clientBook = new ClientBook(clientBook);
+        validateOwners(petBook, this.clientBook);
+        this.petBook = new PetBook(petBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        filteredPets = new FilteredList<>(this.addressBook.getPetList());
+        filteredClients = new FilteredList<>(this.clientBook.getClientList());
+        filteredPets = new FilteredList<>(this.petBook.getPetList());
+    }
+
+    public ModelManager(ReadOnlyClientBook clientBook, ReadOnlyUserPrefs userPrefs) {
+        this(clientBook, new PetBook(), userPrefs);
     }
 
     public ModelManager() {
-        this(new AddressBook(), new UserPrefs());
+        this(new ClientBook(), new PetBook(), new UserPrefs());
+    }
+
+    private static void validateOwners(ReadOnlyPetBook pets, ReadOnlyClientBook clients) {
+        for (Pet pet : pets.getPetList()) {
+            if (clients.getClientList().stream().noneMatch(client -> client.isSameClient(pet.getOwner()))) {
+                throw new ClientNotFoundException();
+            }
+        }
     }
 
     //=========== UserPrefs ==================================================================================
@@ -64,40 +80,48 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
-    //=========== AddressBook ================================================================================
+    //=========== ClientBook ================================================================================
 
     @Override
-    public void setAddressBook(ReadOnlyAddressBook addressBook) {
-        this.addressBook.resetData(addressBook);
+    public void setClientBook(ReadOnlyClientBook clientBook) {
+        ClientBook replacement = new ClientBook(clientBook);
+        validateOwners(petBook, replacement);
+        this.clientBook.resetData(replacement);
+        for (Pet pet : petBook.getPetList()) {
+            Client owner = replacement.getClientList().stream()
+                    .filter(client -> client.isSameClient(pet.getOwner())).findFirst().orElseThrow();
+            petBook.setPet(pet, pet.withOwner(owner));
+        }
     }
 
     @Override
-    public ReadOnlyAddressBook getAddressBook() {
-        return addressBook;
+    public ReadOnlyClientBook getClientBook() {
+        return clientBook;
     }
 
     @Override
-    public boolean hasPerson(Person person) {
-        requireNonNull(person);
-        return addressBook.hasPerson(person);
+    public boolean hasClient(Client client) {
+        requireNonNull(client);
+        return clientBook.hasClient(client);
     }
 
     @Override
-    public void deletePerson(Person target) {
-        addressBook.removePerson(target);
+    public void deleteClient(Client target) {
+        clientBook.removeClient(target);
     }
 
     @Override
-    public void addPerson(Person person) {
-        addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+    public void addClient(Client client) {
+        clientBook.addClient(client);
+        updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
     @Override
-    public void setPerson(Person target, Person editedPerson) {
-        requireAllNonNull(target, editedPerson);
+    public void setClient(Client target, Client editedClient) {
+        requireAllNonNull(target, editedClient);
 
-        addressBook.setPerson(target, editedPerson);
+        clientBook.setClient(target, editedClient);
+        petBook.updateOwner(target, editedClient);
     }
 
     //=========== Pet ================================================================================
@@ -105,24 +129,45 @@ public class ModelManager implements Model {
     @Override
     public boolean hasPet(Pet pet) {
         requireNonNull(pet);
-        return addressBook.hasPet(pet);
+        return petBook.hasPet(pet);
     }
 
     @Override
     public void deletePet(Pet pet) {
-        addressBook.removePet(pet);
+        petBook.removePet(pet);
     }
 
     @Override
     public void addPet(Pet pet) {
-        addressBook.addPet(pet);
+        requireNonNull(pet);
+        requireOwner(pet);
+        petBook.addPet(pet);
         updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
     }
 
     @Override
     public void setPet(Pet target, Pet editedPet) {
         requireAllNonNull(target, editedPet);
-        addressBook.setPet(target, editedPet);
+        requireOwner(editedPet);
+        petBook.setPet(target, editedPet);
+    }
+
+    @Override
+    public ReadOnlyPetBook getPetBook() {
+        return petBook;
+    }
+
+    @Override
+    public void setPetBook(ReadOnlyPetBook petBook) {
+        requireNonNull(petBook);
+        validateOwners(petBook, clientBook);
+        this.petBook.resetData(petBook);
+    }
+
+    private void requireOwner(Pet pet) {
+        if (!clientBook.hasClient(pet.getOwner())) {
+            throw new ClientNotFoundException();
+        }
     }
 
     //=========== Appointments ==============================================================================
@@ -142,21 +187,21 @@ public class ModelManager implements Model {
         appointmentBook.addAppointment(appointment);
     }
 
-    //=========== Filtered Person List Accessors =============================================================
+    //=========== Filtered Client List Accessors =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
-     * {@code addressBook}
+     * Returns an unmodifiable view of the list of {@code Client} backed by the internal list of
+     * {@code clientBook}
      */
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+    public ObservableList<Client> getFilteredClientList() {
+        return filteredClients;
     }
 
     @Override
-    public void updateFilteredPersonList(Predicate<Person> predicate) {
+    public void updateFilteredClientList(Predicate<Client> predicate) {
         requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
+        filteredClients.setPredicate(predicate);
     }
 
     //=========== Filtered Pet List Accessors ========================================================
@@ -183,10 +228,11 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return addressBook.equals(otherModelManager.addressBook)
+        return clientBook.equals(otherModelManager.clientBook)
+                && petBook.equals(otherModelManager.petBook)
                 && appointmentBook.equals(otherModelManager.appointmentBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && filteredClients.equals(otherModelManager.filteredClients)
                 && filteredPets.equals(otherModelManager.filteredPets);
     }
 

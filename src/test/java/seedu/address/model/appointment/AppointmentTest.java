@@ -10,7 +10,7 @@ import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 public class AppointmentTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");

@@ -7,17 +7,18 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
+import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
+import seedu.address.storage.ClientPetData;
 import seedu.address.storage.Storage;
 
 /**
@@ -34,20 +35,20 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
-    private final AddressBookParser addressBookParser;
+    private final BuBuParser buBuParser;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this(model, storage, new AddressBookParser());
+        this(model, storage, new BuBuParser());
     }
 
     /** Constructs logic with a parser configured for the available feature dependencies. */
-    public LogicManager(Model model, Storage storage, AddressBookParser addressBookParser) {
+    public LogicManager(Model model, Storage storage, BuBuParser buBuParser) {
         this.model = model;
         this.storage = storage;
-        this.addressBookParser = addressBookParser;
+        this.buBuParser = buBuParser;
     }
 
     @Override
@@ -55,8 +56,8 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         CommandResult commandResult;
-        Command command = addressBookParser.parseCommand(commandText);
-        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleCommand
+        Command command = buBuParser.parseCommand(commandText);
+        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleAppointmentCommand
                 ? new AppointmentBook(model.getAppointmentBook()) : null;
         commandResult = command.execute(model);
 
@@ -64,13 +65,13 @@ public class LogicManager implements Logic {
             if (previousAppointments != null) {
                 storage.saveAppointmentBook(model.getAppointmentBook());
             } else {
-                storage.saveAddressBook(model.getAddressBook());
+                storage.saveClientPetData(new ClientPetData(model.getClientBook(), model.getPetBook()));
             }
         } catch (IOException ioe) {
             if (previousAppointments != null) {
                 model.setAppointmentBook(previousAppointments);
             }
-            if (command instanceof AddCommand) {
+            if (command instanceof AddClientCommand) {
                 throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);
             }
             if (ioe instanceof AccessDeniedException) {
@@ -83,8 +84,8 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return model.getFilteredPersonList();
+    public ObservableList<Client> getFilteredClientList() {
+        return model.getFilteredClientList();
     }
 
     @Override
