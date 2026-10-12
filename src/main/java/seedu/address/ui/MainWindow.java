@@ -181,7 +181,11 @@ public class MainWindow extends UiPart<Stage> {
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            if (commandResult.isShowHelp()) {
+                resultDisplay.setHelpContent(commandResult.getFeedbackToUser());
+            } else {
+                resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            }
             setResultDisplayHeight(commandResult.isShowHelp()
                     ? HELP_RESULT_DISPLAY_HEIGHT : DEFAULT_RESULT_DISPLAY_HEIGHT);
 
