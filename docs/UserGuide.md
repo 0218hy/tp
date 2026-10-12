@@ -68,7 +68,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ### Viewing help: `help`
 
-Displays a scrollable list of available commands and their formats in the result display below the command entry box.
+Displays a scrollable list of available commands and their formats in the result display below the command entry box. Command names are emphasised and command formats use a distinct monospace font for easier scanning.
+
+You can display this reference by entering `help`, selecting **Help** from the menu, or pressing <kbd>F1</kbd>. The result display expands while the reference is shown and returns to its usual size after the next command.
 
 Format: `help`
 
