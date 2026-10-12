@@ -65,7 +65,7 @@ public class ResultDisplay extends UiPart<Region> {
         helpDisplay.setVisible(true);
     }
 
-    private String getHelpLineStyleClass(String line) {
+    static String getHelpLineStyleClass(String line) {
         if (line.isBlank()) {
             return "help-spacing";
         }
