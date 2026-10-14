@@ -1,4 +1,6 @@
-package seedu.address.logic.parser;
+package seedu.address.logic.parser.pet;
+
+import seedu.address.logic.parser.Prefix;
 
 /**
  * Defines the command prefixes for pet profile fields.

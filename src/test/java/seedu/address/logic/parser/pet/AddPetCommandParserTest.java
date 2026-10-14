@@ -1,4 +1,4 @@
-package seedu.address.logic.parser;
+package seedu.address.logic.parser.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -8,14 +8,16 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.AddPetCommand;
+import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 
-/** Tests input validation for {@code add-pet}. */
+/**
+ * Tests input validation for {@code add-pet}.
+ */
 public class AddPetCommandParserTest {
     private static final String VALID_FIELDS = " p/Mochi i/91234567 s/Dog r/Calm with baths";
     private static final int MAX_PET_NAME_LENGTH = 40;
@@ -72,7 +74,7 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_missingAndRepeatedFields_reportsSpecificErrors() {
+    public void parse_missingOrRepeatedFields_throwsParseException() {
         assertThrows(ParseException.class, "Missing required field: PET_NAME.", () ->
                 parser.parse(" i/91234567 s/Dog r/Calm with baths"));
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_DUPLICATE_FIELD, () ->
@@ -80,7 +82,7 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_eachRequiredFieldMissing_reportsItsName() {
+    public void parse_eachRequiredFieldMissing_throwsParseException() {
         List<String> fields = List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths");
         List<String> labels = List.of("PET_NAME", "OWNER_IDENTIFIER", "SPECIES", "REQUIREMENTS");
         for (int index = 0; index < fields.size(); index++) {
@@ -91,7 +93,7 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_repeatedFieldsIncludingBreed_reportsDuplicate() {
+    public void parse_repeatedFieldsIncludingBreed_throwsParseException() {
         for (String field : List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths")) {
             assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_DUPLICATE_FIELD, () ->
                     parser.parse(VALID_FIELDS + " " + field));
@@ -101,7 +103,7 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_invalidValues_reportsFieldErrors() {
+    public void parse_invalidValues_throwsParseException() {
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
                 parser.parse(VALID_FIELDS.replace("91234567", "71234567")));
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_SPECIES, () ->
@@ -113,19 +115,19 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_unknownPrefix_reportsInvalidStructure() {
+    public void parse_unknownPrefix_throwsParseException() {
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
                 parser.parse("p/Mochi i/91234567 s/Dog x/extra r/Calm with baths"));
     }
 
     @Test
-    public void parse_unknownPrefixInsideRequirements_reportsRequirementsError() {
+    public void parse_unknownPrefixInsideRequirements_throwsParseException() {
         assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
                 parser.parse(VALID_FIELDS.replace("Calm with baths", "Needs x/ care")));
     }
 
     @Test
-    public void parse_recognizedPrefixAfterRequirements_reportsDuplicateField() {
+    public void parse_recognizedPrefixAfterRequirements_throwsParseException() {
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_DUPLICATE_FIELD, () ->
                 parser.parse(VALID_FIELDS.replace("Calm with baths", "Needs p/ care")));
     }

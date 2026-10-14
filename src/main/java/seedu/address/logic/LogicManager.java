@@ -8,11 +8,12 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.AddPetCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.appointment.ScheduleCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -83,12 +84,27 @@ public class LogicManager implements Logic {
         if (command instanceof AddPetCommand && isAddressBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
+
+        return executeCommand(command);
+    }
+
+    /**
+     * Executes a parsed command and applies its persistence behavior.
+     * Captures prior state for commands whose changes must be restored if saving fails.
+     *
+     * @param command The parsed command to execute.
+     * @return The result of the executed command.
+     * @throws CommandException if the command fails or its result cannot be saved.
+     */
+    private CommandResult executeCommand(Command command) throws CommandException {
         ReadOnlyAddressBook previousAddressBook = command instanceof AddPetCommand
                 ? new AddressBook(model.getAddressBook()) : null;
         ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleCommand
                 ? new AppointmentBook(model.getAppointmentBook()) : null;
         CommandResult commandResult = command.execute(model);
-        saveCommandResult(command, previousAddressBook, previousAppointments);
+        if (!(command instanceof ListPetsCommand)) {
+            saveCommandResult(command, previousAddressBook, previousAppointments);
+        }
         return commandResult;
     }
 
