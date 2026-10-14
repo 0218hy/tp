@@ -53,19 +53,16 @@ public class BuBuParser {
     private static final Logger logger = LogsCenter.getLogger(BuBuParser.class);
 
     private final Optional<AddAppointmentCommandParser> addAppointmentParser;
-    private final DeleteAppointmentCommandParser deleteAppointmentParser;
 
     /** Creates a parser without the unfinished owner/pet lookup integration. */
     public BuBuParser() {
         // TODO: Supply the real owner/pet lookup from application startup when those features are ready.
         addAppointmentParser = Optional.empty();
-        deleteAppointmentParser = new DeleteAppointmentCommandParser();
     }
 
     /** Enables scheduling using the supplied owner/pet lookup implementation. */
     public BuBuParser(AppointmentParticipantLookup participantLookup) {
         addAppointmentParser = Optional.of(new AddAppointmentCommandParser(participantLookup));
-        deleteAppointmentParser = new DeleteAppointmentCommandParser();
     }
 
     /**
@@ -93,7 +90,7 @@ public class BuBuParser {
             case ListAppointmentsCommand.COMMAND_WORD -> new ListAppointmentsCommandParser().parse(arguments);
             case AddAppointmentCommand.COMMAND_WORD -> addAppointmentParser.orElseThrow(() ->
                     new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
-            case DeleteAppointmentCommand.COMMAND_WORD -> deleteAppointmentParser.parse(arguments);
+            case DeleteAppointmentCommand.COMMAND_WORD -> new DeleteAppointmentCommandParser().parse(arguments);
             case AddClientCommand.COMMAND_WORD -> new AddClientCommandParser().parse(arguments);
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);
             case EditClientCommand.COMMAND_WORD -> new EditClientCommandParser().parse(arguments);
