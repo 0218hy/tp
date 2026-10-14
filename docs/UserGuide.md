@@ -236,6 +236,32 @@ Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
 Example:
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
+### Deleting an appointment: `delete-appointment`
+
+Deletes a saved grooming appointment using either its appointment-list index or a date and time within the appointment.
+
+Formats:
+
+```text
+delete-appointment INDEX
+delete-appointment d/DD-MM-YYYY t/HH:mm
+```
+
+* `INDEX` must be a positive integer and refers to the appointment's one-based position in the appointment list.
+* The date must be a real date in `DD-MM-YYYY` format.
+* The time may be any valid `HH:mm` value. An appointment matches when the time is at or after its start time and
+  before its end time.
+* Provide either an index or a date/time pair, but not both.
+
+Examples:
+
+* `delete-appointment d/01-01-9999 t/10:30` deletes the appointment containing 10:30 on 1 January 9999.
+* `delete-appointment 1` deletes the first appointment in the appointment list.
+
+If no appointment matches the supplied date and time, the app reports `No appointment was found for the specified date
+and time.` An invalid index reports `The appointment index provided is invalid.` Combining an index with date/time
+identifiers reports `An appointment index cannot be combined with date/time identifiers.`
+
 ### Clearing all entries: `clear`
 
 Clears all contacts from the address book. Any saved appointments are retained separately.
@@ -253,6 +279,7 @@ Format: `exit`
 Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
 Scheduling in the app is pending owner/pet lookup integration; once enabled, bookings use this same data file.
+Appointments that are already saved can still be deleted using `delete-appointment`.
 
 ### Editing the data file
 

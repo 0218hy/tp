@@ -46,6 +46,8 @@ Consumers read it through `ReadOnlyGroomingBook` and `Model.getGroomingBook()`.
 Tests mirror these feature packages. Shared parsing utilities stay in `logic.parser.ParserUtil`;
 client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` respectively.
 `AddAppointmentCommand` and `AddAppointmentCommandParser` handle the `add-appointment` command.
+`DeleteAppointmentCommand` and `DeleteAppointmentCommandParser` handle the `delete-appointment` command. The latter
+accepts either a one-based appointment index or a date/time pair.
 
 Replacing the grooming book validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners. Historical
@@ -200,7 +202,9 @@ Appointments belong to the shared `GroomingBook` and are saved in the same file 
 `JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
 Loading accepts historical appointments and rejects invalid or overlapping records.
 
-The flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/groombook.json`.
+The scheduling flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/groombook.json`.
+The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
+`GroomingBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
 `LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
 an error. `clear` removes clients and pets while retaining the appointment history in the same file.
 
@@ -838,6 +842,50 @@ testers are expected to do more *exploratory* testing.
       Expected: Only that owner's `Milo` is deleted.
 
 1. _{ more test cases …​ }_
+
+### Deleting an appointment
+
+1. Deleting by date and time
+
+   1. Prerequisites: A saved appointment exists on `01-01-9999` from `10:00` to `11:00`.
+
+   2. Test case: `delete-appointment d/01-01-9999 t/10:30`<br>
+      Expected: The appointment is deleted and the status message confirms the deleted appointment.
+
+   3. Test case: `delete-appointment d/01-01-9999 t/10:00`<br>
+      Expected: The appointment is deleted; the start time is included in the matching interval.
+
+   4. Test case: `delete-appointment d/01-01-9999 t/11:00`<br>
+      Expected: No appointment is deleted; the end time is excluded from the matching interval.
+
+   5. Test case: `delete-appointment d/02-01-9999 t/10:30`<br>
+      Expected: No appointment is deleted because no appointment matches the supplied date and time.
+
+2. Deleting by appointment index
+
+   1. Prerequisites: The appointment list contains at least one appointment and index `1` refers to a saved appointment.
+
+   2. Test case: `delete-appointment 1`<br>
+      Expected: The first appointment is deleted and the status message confirms the deleted appointment.
+
+   3. Test case: `delete-appointment 0` or `delete-appointment 999`<br>
+      Expected: No appointment is deleted and the status message shows an invalid-index error.
+
+3. Invalid selector combinations and formats
+
+   1. Test case: `delete-appointment`<br>
+      Expected: The command is rejected because no selector was provided.
+
+   2. Test case: `delete-appointment 1 d/01-01-9999 t/10:30`<br>
+      Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
+
+   3. Test case: `delete-appointment d/31-02-2026 t/10:30` or `delete-appointment d/01-01-9999 t/25:00`<br>
+      Expected: The command is rejected because the date or time is invalid.
+
+4. Persistence after deletion
+
+   1. Test case: Delete a saved appointment, close the app, and relaunch it.<br>
+      Expected: The deleted appointment remains absent after restart.
 
 ### Saving data
 
