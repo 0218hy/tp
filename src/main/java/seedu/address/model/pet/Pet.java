@@ -9,23 +9,35 @@ import seedu.address.model.person.Person;
 
 /**
  * Represents a pet in the address book.
- * Guarantees: details are present and not null; immutable.
+ * Its required details are non-null, while breed may be absent.
+ * The profile is immutable.
  */
 public class Pet {
 
     private final PetName name;
     private final Person owner;
     private final Species species;
+    private final Breed breed;
     private final Requirement requirement;
 
     /**
-     * Every field must be present and not null.
+     * Creates a pet without a recorded breed.
+     * All supplied fields must be non-null.
      */
     public Pet(PetName name, Person owner, Species species, Requirement requirement) {
+        this(name, owner, species, null, requirement);
+    }
+
+    /**
+     * Creates a pet with an optional breed.
+     * All other fields must be non-null.
+     */
+    public Pet(PetName name, Person owner, Species species, Breed breed, Requirement requirement) {
         requireAllNonNull(name, owner, species, requirement);
         this.name = name;
         this.owner = owner;
         this.species = species;
+        this.breed = breed;
         this.requirement = requirement;
     }
 
@@ -41,19 +53,28 @@ public class Pet {
         return species;
     }
 
+    /**
+     * Returns the breed, or {@code null} when it was not supplied.
+     */
+    public Breed getBreed() {
+        return breed;
+    }
+
     public Requirement getRequirement() {
         return requirement;
     }
 
     /**
      * Returns a copy of this pet with the given owner.
+     * The pet's name, species, breed, and care requirements are preserved.
      */
     public Pet withOwner(Person newOwner) {
-        return new Pet(name, newOwner, species, requirement);
+        return new Pet(name, newOwner, species, breed, requirement);
     }
 
     /**
-     * Returns true if both pets have the same owner and name.
+     * Returns whether both pets belong to the same owner and have the same normalized name.
+     * Case and repeated whitespace in the names do not affect identity.
      */
     public boolean isSamePet(Pet otherPet) {
         if (otherPet == this) {
@@ -61,8 +82,8 @@ public class Pet {
         }
 
         return otherPet != null
-                && owner.isSamePerson(otherPet.owner)
-                && name.equals(otherPet.name);
+                && owner.getPhone().equals(otherPet.owner.getPhone())
+                && name.getNormalizedName().equals(otherPet.name.getNormalizedName());
     }
 
     @Override
@@ -78,12 +99,13 @@ public class Pet {
         return name.equals(otherPet.name)
                 && owner.equals(otherPet.owner)
                 && species.equals(otherPet.species)
+                && Objects.equals(breed, otherPet.breed)
                 && requirement.equals(otherPet.requirement);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, owner, species, requirement);
+        return Objects.hash(name, owner, species, breed, requirement);
     }
 
     @Override
@@ -92,6 +114,7 @@ public class Pet {
                 .add("name", name)
                 .add("owner", owner)
                 .add("species", species)
+                .add("breed", breed)
                 .add("requirement", requirement)
                 .toString();
     }

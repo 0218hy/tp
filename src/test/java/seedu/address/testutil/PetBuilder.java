@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import seedu.address.model.person.Person;
+import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
@@ -17,6 +18,7 @@ public class PetBuilder {
     private PetName name;
     private Person owner;
     private Species species;
+    private Breed breed;
     private Requirement requirement;
 
     /**
@@ -36,6 +38,7 @@ public class PetBuilder {
         name = petToCopy.getName();
         owner = petToCopy.getOwner();
         species = petToCopy.getSpecies();
+        breed = petToCopy.getBreed();
         requirement = petToCopy.getRequirement();
     }
 
@@ -71,7 +74,15 @@ public class PetBuilder {
         return this;
     }
 
+    /**
+     * Sets the optional breed of the pet being built.
+     */
+    public PetBuilder withBreed(String breed) {
+        this.breed = new Breed(breed);
+        return this;
+    }
+
     public Pet build() {
-        return new Pet(name, owner, species, requirement);
+        return new Pet(name, owner, species, breed, requirement);
     }
 }

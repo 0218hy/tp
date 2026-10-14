@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.testutil.PetBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +85,21 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_petBreedAndOwnerPhone_roundTrip() throws Exception {
+        Path filePath = testFolder.resolve("PetsAddressBook.json");
+        AddressBook original = getTypicalAddressBook();
+        original.addPet(new PetBuilder(ALICE).withName("Mochi").withBreed("Golden retriever").build());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+        ReadOnlyAddressBook readBack = storage.readAddressBook().orElseThrow();
+
+        assertEquals(original, new AddressBook(readBack));
+        assertEquals("Golden retriever", readBack.getPetList().getFirst().getBreed().value);
+        assertEquals(ALICE.getPhone(), readBack.getPetList().getFirst().getOwner().getPhone());
     }
 
     @Test

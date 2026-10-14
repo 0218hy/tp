@@ -3,6 +3,8 @@ package seedu.address.model.pet;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a pet's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}.
@@ -10,8 +12,9 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class PetName {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Pet names should only contain alphanumeric characters and spaces, and should not be blank";
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+            "Pet name must be 1-40 characters and use valid name characters.";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{N} .'-]+";
+    private static final int MAX_LENGTH = 40;
 
     public final String value;
 
@@ -27,10 +30,21 @@ public class PetName {
     }
 
     /**
-     * Returns true if a given string is a valid pet name.
+     * Returns whether the text is a valid pet name.
+     * Names must fit the length limit and contain only the supported characters.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test != null && !test.isBlank() && test.length() <= MAX_LENGTH
+                && test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns the form used to identify duplicate names under one owner.
+     * Leading and trailing whitespace is removed, internal whitespace is collapsed,
+     * and letter case is ignored.
+     */
+    public String getNormalizedName() {
+        return value.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     @Override

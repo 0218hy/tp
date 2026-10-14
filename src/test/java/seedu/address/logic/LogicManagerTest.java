@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddClient;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -28,10 +30,12 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.pet.Pet;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -60,14 +64,49 @@ public class LogicManagerTest {
 
     @Test
     public void execute_commandExecutionError_throwsCommandException() {
-        String deleteCommand = "delete 9";
-        assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        String deleteClientCommand = "delete-client 9";
+        assertCommandException(deleteClientCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_addPet_parsesAddsAndSavesProfile() throws Exception {
+        model.addPerson(ALICE);
+
+        CommandResult result = logic.execute("add-pet p/Mochi i/" + ALICE.getPhone()
+                + " s/Cat r/Calm with baths");
+
+        assertEquals("Pet added: Mochi (Cat) under Alice Pauline.", result.getFeedbackToUser());
+        assertEquals("Mochi", model.getAddressBook().getPetList().getFirst().getName().value);
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_deletePet_successAndSavesUpdatedAddressBook() throws Exception {
+        Pet pet = new PetBuilder(AMY).build();
+        model.addPerson(AMY);
+        model.addPet(pet);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePet(pet);
+
+        assertCommandSuccess("delete-pet p/Milo i/" + AMY.getPhone().value,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
+
+        ReadOnlyAddressBook savedAddressBook = new JsonAddressBookStorage(
+                temporaryFolder.resolve("addressBook.json")).readAddressBook().get();
+        assertEquals(expectedModel.getAddressBook(), savedAddressBook);
+    }
+
+    @Test
+    public void execute_deletePetWithNoMatch_throwsCommandException() {
+        assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
+                DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
 
     @Test
@@ -78,6 +117,34 @@ public class LogicManagerTest {
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
+    }
+
+    @Test
+    public void execute_addPetSaveFails_restoresModel() {
+        model.addPerson(ALICE);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("pets.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        StorageManager storage = new StorageManager(addressBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
+        logic = new LogicManager(model, storage);
+
+        assertCommandException("add-pet p/Mochi i/" + ALICE.getPhone() + " s/Dog r/Calm with baths",
+                LogicManager.MESSAGE_UNABLE_TO_SAVE_PET);
+        assertEquals(expectedModel, model);
+    }
+
+    @Test
+    public void execute_addPetCorruptedRecords_reportsError() {
+        logic = new LogicManager(model, new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("pets.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), true);
+        assertCommandException("add-pet p/Mochi i/91234567 s/Dog r/Calm with baths",
+                LogicManager.MESSAGE_CORRUPTED_RECORDS);
     }
 
     @Test

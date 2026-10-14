@@ -6,6 +6,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,8 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddClient;
 import seedu.address.logic.commands.ClearCommand;
-import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.DeleteClientCommand;
+import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
@@ -24,6 +26,8 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
+import seedu.address.model.pet.PetName;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -47,9 +51,46 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_delete() throws Exception {
-        DeleteCommand command = (DeleteCommand) parser.parseCommand(
-                DeleteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased());
-        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
+        DeleteClientCommand command = (DeleteClientCommand) parser.parseCommand(
+                DeleteClientCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased());
+        assertEquals(new DeleteClientCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
+    public void parseCommand_deletePet() throws Exception {
+        DeletePetCommand command = (DeletePetCommand) parser.parseCommand(
+                DeletePetCommand.COMMAND_WORD + " p/Milo i/98765432");
+        assertEquals(new DeletePetCommand(new PetName("Milo"), new Phone("98765432")), command);
+    }
+
+    @Test
+    public void parseCommand_deleteByPhoneIdentifier() throws Exception {
+        DeleteClientCommand command = (DeleteClientCommand) parser.parseCommand(
+                DeleteClientCommand.COMMAND_WORD + " i/" + ALICE.getPhone().value);
+
+        assertEquals(new DeleteClientCommand(ALICE.getPhone()), command);
+    }
+
+    @Test
+    public void parseCommand_deleteWithIndexAndPhoneIdentifier_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                        -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD
+                        + " " + INDEX_FIRST_PERSON.getOneBased() + " i/" + ALICE.getPhone().value));
+    }
+
+    @Test
+    public void parseCommand_deleteWithoutIdentifier_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                        -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD));
+    }
+
+    @Test
+    public void parseCommand_deleteWithInvalidPhoneIdentifier_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                        -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD + " i/12"));
     }
 
     @Test

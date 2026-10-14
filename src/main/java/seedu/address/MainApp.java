@@ -43,6 +43,7 @@ public class MainApp extends Application {
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+    private boolean isAddressBookCorrupted;
 
     @Override
     public void init() throws Exception {
@@ -56,7 +57,7 @@ public class MainApp extends Application {
 
         model = initModelManager(storage, userPrefs);
 
-        logic = new LogicManager(model, storage);
+        logic = new LogicManager(model, storage, isAddressBookCorrupted);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
     }
@@ -80,6 +81,7 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
+            isAddressBookCorrupted = true;
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Will be starting with an empty AddressBook.");
             initialData = new AddressBook();

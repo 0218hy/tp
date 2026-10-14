@@ -15,28 +15,30 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+2. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+3. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
 
    * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete-client 3` : Deletes the 3rd contact shown in the current list.
+
+   * `delete-client i/91234567` : Deletes the person with phone number `91234567`.
 
    * `clear` : Deletes all contacts.
 
    * `exit` : Exits the app.
 
-1. Refer to the [Features](#features) section below for details of each command.
+6. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -135,19 +137,77 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a person: `delete`
+### Deleting a person: `delete-client`
 
-Deletes the specified person from the address book.
+Deletes a person from the address book using either their displayed index or phone number.
 
-Format: `delete INDEX`
+Formats:
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, …​
+```text
+delete-client INDEX
+delete-client i/PHONE_NUMBER
+```
+
+* `INDEX` must be a positive integer.
+* The index refers to the displayed person list.
+* `PHONE_NUMBER` must contain exactly 8 digits starting with 8 or 9.
+* Provide either an index or a phone identifier, but not both.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete-client 2` deletes the 2nd person.
+* `find Betsy` followed by `delete-client 1` deletes the 1st search result.
+* `delete-client i/91234567` deletes the person with phone number `91234567`.
+
+### Adding a pet to a person: `add-pet`
+
+Creates a pet profile for a person already in the address book. Identify the owner by phone number, not by name.
+The command reports the pet and owner's name when the profile is saved; it does not change the current person list.
+
+Format: `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`
+
+* `PET_NAME`: 1–40 letters, digits, spaces, apostrophes, hyphens, or full stops.
+* `OWNER_IDENTIFIER`: the owner's existing eight-digit phone number, starting with `8` or `9`. Do not include spaces or hyphens.
+* `SPECIES`: `Dog`, `Cat`, `Rabbit`, `Guinea Pig`, or `Other`, ignoring letter case. `Guinea_Pig` is also accepted.
+* `BREED`: optional; if supplied, 2–50 letters, digits, spaces, apostrophes, hyphens, or full stops.
+* `REQUIREMENTS`: 5–240 characters describing grooming or care needs. Do not include `/` in a value.
+
+Each field may be supplied only once. More than one pet can belong to the same owner, but pet names under that owner
+must differ after ignoring letter case and extra whitespace. Different owners may have pets with the same name.
+
+Example output:
+* `add-pet p/Mochi i/87438807 s/Dog b/Golden retriever r/Nervous around dryers`<br>
+  Expected: `Pet added: Mochi (Dog, Golden retriever) under Alex Yeoh.`
+* `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`<br>
+  Expected: `Pet added: BuBu (Cat) under Alex Yeoh.`
+
+Invalid values produce these messages:
+
+| Field | Message |
+| --- | --- |
+| `PET_NAME` | `Pet name must be 1-40 characters and use valid name characters.` |
+| `OWNER_IDENTIFIER` | `Owner identifier must be a valid phone number belonging to the specified client.` |
+| `SPECIES` | `Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.` |
+| `BREED` | `Breed must be 2-50 characters and use valid text characters.` |
+| `REQUIREMENTS` | `Requirements must be 5-240 characters and cannot contain /.` |
+
+A missing required field reports `Missing required field: [field].`; repeated fields report
+`Each pet field may be specified only once.` An unknown prefix or extra text outside a field reports
+`Invalid command format. Check the command syntax and try again.` A valid phone number with no registered owner reports
+`The owner identifier does not belong to the specified client.` A duplicate under the same owner reports
+`This client already has a pet named [PET_NAME].` If saving fails, the pet is not added and the app reports
+`Unable to save a pet. Please try again.`
+
+### Deleting a pet: `delete-pet`
+
+Deletes the specified pet from the address book.
+
+Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+
+* Both the pet name and its owner's phone number are required to identify the pet.
+* The owner phone number must contain at least three digits.
+
+Example:
+* `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
 ### Clearing all entries: `clear`
 
@@ -166,6 +226,7 @@ Format: `exit`
 Contact data is saved automatically after successful contact commands. Appointments have a separate save file,
 `data/appointments.json`, which loads when the app starts. Scheduling in the app is pending owner/pet lookup integration;
 once enabled, each successful booking is saved automatically. You do not need to save manually.
+Successful `add-pet` commands also save the new pet in `data/addressbook.json` automatically.
 
 ### Editing the data file
 
@@ -173,6 +234,8 @@ AddressBook data is saved automatically as a JSON file `[JAR file location]/data
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
+If the address-book file cannot be loaded, `add-pet` reports `Unable to verify existing records. Please contact support.`
+and does not overwrite the file.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -200,10 +263,12 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit** | `edit INDEX [n/NAME] [i/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
+**Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
+**Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **Help** | `help`

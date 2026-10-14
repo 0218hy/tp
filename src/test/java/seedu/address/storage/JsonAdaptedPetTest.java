@@ -17,6 +17,7 @@ import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
+import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class JsonAdaptedPetTest {
@@ -36,6 +37,46 @@ public class JsonAdaptedPetTest {
 
         assertEquals(expectedPet, actualPet);
         assertSame(ALICE, actualPet.getOwner());
+    }
+
+    @Test
+    public void toModelType_breedAndOwnerPhone_preserved() throws Exception {
+        String breed = "Golden retriever";
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, ALICE.getPhone().value,
+                VALID_SPECIES, breed, VALID_REQUIREMENT);
+
+        Pet actualPet = pet.toModelType(VALID_PERSONS);
+
+        assertEquals(breed, actualPet.getBreed().value);
+        assertSame(ALICE, actualPet.getOwner());
+    }
+
+    @Test
+    public void toModelType_legacyOwnerNameMatchesMultipleClients_throwsIllegalValueException() {
+        Person sameNameClient = new PersonBuilder(BOB).withName(VALID_OWNER_NAME).build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
+
+        String expectedMessage = JsonAdaptedPet.MESSAGE_AMBIGUOUS_OWNER;
+        List<Person> clientsWithSameName = List.of(ALICE, sameNameClient);
+        assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(clientsWithSameName));
+    }
+
+    @Test
+    public void toModelType_ownerPhoneDistinguishesClientsWithSameName_returnsCorrectOwner() throws Exception {
+        Person sameNameClient = new PersonBuilder(BOB).withName(VALID_OWNER_NAME).build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, sameNameClient.getPhone().value,
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+
+        assertSame(sameNameClient, pet.toModelType(List.of(ALICE, sameNameClient)).getOwner());
+    }
+
+    @Test
+    public void toModelType_ownerNameConflictsWithPhone_throwsIllegalValueException() {
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, BOB.getPhone().value,
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+
+        String expectedMessage = JsonAdaptedPet.MESSAGE_OWNER_DETAILS_MISMATCH;
+        assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(VALID_PERSONS));
     }
 
     @Test

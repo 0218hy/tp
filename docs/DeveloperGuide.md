@@ -51,7 +51,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete-client 1`.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="574" />
 
@@ -91,17 +91,17 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <img src="images/LogicClassDiagram.png" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete-client 1")` API call as an example.
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
+![Interactions Inside the Logic Component for the `delete-client 1` Command](images/DeleteSequenceDiagram.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteClientCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
+1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
+1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
 1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
@@ -112,7 +112,14 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddClientParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddClient`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddClientParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* All `XYZCommandParser` classes, such as `AddClientParser` and `DeleteClientCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+
+The `delete-client` command accepts exactly one identifier:
+
+* A positive integer index, which refers to the currently displayed person list.
+* A phone identifier using the `i/PHONE_NUMBER` prefix, which searches the full address book.
+
+The command rejects inputs that provide both identifiers or neither identifier.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -123,7 +130,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data: `Person` objects in a `UniquePersonList` and `Pet` objects in a `UniquePetList`.
-* represents each `Pet` using a name, owner, species, and grooming requirement. A pet holds a reference to its owning `Person`; when a person is replaced, any pets owned by that person are updated to reference the replacement person.
+* represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference to its owning `Person`; when a person is replaced, any pets owned by that person are updated to reference the replacement person.
 * stores the `Person` and `Pet` objects selected by their current filters in separate _filtered_ lists. It exposes these as unmodifiable `ObservableList<Person>` and `ObservableList<Pet>` instances that the UI can observe and bind to, so the UI updates when the lists change.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -144,7 +151,7 @@ The `Model` component,
 The `Storage` component,
 * saves address book data, appointments, and user preferences in separate JSON files and reads them back into objects.
 * is implemented by `StorageManager`, which delegates file access to `JsonAddressBookStorage`, `JsonAppointmentBookStorage`, and `JsonUserPrefsStorage`.
-* serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name; when loading, that name is resolved to the corresponding `Person` object before the `Pet` is created.
+* serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone when available, or by name for older records.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 #### Appointment persistence
@@ -201,7 +208,7 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete-client 5` command to delete the 5th person in the address book. The `delete-client` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete-client 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
@@ -262,7 +269,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete-client`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -304,16 +311,23 @@ and schedule upcoming appointments faster than with a typical mouse-driven GUI a
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​              | I want to …​                                                    | So that I can…​                                                                |
-| -------- | -------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `* * *`  | mobile pet groomer   | add a new client and their pet’s basic information              | start building my digital roster                                               |
-| `* * *`  | mobile pet groomer   | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
-| `* * *`  | mobile pet groomer   | easily find the address for my next appointment                 | know exactly where to drive                                                    |
-| `* *`    | mobile pet groomer   | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
-| `* *`    | mobile pet groomer   | make changes to my upcoming appointments easily                 |                                                                                |
-| `* *`    | mobile pet groomer   | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
-| `*`      | mobile pet groomer   | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
-| `*`      | mobile pet groomer   | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
+| Priority | As a …​                                    | I want to …​                                                    | So that I can…​                                                                |
+| -------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `* * *`  | new user                                   | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
+| `* * *`  | mobile pet groomer                         | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | user                                       | add a new person                                                |                                                                                |
+| `* * *`  | user                                       | find a person by name                                           | locate details of persons without having to go through the entire list         |
+| `* * *`  | mobile pet groomer                         | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
+| `* * *`  | mobile pet groomer                         | easily find the address for my next appointment                 | know exactly where to drive                                                    |
+| `* * *`  | user                                       | delete a person                                                 | remove entries that I no longer need                                           |
+| `* * *`  | user                                       | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                      |
+| `* *`    | mobile pet groomer                         | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
+| `* *`    | mobile pet groomer                         | make changes to my upcoming appointments easily                 |                                                                                |
+| `* *`    | mobile pet groomer                         | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
+| `* *`    | user                                       | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
+| `*`      | mobile pet groomer                         | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
+| `*`      | mobile pet groomer                         | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
+| `*`      | user with many persons in the address book | sort persons by name                                            | locate a person easily                                                         |
 
 *{More to be added}*
 
@@ -570,6 +584,31 @@ Use case ends.
     - 3b2. Groomer enters a different search keyword.
     - Steps 3b1-3b2 are repeated until the intended client is found.
     - Use case resumes from step 4.
+**Use case: Delete a pet**
+
+**MSS**
+
+1.  User requests to delete a pet by providing the pet's name and its owner's phone number.
+2.  AddressBook finds the pet matching both values.
+3.  AddressBook deletes the pet.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The command format, pet name, or owner phone number is invalid.
+
+    * 1a1. AddressBook shows an error message.
+
+      Use case ends.
+
+* 2a. No pet matches the given name and owner phone number.
+
+    * 2a1. AddressBook shows an error message.
+
+      Use case ends.
+
+*{More to be added}*
 
 ### Non-Functional Requirements
 
@@ -623,32 +662,79 @@ testers are expected to do more *exploratory* testing.
 
    1. Download the JAR file and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
+   2. Double-click the JAR file.<br>
       Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
 
-1. Saving window preferences
+2. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   2. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases …​ }_
+3. _{ more test cases …​ }_
 
 ### Deleting a person
 
-1. Deleting a person while all persons are being shown
+1. Deleting by displayed index
 
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+   2. Test case: `delete-client 1`<br>
+      Expected: The first person is deleted from the list. The status message shows the deleted person's details.
 
-   1. Test case: `delete 0`<br>
+   3. Test case: `delete-client 0`<br>
       Expected: No person is deleted. The status message shows error details.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
+   4. Test case: `delete-client 999`<br>
+      Expected: No person is deleted. The status message shows error details.
+
+2. Deleting by phone number
+
+   1. Prerequisites: A person with phone number `91234567` exists.
+
+   2. Test case: `delete-client i/91234567`<br>
+      Expected: The matching person is deleted. The status message shows the deleted person's details.
+
+   3. Test case: `delete-client i/00000000`<br>
+      Expected: No person is deleted because no matching person exists.
+
+   4. Test case: `delete-client i/12`<br>
+      Expected: No person is deleted because the phone number is invalid.
+
+3. Invalid identifier combinations
+
+   1. Test case: `delete-client`<br>
+      Expected: The command is rejected because no identifier was provided.
+
+   2. Test case: `delete-client 1 i/91234567`<br>
+      Expected: The command is rejected because both identifiers were provided.
+
+   3. Other incorrect delete commands to try: `delete-client x`, `delete-client i/abc`<br>
       Expected: Similar to previous.
+
+4. _{ more test cases …​ }_
+
+### Deleting a pet
+
+1. Deleting a pet using its name and owner's phone number
+
+   1. Prerequisites: The address book contains a pet named `Milo` whose owner's phone number is `98765432`.
+
+   1. Test case: `delete-pet p/Milo i/98765432`<br>
+      Expected: `Milo` is deleted. The status message is `Deleted pet: Milo`.
+
+   1. Test case: `delete-pet p/Milo i/12345678`<br>
+      Expected: No pet is deleted. The status message states that no pet matches the specified name and owner phone number.
+
+   1. Test case: `delete-pet p/Milo`<br>
+      Expected: No pet is deleted. The status message shows the command usage.
+
+   1. Test case: `delete-pet p/Milo i/123a`<br>
+      Expected: No pet is deleted. The status message states that phone numbers must contain only digits and have at least three digits.
+
+   1. With two pets named `Milo` owned by people with different phone numbers, repeat the valid test case for one owner.<br>
+      Expected: Only that owner's `Milo` is deleted.
 
 1. _{ more test cases …​ }_
 
@@ -658,4 +744,4 @@ testers are expected to do more *exploratory* testing.
 
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
-1. _{ more test cases …​ }_
+2. _{ more test cases …​ }_
