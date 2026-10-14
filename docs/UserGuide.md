@@ -98,6 +98,24 @@ Examples:
 * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add-client n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison i/91234567 t/criminal`
 
+### Listing and searching clients: `list-clients`
+
+Format: `list-clients [q/KEYWORD]`
+
+Shows clients alphabetically by name, ignoring case. Without `q/`, shows all clients.
+With `q/`, searches for a case-insensitive substring in the name, phone, email, or address.
+The whole keyword is searched as one phrase, including any internal spaces.
+
+The keyword must contain 1–60 characters after trimming surrounding whitespace. Allowed characters
+are English letters, digits, spaces, apostrophes, hyphens, full stops, `@`, and `#`.
+An empty or invalid keyword reports `Search keyword must be 1-60 characters and use valid text characters.`
+Specify `q/` only once; repeated prefixes report `Each search field may be specified only once.`
+
+Examples: `list-clients`, `list-clients q/amelia`, `list-clients q/@example.com`.
+
+A search reports `Found N client(s).` If nothing matches, it reports `No clients match "KEYWORD".`
+No matches is a successful search with an empty list. This command does not change stored client records.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -271,4 +289,5 @@ Action | Format, Examples
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
+**List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Help** | `help`

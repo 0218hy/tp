@@ -111,6 +111,9 @@ public interface Model {
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
 
+    /** Sorts the displayed clients by name, ignoring case, without modifying stored records. */
+    void sortFilteredPersonList();
+
     /** Returns an unmodifiable view of the filtered pet list. */
     ObservableList<Pet> getFilteredPetList();
 
