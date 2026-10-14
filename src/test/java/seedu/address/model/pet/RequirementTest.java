@@ -20,14 +20,16 @@ public class RequirementTest {
 
     @Test
     public void isValidRequirement() {
-        assertThrows(NullPointerException.class, () -> Requirement.isValidRequirement(null));
+        assertFalse(Requirement.isValidRequirement(null));
 
         assertFalse(Requirement.isValidRequirement(""));
         assertFalse(Requirement.isValidRequirement(" "));
 
         assertTrue(Requirement.isValidRequirement("Daily brushing"));
         assertTrue(Requirement.isValidRequirement("Bath every 2 weeks"));
-        assertTrue(Requirement.isValidRequirement("-"));
+        assertFalse(Requirement.isValidRequirement("-"));
+        assertFalse(Requirement.isValidRequirement("Bath/brush"));
+        assertFalse(Requirement.isValidRequirement("A".repeat(241)));
     }
 
     @Test

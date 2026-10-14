@@ -20,7 +20,7 @@ public class PetNameTest {
 
     @Test
     public void isValidName() {
-        assertThrows(NullPointerException.class, () -> PetName.isValidName(null));
+        assertFalse(PetName.isValidName(null));
 
         assertFalse(PetName.isValidName(""));
         assertFalse(PetName.isValidName(" "));
@@ -29,6 +29,8 @@ public class PetNameTest {
         assertTrue(PetName.isValidName("Milo"));
         assertTrue(PetName.isValidName("Sir Fluffy 2nd"));
         assertTrue(PetName.isValidName("12345"));
+        assertTrue(PetName.isValidName("Mochi-Jr.'s"));
+        assertFalse(PetName.isValidName("A".repeat(41)));
     }
 
     @Test
