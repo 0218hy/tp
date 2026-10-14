@@ -120,6 +120,12 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+The `help` command returns the command reference stored in
+`src/main/resources/help/CommandReference.md`. `MainWindow` displays this result in
+`ResultDisplay`, which renders command names and command formats with distinct styles in a scrollable inline view.
+The **Help** menu item and <kbd>F1</kbd> invoke the same command. When adding or changing a command, keep this
+reference in sync with the User Guide.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
