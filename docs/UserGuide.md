@@ -249,6 +249,17 @@ Format: `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm
 
 Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom`
 
+### Listing appointments: `list-appointments`
+
+Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
+Each entry shows its date, start and end times, pet name, owner phone number, and service.
+
+Format: `list-appointments`
+
+Appointments are included until their end time, using Singapore time. Completed appointments remain saved
+but are excluded from this list. If none remain, the command displays `No ongoing or future appointments.`
+This command currently takes no parameters; the optional `d/` date filter is not yet supported.
+
 ### Clearing all entries: `clear`
 
 Clears all contacts from the address book. Any saved appointments are retained separately.
@@ -309,6 +320,7 @@ Action | Format, Examples
 **List** | `list`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
+**List appointments** | `list-appointments`
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Clear** | `clear`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
