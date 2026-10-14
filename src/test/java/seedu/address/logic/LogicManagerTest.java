@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -89,6 +90,18 @@ public class LogicManagerTest {
         assertEquals("Mochi", model.getGroomingBook().getPetList().getFirst().getName().value);
         assertEquals(model.getGroomingBook(), new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json"))
                 .readGroomingBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_listAppointments_readsScheduleWithoutSaving() throws Exception {
+        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+
+        CommandResult result = logic.execute("list-appointments");
+
+        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
+        assertEquals(1, model.getGroomingBook().getAppointmentList().size());
+        assertFalse(temporaryFolder.resolve("groombook.json").toFile().exists());
     }
 
     @Test
