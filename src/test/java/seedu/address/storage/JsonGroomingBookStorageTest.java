@@ -20,7 +20,7 @@ import seedu.address.model.GroomingBook;
 import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.testutil.PetBuilder;
 
-public class JsonClientPetStorageTest {
+public class JsonGroomingBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
 
     @TempDir
@@ -28,11 +28,11 @@ public class JsonClientPetStorageTest {
 
     @Test
     public void readGroomingBook_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> readClientPetData(null));
+        assertThrows(NullPointerException.class, () -> readGroomingBook(null));
     }
 
-    private java.util.Optional<ReadOnlyGroomingBook> readClientPetData(String filePath) throws Exception {
-        return new JsonClientPetStorage(Paths.get(filePath)).readClientPetData(addToTestDataPathIfNotNull(filePath));
+    private java.util.Optional<ReadOnlyGroomingBook> readGroomingBook(String filePath) throws Exception {
+        return new JsonGroomingBookStorage(Paths.get(filePath)).readGroomingBook(addToTestDataPathIfNotNull(filePath));
     }
 
     private Path addToTestDataPathIfNotNull(String prefsFileInTestDataFolder) {
@@ -43,46 +43,46 @@ public class JsonClientPetStorageTest {
 
     @Test
     public void read_missingFile_emptyResult() throws Exception {
-        assertFalse(readClientPetData("NonExistentFile.json").isPresent());
+        assertFalse(readGroomingBook("NonExistentFile.json").isPresent());
     }
 
     @Test
     public void read_notJsonFormat_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readClientPetData("notJsonFormatAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("notJsonFormatAddressBook.json"));
     }
 
     @Test
     public void readGroomingBook_invalidClientGroomingBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readClientPetData("invalidPersonAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidPersonAddressBook.json"));
     }
 
     @Test
     public void readGroomingBook_invalidAndValidClientGroomingBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readClientPetData("invalidAndValidPersonAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidAndValidPersonAddressBook.json"));
     }
 
     @Test
     public void readAndSaveGroomingBook_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("TempAddressBook.json");
         GroomingBook original = getTypicalGroomingBook();
-        JsonClientPetStorage jsonGroomingBookStorage = new JsonClientPetStorage(filePath);
+        JsonGroomingBookStorage jsonGroomingBookStorage = new JsonGroomingBookStorage(filePath);
 
         // Save in new file and read back
-        jsonGroomingBookStorage.saveClientPetData(original, filePath);
-        ReadOnlyGroomingBook readBack = jsonGroomingBookStorage.readClientPetData(filePath).get();
+        jsonGroomingBookStorage.saveGroomingBook(original, filePath);
+        ReadOnlyGroomingBook readBack = jsonGroomingBookStorage.readGroomingBook(filePath).get();
         assertEquals(original, new GroomingBook(readBack));
 
         // Modify data, overwrite existing file, and read back
         original.addClient(HOON);
         original.removeClient(ALICE);
-        jsonGroomingBookStorage.saveClientPetData(original, filePath);
-        readBack = jsonGroomingBookStorage.readClientPetData(filePath).get();
+        jsonGroomingBookStorage.saveGroomingBook(original, filePath);
+        readBack = jsonGroomingBookStorage.readGroomingBook(filePath).get();
         assertEquals(original, new GroomingBook(readBack));
 
         // Save and read without specifying file path
         original.addClient(IDA);
-        jsonGroomingBookStorage.saveClientPetData(original); // file path not specified
-        readBack = jsonGroomingBookStorage.readClientPetData().get(); // file path not specified
+        jsonGroomingBookStorage.saveGroomingBook(original); // file path not specified
+        readBack = jsonGroomingBookStorage.readGroomingBook().get(); // file path not specified
         assertEquals(original, new GroomingBook(readBack));
 
     }
@@ -92,10 +92,10 @@ public class JsonClientPetStorageTest {
         Path filePath = testFolder.resolve("PetsAddressBook.json");
         GroomingBook original = getTypicalGroomingBook();
         original.addPet(new PetBuilder(ALICE).withName("Mochi").withBreed("Golden retriever").build());
-        JsonClientPetStorage storage = new JsonClientPetStorage(filePath);
+        JsonGroomingBookStorage storage = new JsonGroomingBookStorage(filePath);
 
-        storage.saveClientPetData(original);
-        ReadOnlyGroomingBook readBack = storage.readClientPetData().orElseThrow();
+        storage.saveGroomingBook(original);
+        ReadOnlyGroomingBook readBack = storage.readGroomingBook().orElseThrow();
 
         assertEquals(original, new GroomingBook(readBack));
         assertEquals("Golden retriever", readBack.getPetList().getFirst().getBreed().value);
@@ -104,16 +104,16 @@ public class JsonClientPetStorageTest {
 
     @Test
     public void saveGroomingBook_nullGroomingBook_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveClientPetData(null, "SomeFile.json"));
+        assertThrows(NullPointerException.class, () -> saveGroomingBook(null, "SomeFile.json"));
     }
 
     /**
      * Saves {@code groomingBook} at the specified {@code filePath}.
      */
-    private void saveClientPetData(ReadOnlyGroomingBook groomingBook, String filePath) {
+    private void saveGroomingBook(ReadOnlyGroomingBook groomingBook, String filePath) {
         try {
-            new JsonClientPetStorage(Paths.get(filePath))
-                    .saveClientPetData(groomingBook, addToTestDataPathIfNotNull(filePath));
+            new JsonGroomingBookStorage(Paths.get(filePath))
+                    .saveGroomingBook(groomingBook, addToTestDataPathIfNotNull(filePath));
         } catch (IOException ioe) {
             throw new AssertionError("There should not be an error writing to the file.", ioe);
         }
@@ -121,6 +121,6 @@ public class JsonClientPetStorageTest {
 
     @Test
     public void saveGroomingBook_nullFilePath_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> saveClientPetData(new GroomingBook(), null));
+        assertThrows(NullPointerException.class, () -> saveGroomingBook(new GroomingBook(), null));
     }
 }

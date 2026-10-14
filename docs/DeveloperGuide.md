@@ -51,17 +51,14 @@ Replacing the grooming book validates all collections before changing existing r
 observable list views connected to the model. Client edits update linked pet owners. Historical
 appointments remain available when `clear` removes clients and pets.
 
-The in-memory consolidation preserves the existing file layout:
+All clients, pets, and appointments are saved together in `data/groombook.json` through
+`JsonGroomingBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
+`preferences.json` remains separate for window settings. The former `addressbook.json` and
+`appointments.json` files are no longer read or written; there is no automatic migration.
 
-* `data/addressbook.json` stores clients under the legacy `persons` key and their pets, through
-  `JsonClientPetStorage`. Pet breed and owner-phone fields remain supported.
-* `data/appointments.json` stores the schedule through `JsonAppointmentStorage`.
-* `preferences.json` stores user preferences.
-
-Each data reader returns a `GroomingBook` containing the records from its file; startup combines
-those records into the shared model. Scheduling saves only the appointment file, while client and
-pet commands save only the client/pet file. Failed add-pet and scheduling saves retain their
-existing rollback behaviour, and unreadable client/pet data still blocks add-pet commands.
+Every successful command saves the shared book. Saving writes a temporary file before replacing
+the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
+commands so the saved file cannot be overwritten with an empty book.
 
 Some diagrams and examples below retain inherited AddressBook names. The package map above
 describes the current implementation.
@@ -188,36 +185,31 @@ The `Model` component,
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
-The `Storage` component,
-* saves address book data, appointments, and user preferences in separate JSON files and reads them back into objects.
-* is implemented by `StorageManager`, which delegates file access to `JsonAddressBookStorage`, `JsonAppointmentBookStorage`, and `JsonUserPrefsStorage`.
-* serializes people using `JsonAdaptedPerson` and pets using `JsonAdaptedPet`. A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone when available, or by name for older records.
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+The `Storage` component:
+
+* saves the complete grooming book in `data/groombook.json`, with user preferences in `preferences.json`.
+* is implemented by `StorageManager`, which delegates to `JsonGroomingBookStorage` and `JsonUserPrefsStorage`.
+* uses `JsonSerializableGroomingBook` to load and save the three record lists together.
+* uses `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` in their respective feature packages.
+  A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone
+  when available, or by name for records without a phone.
 
 #### Appointment persistence
 
-Persistence keeps appointments after the application closes. `AppointmentBook` holds the working schedule in memory;
-`data/appointments.json` holds the saved schedule on disk. Appointment storage classes live in `storage/appointment/`:
+Appointments belong to the shared `GroomingBook` and are saved in the same file as clients and pets.
+`JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
+Loading accepts historical appointments and rejects invalid or overlapping records.
 
-* `AppointmentStorage` defines the read, save, and file-path operations.
-* `JsonAdaptedAppointment` converts one appointment's phone, pet name, date, times, and service into JSON fields and back.
-* `JsonSerializableAppointmentBook` converts the complete list and rejects invalid or overlapping records on loading.
-* `JsonAppointmentBookStorage` reads and writes the file. It finishes writing a temporary file before replacing the
-  saved file, using an atomic move where the filesystem supports it.
+The flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/groombook.json`.
+`LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
+an error. `clear` removes clients and pets while retaining the appointment history in the same file.
 
-The flow is `ScheduleCommand` → `AppointmentBook` → `StorageManager` → `data/appointments.json`.
-`LogicManager` reports success only after saving. If saving fails, it restores the previous in-memory schedule and
-reports the error, so the user can retry. Contact commands continue to save only the contact file; `clear` retains
-appointments.
-
-At startup, `MainApp` loads the appointment file and passes the result to `Model.setAppointmentBook`.
-Loading allows historical appointments and does not depend on current owner/pet lookup. If the file is absent, the
-schedule starts empty. Invalid files produce a log warning and an empty schedule without modifying the file.
-Contact loading remains independent. A later successful scheduling command replaces the appointment file.
+At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
+schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.
 
 **Pending integration:** the default app parser reports scheduling as unavailable until the real owner/pet lookup is
 provided. Once that feature is ready, startup can construct
-`new LogicManager(model, storage, new AddressBookParser(participantLookup))`.
+`new LogicManager(model, storage, new BuBuParser(participantLookup))`.
 The full parse, execute, save, and restart flow is tested with a test-only lookup; production has no permissive stub.
 
 ### Common classes

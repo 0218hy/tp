@@ -44,9 +44,10 @@ BuBu is built with Java and JavaFX. With JDK 25 installed, run the current devel
 ./gradlew run
 ```
 
-The shared `GroomingBook` contains clients, pets, and appointments. Feature-specific code lives in
+The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/groombook.json`.
+Feature-specific code lives in
 `client`, `pet`, and `appointment` packages; see the [current code organization](docs/DeveloperGuide.md#current-code-organization)
-for the package layout and saved-data compatibility.
+for the package layout and storage format.
 
 Run the automated checks with `./gradlew check`. On Windows, use `gradlew.bat` in place of `./gradlew`.
 

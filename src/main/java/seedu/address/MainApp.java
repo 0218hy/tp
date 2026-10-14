@@ -20,7 +20,7 @@ import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.JsonClientPetStorage;
+import seedu.address.storage.JsonGroomingBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
@@ -36,7 +36,7 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path CLIENT_PET_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path GROOMING_BOOK_FILE_PATH = Paths.get("data", "groombook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -51,51 +51,41 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonClientPetStorage groomingBookStorage = new JsonClientPetStorage(CLIENT_PET_FILE_PATH);
+        JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(GROOMING_BOOK_FILE_PATH);
         storage = new StorageManager(groomingBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
 
         logic = new LogicManager(model, storage, isGroomingBookCorrupted);
 
-        ui = new UiManager(logic, storage.getClientPetFilePath());
+        ui = new UiManager(logic, storage.getGroomingBookFilePath());
     }
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s grooming book and {@code userPrefs}. <br>
      * The data from the sample grooming book will be used instead if {@code storage}'s grooming book is not found,
      * or an empty grooming book will be used instead if errors occur when reading {@code storage}'s grooming book.
-     * Appointments load independently; a missing or invalid appointment file starts an empty schedule.
      */
     protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
-        logger.info("Using data file : " + storage.getClientPetFilePath());
+        logger.info("Using data file : " + storage.getGroomingBookFilePath());
 
         Optional<ReadOnlyGroomingBook> groomingBookOptional;
         ReadOnlyGroomingBook initialData;
         try {
-            groomingBookOptional = storage.readClientPetData();
+            groomingBookOptional = storage.readGroomingBook();
             if (groomingBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getClientPetFilePath()
+                logger.info("Creating a new data file " + storage.getGroomingBookFilePath()
                         + " populated with a sample grooming book.");
             }
             initialData = groomingBookOptional.orElseGet(SampleDataUtil::getSampleGroomingBook);
         } catch (DataLoadingException e) {
             isGroomingBookCorrupted = true;
-            logger.warning("Data file at " + storage.getClientPetFilePath() + " could not be loaded."
+            logger.warning("Data file at " + storage.getGroomingBookFilePath() + " could not be loaded."
                     + " Will be starting with an empty grooming book.");
             initialData = new GroomingBook();
         }
 
-        ModelManager modelManager = new ModelManager(initialData, userPrefs);
-        try {
-            modelManager.setAppointments(storage.readAppointmentData()
-                    .orElseGet(GroomingBook::new).getAppointmentList());
-        } catch (DataLoadingException e) {
-            logger.warning("Appointment file at " + storage.getAppointmentFilePath()
-                    + " could not be loaded. Will be starting with an empty schedule. "
-                    + "The existing file is left unchanged.");
-        }
-        return modelManager;
+        return new ModelManager(initialData, userPrefs);
     }
 
     /**

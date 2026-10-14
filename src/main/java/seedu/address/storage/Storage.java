@@ -8,12 +8,11 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.storage.appointment.AppointmentStorage;
 
 /**
  * API of the Storage component
  */
-public interface Storage extends AppointmentStorage {
+public interface Storage {
 
     /**
      * Returns the file path of the UserPrefs data file.
@@ -38,21 +37,21 @@ public interface Storage extends AppointmentStorage {
     /**
      * Returns the file path of the GroomingBook data file.
      */
-    Path getClientPetFilePath();
+    Path getGroomingBookFilePath();
 
     /**
-     * Returns client and pet records in a grooming book with an empty appointment list.
+     * Returns all client, pet, and appointment records.
      * Returns {@code Optional.empty()} if storage file is not found.
      *
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    Optional<ReadOnlyGroomingBook> readClientPetData() throws DataLoadingException;
+    Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException;
 
     /**
-     * Saves the client and pet records from the given grooming book.
+     * Saves all records from the given grooming book.
      * @param groomingBook cannot be null.
      * @throws IOException if there was any problem writing to the file.
      */
-    void saveClientPetData(ReadOnlyGroomingBook groomingBook) throws IOException;
+    void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException;
 
 }

@@ -2,7 +2,6 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -10,7 +9,6 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
@@ -19,7 +17,6 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyGroomingBook;
-import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.storage.Storage;
 
@@ -52,7 +49,7 @@ public class LogicManager implements Logic {
 
     /**
      * Constructs logic with the grooming book corruption state recorded at startup.
-     * Add-pet commands cannot verify existing records when this state is true.
+     * Commands cannot save records when this state is true.
      */
     public LogicManager(Model model, Storage storage, boolean isGroomingBookCorrupted) {
         this(model, storage, new BuBuParser(), isGroomingBookCorrupted);
@@ -65,7 +62,7 @@ public class LogicManager implements Logic {
 
     /**
      * Constructs logic with parser dependencies and the grooming book corruption state.
-     * Add-pet commands report a data error if existing records could not be loaded.
+     * Commands report a data error if existing records could not be loaded.
      */
     public LogicManager(Model model, Storage storage, BuBuParser buBuParser,
             boolean isGroomingBookCorrupted) {
@@ -80,36 +77,26 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         Command command = buBuParser.parseCommand(commandText);
-        if (command instanceof AddPetCommand && isGroomingBookCorrupted) {
+        if (isGroomingBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
-        ReadOnlyGroomingBook previousGroomingBook = command instanceof AddPetCommand
-                ? new GroomingBook(model.getGroomingBook()) : null;
-        List<Appointment> previousAppointments = command instanceof AddAppointmentCommand
-                ? List.copyOf(model.getGroomingBook().getAppointmentList()) : null;
+        ReadOnlyGroomingBook previousGroomingBook = new GroomingBook(model.getGroomingBook());
         CommandResult commandResult = command.execute(model);
-        saveCommandResult(command, previousGroomingBook, previousAppointments);
+        saveCommandResult(command, previousGroomingBook);
         return commandResult;
     }
 
     /**
      * Saves the completed command and restores its previous data if saving fails.
      */
-    private void saveCommandResult(Command command, ReadOnlyGroomingBook previousGroomingBook,
-            List<Appointment> previousAppointments) throws CommandException {
+    private void saveCommandResult(Command command, ReadOnlyGroomingBook previousGroomingBook)
+            throws CommandException {
         try {
-            if (previousAppointments != null) {
-                storage.saveAppointmentData(model.getGroomingBook());
-            } else {
-                storage.saveClientPetData(model.getGroomingBook());
-            }
+            storage.saveGroomingBook(model.getGroomingBook());
         } catch (IOException ioe) {
-            if (previousGroomingBook != null) {
-                model.setGroomingBook(previousGroomingBook);
+            model.setGroomingBook(previousGroomingBook);
+            if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
-            }
-            if (previousAppointments != null) {
-                model.setAppointments(previousAppointments);
             }
             if (command instanceof AddClientCommand) {
                 throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);

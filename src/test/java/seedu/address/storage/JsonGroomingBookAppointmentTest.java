@@ -1,4 +1,4 @@
-package seedu.address.storage.appointment;
+package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,61 +24,64 @@ import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Phone;
+import seedu.address.storage.appointment.JsonAdaptedAppointment;
 
-public class JsonAppointmentStorageTest {
+public class JsonGroomingBookAppointmentTest {
     @TempDir
     public Path temporaryFolder;
 
     @Test
     public void saveAndRead_historicalAppointments_preservesAllFieldsAndOrder() throws Exception {
-        JsonAppointmentStorage storage = storage("nested/appointments.json");
+        JsonGroomingBookStorage storage = storage("nested/groombook.json");
         GroomingBook book = new GroomingBook();
         book.addAppointment(create("10:00", "11:00"));
         book.addAppointment(create("11:00", "11:30"));
-        storage.saveAppointmentData(book);
-        assertEquals(book, storage.readAppointmentData().orElseThrow());
-        String json = Files.readString(storage.getAppointmentFilePath());
+        storage.saveGroomingBook(book);
+        assertEquals(book, storage.readGroomingBook().orElseThrow());
+        String json = Files.readString(storage.getGroomingBookFilePath());
         assertTrue(json.contains("\"ownerPhone\" : \"91234567\""));
         assertTrue(json.contains("\"date\" : \"01-01-2000\""));
         assertTrue(json.contains("\"service\" : \"Full groom\""));
     }
 
     @Test
-    public void saveAppointmentData_replacesPreviousScheduleAndCleansTemporaryFiles() throws Exception {
-        JsonAppointmentStorage storage = storage("appointments.json");
+    public void saveGroomingBook_replacesPreviousScheduleAndCleansTemporaryFiles() throws Exception {
+        JsonGroomingBookStorage storage = storage("groombook.json");
         GroomingBook book = new GroomingBook();
         book.addAppointment(create("10:00", "11:00"));
-        storage.saveAppointmentData(book);
-        storage.saveAppointmentData(new GroomingBook());
-        assertEquals(new GroomingBook(), storage.readAppointmentData().orElseThrow());
+        storage.saveGroomingBook(book);
+        storage.saveGroomingBook(new GroomingBook());
+        assertEquals(new GroomingBook(), storage.readGroomingBook().orElseThrow());
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getAppointmentFilePath()), paths.toList());
+            assertEquals(List.of(storage.getGroomingBookFilePath()), paths.toList());
         }
     }
 
     @Test
-    public void readAppointmentData_missingFile_returnsEmpty() throws Exception {
-        assertTrue(storage("missing.json").readAppointmentData().isEmpty());
+    public void readGroomingBook_missingFile_returnsEmpty() throws Exception {
+        assertTrue(storage("missing.json").readGroomingBook().isEmpty());
     }
 
     @Test
-    public void readAppointmentData_malformedOrMissingData_rejectedWithoutChangingFile() throws Exception {
-        JsonAppointmentStorage storage = storage("invalid.json");
+    public void readGroomingBook_malformedOrMissingData_rejectedWithoutChangingFile() throws Exception {
+        JsonGroomingBookStorage storage = storage("invalid.json");
         for (String json : List.of("broken", "null", "[]", "{}", "{\"appointments\":null}",
-                "{\"appointments\":[null]}", "{\"appointments\":[{}]}")) {
-            Files.writeString(storage.getAppointmentFilePath(), json);
-            assertThrows(DataLoadingException.class, storage::readAppointmentData);
-            assertEquals(json, Files.readString(storage.getAppointmentFilePath()));
+                "{\"clients\":[],\"pets\":[],\"appointments\":[null]}",
+                "{\"clients\":[],\"pets\":[],\"appointments\":[{}]}")) {
+            Files.writeString(storage.getGroomingBookFilePath(), json);
+            assertThrows(DataLoadingException.class, storage::readGroomingBook);
+            assertEquals(json, Files.readString(storage.getGroomingBookFilePath()));
         }
     }
 
     @Test
-    public void readAppointmentData_overlappingRecords_rejected() throws Exception {
-        JsonAppointmentStorage storage = storage("overlap.json");
+    public void readGroomingBook_overlappingRecords_rejected() throws Exception {
+        JsonGroomingBookStorage storage = storage("overlap.json");
         List<JsonAdaptedAppointment> records = List.of(new JsonAdaptedAppointment(create("10:00", "11:00")),
                 new JsonAdaptedAppointment(create("10:30", "11:30")));
-        JsonUtil.saveJsonFile(new JsonSerializableAppointments(records), storage.getAppointmentFilePath());
-        assertThrows(DataLoadingException.class, storage::readAppointmentData);
+        JsonUtil.saveJsonFile(new JsonSerializableGroomingBook(List.of(), List.of(), records),
+                storage.getGroomingBookFilePath());
+        assertThrows(DataLoadingException.class, storage::readGroomingBook);
     }
 
     @Test
@@ -93,30 +96,31 @@ public class JsonAppointmentStorageTest {
             assertThrows(IllegalValueException.class, () -> adapt(fields).toModelType());
         }
         assertThrows(IllegalValueException.class, () ->
-                new JsonSerializableAppointments(Arrays.asList((JsonAdaptedAppointment) null)).toModelType());
+                new JsonSerializableGroomingBook(List.of(), List.of(),
+                        Arrays.asList((JsonAdaptedAppointment) null)).toModelType());
     }
 
     @Test
-    public void saveAppointmentData_targetIsDirectory_reportsFailureAndCleansTemporaryFile() throws Exception {
-        JsonAppointmentStorage storage = storage("appointments.json");
-        Files.createDirectory(storage.getAppointmentFilePath());
-        Path marker = storage.getAppointmentFilePath().resolve("keep.txt");
+    public void saveGroomingBook_targetIsDirectory_reportsFailureAndCleansTemporaryFile() throws Exception {
+        JsonGroomingBookStorage storage = storage("groombook.json");
+        Files.createDirectory(storage.getGroomingBookFilePath());
+        Path marker = storage.getGroomingBookFilePath().resolve("keep.txt");
         Files.writeString(marker, "keep");
-        assertThrows(IOException.class, () -> storage.saveAppointmentData(new GroomingBook()));
+        assertThrows(IOException.class, () -> storage.saveGroomingBook(new GroomingBook()));
         assertEquals("keep", Files.readString(marker));
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getAppointmentFilePath()), paths.toList());
+            assertEquals(List.of(storage.getGroomingBookFilePath()), paths.toList());
         }
     }
 
     @Test
     public void constructorAndSave_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new JsonAppointmentStorage(null));
-        assertThrows(NullPointerException.class, () -> storage("appointments.json").saveAppointmentData(null));
+        assertThrows(NullPointerException.class, () -> new JsonGroomingBookStorage(null));
+        assertThrows(NullPointerException.class, () -> storage("groombook.json").saveGroomingBook(null));
     }
 
-    private JsonAppointmentStorage storage(String filename) {
-        return new JsonAppointmentStorage(temporaryFolder.resolve(filename));
+    private JsonGroomingBookStorage storage(String filename) {
+        return new JsonGroomingBookStorage(temporaryFolder.resolve(filename));
     }
 
     private JsonAdaptedAppointment adapt(List<String> fields) {

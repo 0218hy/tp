@@ -18,7 +18,7 @@ import seedu.address.storage.pet.JsonAdaptedPet;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.testutil.TypicalClients;
 
-public class JsonSerializableClientPetDataTest {
+public class JsonSerializableGroomingBookTest {
 
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonSerializableAddressBookTest");
     private static final Path TYPICAL_CLIENTS_FILE = TEST_DATA_FOLDER.resolve("typicalPersonsAddressBook.json");
@@ -27,8 +27,8 @@ public class JsonSerializableClientPetDataTest {
 
     @Test
     public void toModelType_typicalClientsFile_success() throws Exception {
-        JsonSerializableClientPetData dataFromFile = JsonUtil.readJsonFile(TYPICAL_CLIENTS_FILE,
-                JsonSerializableClientPetData.class).get();
+        JsonSerializableGroomingBook dataFromFile = JsonUtil.readJsonFile(TYPICAL_CLIENTS_FILE,
+                JsonSerializableGroomingBook.class).get();
         GroomingBook groomingBookFromFile = dataFromFile.toModelType();
         GroomingBook typicalClientsGroomingBook = TypicalClients.getTypicalGroomingBook();
         assertEquals(groomingBookFromFile, typicalClientsGroomingBook);
@@ -36,16 +36,16 @@ public class JsonSerializableClientPetDataTest {
 
     @Test
     public void toModelType_invalidClientFile_throwsIllegalValueException() throws Exception {
-        JsonSerializableClientPetData dataFromFile = JsonUtil.readJsonFile(INVALID_CLIENT_FILE,
-                JsonSerializableClientPetData.class).get();
+        JsonSerializableGroomingBook dataFromFile = JsonUtil.readJsonFile(INVALID_CLIENT_FILE,
+                JsonSerializableGroomingBook.class).get();
         assertThrows(IllegalValueException.class, dataFromFile::toModelType);
     }
 
     @Test
     public void toModelType_duplicateClients_throwsIllegalValueException() throws Exception {
-        JsonSerializableClientPetData dataFromFile = JsonUtil.readJsonFile(DUPLICATE_CLIENT_FILE,
-                JsonSerializableClientPetData.class).get();
-        assertThrows(IllegalValueException.class, JsonSerializableClientPetData.MESSAGE_DUPLICATE_CLIENT,
+        JsonSerializableGroomingBook dataFromFile = JsonUtil.readJsonFile(DUPLICATE_CLIENT_FILE,
+                JsonSerializableGroomingBook.class).get();
+        assertThrows(IllegalValueException.class, JsonSerializableGroomingBook.MESSAGE_DUPLICATE_CLIENT,
                 dataFromFile::toModelType);
     }
 
@@ -54,7 +54,7 @@ public class JsonSerializableClientPetDataTest {
         GroomingBook groomingBook = TypicalClients.getTypicalGroomingBook();
         groomingBook.addPet(new PetBuilder(TypicalClients.ALICE).build());
 
-        GroomingBook convertedGroomingBook = new JsonSerializableClientPetData(groomingBook).toModelType();
+        GroomingBook convertedGroomingBook = new JsonSerializableGroomingBook(groomingBook).toModelType();
 
         assertEquals(groomingBook, convertedGroomingBook);
         assertSame(convertedGroomingBook.getClientList().get(0), convertedGroomingBook.getPetList().get(0).getOwner());
@@ -64,9 +64,10 @@ public class JsonSerializableClientPetDataTest {
     public void toModelType_duplicatePets_throwsIllegalValueException() {
         JsonAdaptedClient owner = new JsonAdaptedClient(TypicalClients.ALICE);
         JsonAdaptedPet pet = new JsonAdaptedPet("Milo", TypicalClients.ALICE.getName().fullName, "DOG", "Daily walk");
-        JsonSerializableClientPetData data = new JsonSerializableClientPetData(List.of(owner), List.of(pet, pet));
+        JsonSerializableGroomingBook data =
+                new JsonSerializableGroomingBook(List.of(owner), List.of(pet, pet), List.of());
 
-        assertThrows(IllegalValueException.class, JsonSerializableClientPetData.MESSAGE_DUPLICATE_PET,
+        assertThrows(IllegalValueException.class, JsonSerializableGroomingBook.MESSAGE_DUPLICATE_PET,
                 data::toModelType);
     }
 

@@ -14,7 +14,7 @@ import seedu.address.model.client.Phone;
 /**
  * Converts between appointment objects and simple fields that can be stored in JSON.
  */
-class JsonAdaptedAppointment {
+public class JsonAdaptedAppointment {
     private final String ownerPhone;
     private final String petName;
     private final String date;
@@ -22,6 +22,7 @@ class JsonAdaptedAppointment {
     private final String endTime;
     private final String service;
 
+    /** Constructs an appointment from serialized fields. */
     @JsonCreator
     public JsonAdaptedAppointment(@JsonProperty("ownerPhone") String ownerPhone,
             @JsonProperty("petName") String petName, @JsonProperty("date") String date,
@@ -35,6 +36,7 @@ class JsonAdaptedAppointment {
         this.service = service;
     }
 
+    /** Copies an appointment into its JSON representation. */
     public JsonAdaptedAppointment(Appointment source) {
         this(source.getOwnerPhone().toString(), source.getPetName(), source.getDate().toString(),
                 source.getStartTime().toString(), source.getEndTime().toString(), source.getService().toString());

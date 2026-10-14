@@ -24,7 +24,7 @@ public class StorageManagerTest {
 
     @BeforeEach
     public void setUp() {
-        JsonClientPetStorage groomingBookStorage = new JsonClientPetStorage(getTempFilePath("ab"));
+        JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(getTempFilePath("ab"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(getTempFilePath("prefs"));
         storageManager = new StorageManager(groomingBookStorage, userPrefsStorage);
     }
@@ -51,18 +51,18 @@ public class StorageManagerTest {
     public void groomingBookReadSave() throws Exception {
         /*
          * Note: This is an integration test that verifies the StorageManager is properly wired to the
-         * {@link JsonClientPetStorage} class.
-         * More extensive testing of UserPref saving/reading is done in {@link JsonClientPetStorageTest} class.
+         * {@link JsonGroomingBookStorage} class.
+         * More extensive testing of UserPref saving/reading is done in {@link JsonGroomingBookStorageTest} class.
          */
         GroomingBook original = getTypicalGroomingBook();
-        storageManager.saveClientPetData(original);
-        ReadOnlyGroomingBook retrieved = storageManager.readClientPetData().get();
+        storageManager.saveGroomingBook(original);
+        ReadOnlyGroomingBook retrieved = storageManager.readGroomingBook().get();
         assertEquals(original, new GroomingBook(retrieved));
     }
 
     @Test
-    public void getClientPetFilePath() {
-        assertNotNull(storageManager.getClientPetFilePath());
+    public void getGroomingBookFilePath() {
+        assertNotNull(storageManager.getGroomingBookFilePath());
     }
 
 }
