@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.AddressBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -34,18 +34,18 @@ public class DeletePetCommandTest {
 
     @BeforeEach
     public void setUp() {
-        AddressBook addressBook = new AddressBook();
-        addressBook.addClient(ALICE);
-        addressBook.addClient(BOB);
-        addressBook.addPet(milo);
-        addressBook.addPet(miloWithDifferentOwner);
-        model = new ModelManager(addressBook, new UserPrefs());
+        GroomingBook groomingBook = new GroomingBook();
+        groomingBook.addClient(ALICE);
+        groomingBook.addClient(BOB);
+        groomingBook.addPet(milo);
+        groomingBook.addPet(miloWithDifferentOwner);
+        model = new ModelManager(groomingBook, new UserPrefs());
     }
 
     @Test
     public void execute_matchingNameAndOwnerPhone_deletesPet() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deletePet(milo);
 
         assertCommandSuccess(deletePetCommand, model,
@@ -88,7 +88,7 @@ public class DeletePetCommandTest {
     public void execute_petHiddenByFilter_deletesPet() {
         model.updateFilteredPetList(pet -> false);
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.updateFilteredPetList(pet -> false);
         expectedModel.deletePet(milo);
 

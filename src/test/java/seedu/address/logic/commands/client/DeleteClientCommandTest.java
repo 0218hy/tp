@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
@@ -26,7 +26,7 @@ import seedu.address.model.client.Phone;
  */
 public class DeleteClientCommandTest {
 
-    private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private Model model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
 
     @Test
     public void execute_validIndexUnfilteredList_success() {
@@ -36,7 +36,7 @@ public class DeleteClientCommandTest {
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
                 Messages.format(clientToDelete));
 
-        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        ModelManager expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
 
         assertCommandSuccess(deleteClientCommand, model, expectedMessage, expectedModel);
@@ -60,7 +60,7 @@ public class DeleteClientCommandTest {
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
                 Messages.format(clientToDelete));
 
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
         showNoClient(expectedModel);
 
@@ -73,7 +73,7 @@ public class DeleteClientCommandTest {
 
         Index outOfBoundIndex = INDEX_SECOND_CLIENT;
         // ensures that outOfBoundIndex is still in bounds of address book list
-        assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getClientList().size());
+        assertTrue(outOfBoundIndex.getZeroBased() < model.getGroomingBook().getClientList().size());
 
         DeleteClientCommand deleteCommand = new DeleteClientCommand(outOfBoundIndex);
 
@@ -82,13 +82,13 @@ public class DeleteClientCommandTest {
 
     @Test
     public void execute_validPhoneNumber_success() {
-        Client clientToDelete = model.getAddressBook().getClientList().get(0);
+        Client clientToDelete = model.getGroomingBook().getClientList().get(0);
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(clientToDelete.getPhone());
 
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
                 Messages.format(clientToDelete));
 
-        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        ModelManager expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
 
         assertCommandSuccess(deleteClientCommand, model, expectedMessage, expectedModel);
@@ -115,7 +115,7 @@ public class DeleteClientCommandTest {
         // different client -> returns false
         assertFalse(deleteFirstCommand.equals(deleteSecondCommand));
 
-        Phone phone = model.getAddressBook().getClientList().get(0).getPhone();
+        Phone phone = model.getGroomingBook().getClientList().get(0).getPhone();
         assertTrue(new DeleteClientCommand(phone).equals(new DeleteClientCommand(phone)));
     }
 
@@ -126,7 +126,7 @@ public class DeleteClientCommandTest {
         String expected = DeleteClientCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
         assertEquals(expected, deleteCommand.toString());
 
-        Phone phone = model.getAddressBook().getClientList().get(0).getPhone();
+        Phone phone = model.getGroomingBook().getClientList().get(0).getPhone();
         DeleteClientCommand phoneDeleteCommand = new DeleteClientCommand(phone);
         String phoneExpected = DeleteClientCommand.class.getCanonicalName() + "{phoneNumber=" + phone + "}";
         assertEquals(phoneExpected, phoneDeleteCommand.toString());

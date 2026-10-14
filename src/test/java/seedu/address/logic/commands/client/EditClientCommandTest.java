@@ -11,7 +11,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
-import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
@@ -21,7 +21,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.client.EditClientCommand.EditClientDescriptor;
-import seedu.address.model.AddressBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -34,7 +34,7 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
  */
 public class EditClientCommandTest {
 
-    private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private Model model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
@@ -45,7 +45,7 @@ public class EditClientCommandTest {
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new GroomingBook(model.getGroomingBook()), new UserPrefs());
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
@@ -67,7 +67,7 @@ public class EditClientCommandTest {
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new GroomingBook(model.getGroomingBook()), new UserPrefs());
         expectedModel.setClient(lastClient, editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
@@ -81,7 +81,7 @@ public class EditClientCommandTest {
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new GroomingBook(model.getGroomingBook()), new UserPrefs());
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
@@ -98,7 +98,7 @@ public class EditClientCommandTest {
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
 
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new GroomingBook(model.getGroomingBook()), new UserPrefs());
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
@@ -118,7 +118,7 @@ public class EditClientCommandTest {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
         // edit client in filtered list into a duplicate in address book
-        Client clientInList = model.getAddressBook().getClientList().get(INDEX_SECOND_CLIENT.getZeroBased());
+        Client clientInList = model.getGroomingBook().getClientList().get(INDEX_SECOND_CLIENT.getZeroBased());
         EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT,
                 new EditClientDescriptorBuilder(clientInList).build());
 
@@ -143,7 +143,7 @@ public class EditClientCommandTest {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
         Index outOfBoundIndex = INDEX_SECOND_CLIENT;
         // ensures that outOfBoundIndex is still in bounds of address book list
-        assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getClientList().size());
+        assertTrue(outOfBoundIndex.getZeroBased() < model.getGroomingBook().getClientList().size());
 
         EditClientCommand editCommand = new EditClientCommand(outOfBoundIndex,
                 new EditClientDescriptorBuilder().withName(VALID_NAME_BOB).build());
@@ -189,7 +189,7 @@ public class EditClientCommandTest {
 
     @Test
     public void execute_changeOnlyPhoneOrEmailToHiddenClient_failure() {
-        Client other = model.getAddressBook().getClientList().get(1);
+        Client other = model.getGroomingBook().getClientList().get(1);
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
         EditClientCommand duplicateEmail = new EditClientCommand(INDEX_FIRST_CLIENT,
                 new EditClientDescriptorBuilder().withEmail(other.getEmail().value).build());

@@ -27,11 +27,16 @@ import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonClientPetStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.ClientBuilder;
@@ -49,10 +54,10 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
-        JsonAddressBookStorage addressBookStorage =
-                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        JsonClientPetStorage groomingBookStorage =
+                new JsonClientPetStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(groomingBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
     }
 
@@ -82,25 +87,25 @@ public class LogicManagerTest {
                 + " s/Cat r/Calm with baths");
 
         assertEquals("Pet added: Mochi (Cat) under Alice Pauline.", result.getFeedbackToUser());
-        assertEquals("Mochi", model.getAddressBook().getPetList().getFirst().getName().value);
-        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
-                .readAddressBook().orElseThrow());
+        assertEquals("Mochi", model.getGroomingBook().getPetList().getFirst().getName().value);
+        assertEquals(model.getGroomingBook(), new JsonClientPetStorage(temporaryFolder.resolve("addressBook.json"))
+                .readClientPetData().orElseThrow());
     }
 
     @Test
-    public void execute_deletePet_successAndSavesUpdatedAddressBook() throws Exception {
+    public void execute_deletePet_successAndSavesUpdatedGroomingBook() throws Exception {
         Pet pet = new PetBuilder(AMY).build();
         model.addClient(AMY);
         model.addPet(pet);
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deletePet(pet);
 
         assertCommandSuccess("delete-pet p/Milo i/" + AMY.getPhone().value,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
 
-        ReadOnlyAddressBook savedAddressBook = new JsonAddressBookStorage(
-                temporaryFolder.resolve("addressBook.json")).readAddressBook().get();
-        assertEquals(expectedModel.getAddressBook(), savedAddressBook);
+        ReadOnlyGroomingBook savedGroomingBook = new JsonClientPetStorage(
+                temporaryFolder.resolve("addressBook.json")).readClientPetData().get();
+        assertEquals(expectedModel.getGroomingBook(), savedGroomingBook);
     }
 
     @Test
@@ -122,14 +127,17 @@ public class LogicManagerTest {
     @Test
     public void execute_addPetSaveFails_restoresModel() {
         model.addClient(ALICE);
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("pets.json")) {
+        model.addPet(new PetBuilder(ALICE).withBreed("Golden retriever").build());
+        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        JsonClientPetStorage groomingBookStorage = new JsonClientPetStorage(temporaryFolder.resolve("pets.json")) {
             @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+            public void saveClientPetData(ReadOnlyGroomingBook groomingBook) throws IOException {
                 throw DUMMY_IO_EXCEPTION;
             }
         };
-        StorageManager storage = new StorageManager(addressBookStorage,
+        StorageManager storage = new StorageManager(groomingBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         logic = new LogicManager(model, storage);
 
@@ -141,7 +149,7 @@ public class LogicManagerTest {
     @Test
     public void execute_addPetCorruptedRecords_reportsError() {
         logic = new LogicManager(model, new StorageManager(
-                new JsonAddressBookStorage(temporaryFolder.resolve("pets.json")),
+                new JsonClientPetStorage(temporaryFolder.resolve("pets.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), true);
         assertCommandException("add-pet p/Mochi i/91234567 s/Dog r/Calm with baths",
                 LogicManager.MESSAGE_CORRUPTED_RECORDS);
@@ -188,7 +196,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 
@@ -214,21 +222,21 @@ public class LogicManagerTest {
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
         Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
 
-        // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(prefPath) {
+        // Inject LogicManager with a JsonClientPetStorage that throws the IOException e when saving
+        JsonClientPetStorage groomingBookStorage = new JsonClientPetStorage(prefPath) {
             @Override
-            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+            public void saveClientPetData(ReadOnlyGroomingBook groomingBook) throws IOException {
                 throw e;
             }
         };
 
         JsonUserPrefsStorage userPrefsStorage =
                 new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(groomingBookStorage, userPrefsStorage);
 
         logic = new LogicManager(model, storage);
 
-        // Triggers the saveAddressBook method by executing an add command
+        // Triggers the saveClientPetData method by executing an add command
         String addCommand = AddClientCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         Client expectedClient = new ClientBuilder(AMY).withTags().build();
@@ -244,8 +252,8 @@ public class LogicManagerTest {
                 + "e/amelia@example.com a/12 Punggol Drive t/regular");
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredClientList().size());
-        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+        JsonClientPetStorage saved = new JsonClientPetStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getGroomingBook(), saved.readClientPetData().orElseThrow());
     }
 
 }

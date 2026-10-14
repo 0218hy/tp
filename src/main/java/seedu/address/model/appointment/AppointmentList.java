@@ -14,28 +14,10 @@ import seedu.address.model.appointment.exceptions.OverlappingAppointmentExceptio
  * Back-to-back appointments are allowed. Past appointments can be stored for historical records;
  * the scheduling command is responsible for checking owners, pets and future start times.
  */
-public class AppointmentBook implements ReadOnlyAppointmentBook {
+public class AppointmentList {
     private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
     private final ObservableList<Appointment> unmodifiableAppointments =
             FXCollections.unmodifiableObservableList(appointments);
-
-    public AppointmentBook() {}
-
-    /**
-     * Creates an independent copy of the given appointment book.
-     */
-    public AppointmentBook(ReadOnlyAppointmentBook source) {
-        resetData(source);
-    }
-
-    /**
-     * Replaces this book's data with a validated copy of {@code source}.
-     * Invalid data leaves the current appointments unchanged.
-     */
-    public void resetData(ReadOnlyAppointmentBook source) {
-        requireNonNull(source);
-        setAppointments(source.getAppointmentList());
-    }
 
     /**
      * Replaces the appointments, preserving their order.
@@ -46,7 +28,7 @@ public class AppointmentBook implements ReadOnlyAppointmentBook {
      */
     public void setAppointments(List<Appointment> replacement) {
         requireNonNull(replacement);
-        AppointmentBook validated = new AppointmentBook();
+        AppointmentList validated = new AppointmentList();
         replacement.forEach(validated::addAppointment);
         appointments.setAll(validated.getAppointmentList());
     }
@@ -73,15 +55,14 @@ public class AppointmentBook implements ReadOnlyAppointmentBook {
         appointments.add(appointment);
     }
 
-    @Override
     public ObservableList<Appointment> getAppointmentList() {
         return unmodifiableAppointments;
     }
 
     @Override
     public boolean equals(Object other) {
-        return other == this || (other instanceof AppointmentBook otherBook
-                && appointments.equals(otherBook.appointments));
+        return other == this || (other instanceof AppointmentList otherList
+                && appointments.equals(otherList.appointments));
     }
 
     @Override

@@ -13,15 +13,14 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonClientPetStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
@@ -37,61 +36,62 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path CLIENT_PET_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
     protected Storage storage;
     protected Model model;
-    private boolean isAddressBookCorrupted;
+    private boolean isGroomingBookCorrupted;
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("=============================[ Initializing BuBu ]===========================");
         super.init();
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
-        storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        JsonClientPetStorage groomingBookStorage = new JsonClientPetStorage(CLIENT_PET_FILE_PATH);
+        storage = new StorageManager(groomingBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
 
-        logic = new LogicManager(model, storage, isAddressBookCorrupted);
+        logic = new LogicManager(model, storage, isGroomingBookCorrupted);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = new UiManager(logic, storage.getClientPetFilePath());
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Returns a {@code ModelManager} with the data from {@code storage}'s grooming book and {@code userPrefs}. <br>
+     * The data from the sample grooming book will be used instead if {@code storage}'s grooming book is not found,
+     * or an empty grooming book will be used instead if errors occur when reading {@code storage}'s grooming book.
      * Appointments load independently; a missing or invalid appointment file starts an empty schedule.
      */
     protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
-        logger.info("Using data file : " + storage.getAddressBookFilePath());
+        logger.info("Using data file : " + storage.getClientPetFilePath());
 
-        Optional<ReadOnlyAddressBook> addressBookOptional;
-        ReadOnlyAddressBook initialData;
+        Optional<ReadOnlyGroomingBook> groomingBookOptional;
+        ReadOnlyGroomingBook initialData;
         try {
-            addressBookOptional = storage.readAddressBook();
-            if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with a sample AddressBook.");
+            groomingBookOptional = storage.readClientPetData();
+            if (groomingBookOptional.isEmpty()) {
+                logger.info("Creating a new data file " + storage.getClientPetFilePath()
+                        + " populated with a sample grooming book.");
             }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
+            initialData = groomingBookOptional.orElseGet(SampleDataUtil::getSampleGroomingBook);
         } catch (DataLoadingException e) {
-            isAddressBookCorrupted = true;
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+            isGroomingBookCorrupted = true;
+            logger.warning("Data file at " + storage.getClientPetFilePath() + " could not be loaded."
+                    + " Will be starting with an empty grooming book.");
+            initialData = new GroomingBook();
         }
 
         ModelManager modelManager = new ModelManager(initialData, userPrefs);
         try {
-            modelManager.setAppointmentBook(storage.readAppointmentBook().orElseGet(AppointmentBook::new));
+            modelManager.setAppointments(storage.readAppointmentData()
+                    .orElseGet(GroomingBook::new).getAppointmentList());
         } catch (DataLoadingException e) {
-            logger.warning("Appointment file at " + storage.getAppointmentBookFilePath()
+            logger.warning("Appointment file at " + storage.getAppointmentFilePath()
                     + " could not be loaded. Will be starting with an empty schedule. "
                     + "The existing file is left unchanged.");
         }
@@ -132,13 +132,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting BuBu " + MainApp.VERSION);
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("============================ [ Stopping BuBu ] =============================");
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {

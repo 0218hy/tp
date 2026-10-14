@@ -72,7 +72,7 @@ public class AddPetCommand extends Command {
      * Finds the registered client with the supplied phone number.
      */
     private Client findOwner(Model model) throws CommandException {
-        return model.getAddressBook().getClientList().stream()
+        return model.getGroomingBook().getClientList().stream()
                 .filter(client -> client.getPhone().value.equals(ownerPhone))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
@@ -82,7 +82,7 @@ public class AddPetCommand extends Command {
      * Rejects a pet if its owner already has one with the same normalized name.
      */
     private void checkForDuplicate(Model model, Pet pet) throws CommandException {
-        for (Pet existingPet : model.getAddressBook().getPetList()) {
+        for (Pet existingPet : model.getGroomingBook().getPetList()) {
             if (existingPet.isSamePet(pet)) {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE_PET, existingPet.getName()));
             }

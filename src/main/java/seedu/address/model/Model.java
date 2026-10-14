@@ -1,11 +1,11 @@
 package seedu.address.model;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 
@@ -34,18 +34,18 @@ public interface Model {
     void setGuiSettings(GuiSettings guiSettings);
 
     /**
-     * Replaces address book data with the data in {@code addressBook}.
+     * Replaces grooming book data with the data in {@code groomingBook}.
      */
-    void setAddressBook(ReadOnlyAddressBook addressBook);
+    void setGroomingBook(ReadOnlyGroomingBook groomingBook);
 
-    /** Returns the AddressBook */
-    ReadOnlyAddressBook getAddressBook();
+    /** Returns the GroomingBook */
+    ReadOnlyGroomingBook getGroomingBook();
 
-    /** Returns the read-only appointment schedule. */
-    ReadOnlyAppointmentBook getAppointmentBook();
+    /** Replaces the appointment schedule after validating all slots. */
+    void setAppointments(List<Appointment> appointments);
 
-    /** Replaces the appointment schedule with a validated copy of the supplied data. */
-    void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook);
+    /** Clears clients and pets together, retaining historical appointments. */
+    void clearClientsAndPets();
 
     /**
      * Adds an appointment that does not overlap an existing appointment.
@@ -56,49 +56,49 @@ public interface Model {
     void addAppointment(Appointment appointment);
 
     /**
-     * Returns true if a client with the same identity as {@code client} exists in the address book.
+     * Returns true if a client with the same identity as {@code client} exists in the grooming book.
      */
     boolean hasClient(Client client);
 
     /**
      * Deletes the given client.
-     * The client must exist in the address book.
+     * The client must exist in the grooming book.
      */
     void deleteClient(Client target);
 
     /**
      * Adds the given client.
-     * {@code client} must not already exist in the address book.
+     * {@code client} must not already exist in the grooming book.
      */
     void addClient(Client client);
 
     /**
      * Replaces the given client {@code target} with {@code editedClient}.
-     * {@code target} must exist in the address book.
-     * The client identity of {@code editedClient} must not be the same as another existing client in the address book.
+     * {@code target} must exist in the grooming book.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the grooming book.
      */
     void setClient(Client target, Client editedClient);
 
     /**
-     * Returns true if a pet with the same identity as {@code pet} exists in the address book.
+     * Returns true if a pet with the same identity as {@code pet} exists in the grooming book.
      */
     boolean hasPet(Pet pet);
 
     /**
      * Deletes the given pet.
-     * The pet must exist in the address book.
+     * The pet must exist in the grooming book.
      */
     void deletePet(Pet pet);
 
     /**
      * Adds the given pet.
-     * The pet must not already exist in the address book.
+     * The pet must not already exist in the grooming book.
      */
     void addPet(Pet pet);
 
     /**
      * Replaces the given pet {@code target} with {@code editedPet}.
-     * The target pet must exist in the address book.
+     * The target pet must exist in the grooming book.
      */
     void setPet(Pet target, Pet editedPet);
 

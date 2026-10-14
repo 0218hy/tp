@@ -17,12 +17,11 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.AddressBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.ClientBuilder;
@@ -92,12 +91,12 @@ public class AddClientCommandTest {
      */
     private class ModelStub implements Model {
         @Override
-        public void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook) {
+        public void setAppointments(List<Appointment> appointments) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ReadOnlyAppointmentBook getAppointmentBook() {
+        public void clearClientsAndPets() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -127,12 +126,12 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public void setAddressBook(ReadOnlyAddressBook newData) {
+        public void setGroomingBook(ReadOnlyGroomingBook newData) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ReadOnlyAddressBook getAddressBook() {
+        public ReadOnlyGroomingBook getGroomingBook() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -229,8 +228,8 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public ReadOnlyAddressBook getAddressBook() {
-            return new AddressBook();
+        public ReadOnlyGroomingBook getGroomingBook() {
+            return new GroomingBook();
         }
     }
 

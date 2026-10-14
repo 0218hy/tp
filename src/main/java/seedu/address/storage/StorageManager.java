@@ -7,35 +7,34 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.storage.appointment.AppointmentStorage;
-import seedu.address.storage.appointment.JsonAppointmentBookStorage;
+import seedu.address.storage.appointment.JsonAppointmentStorage;
 
 /**
- * Manages storage of AddressBook data in local storage.
+ * Manages storage of GroomingBook data in local storage.
  */
 public class StorageManager implements Storage {
 
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
-    private JsonAddressBookStorage addressBookStorage;
+    private JsonClientPetStorage groomingBookStorage;
     private JsonUserPrefsStorage userPrefsStorage;
     private final AppointmentStorage appointmentStorage;
 
     /**
      * Creates a {@code StorageManager} with the given address book and user prefs storage.
      */
-    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage) {
-        this(addressBookStorage, userPrefsStorage, new JsonAppointmentBookStorage(
-                addressBookStorage.getAddressBookFilePath().resolveSibling("appointments.json")));
+    public StorageManager(JsonClientPetStorage groomingBookStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this(groomingBookStorage, userPrefsStorage, new JsonAppointmentStorage(
+                groomingBookStorage.getClientPetFilePath().resolveSibling("appointments.json")));
     }
 
     /** Creates storage with a separately configurable appointment file. */
-    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage,
+    public StorageManager(JsonClientPetStorage groomingBookStorage, JsonUserPrefsStorage userPrefsStorage,
             AppointmentStorage appointmentStorage) {
-        this.addressBookStorage = addressBookStorage;
+        this.groomingBookStorage = groomingBookStorage;
         this.userPrefsStorage = userPrefsStorage;
         this.appointmentStorage = appointmentStorage;
     }
@@ -43,18 +42,18 @@ public class StorageManager implements Storage {
     // ================ Appointment methods ==============================
 
     @Override
-    public Path getAppointmentBookFilePath() {
-        return appointmentStorage.getAppointmentBookFilePath();
+    public Path getAppointmentFilePath() {
+        return appointmentStorage.getAppointmentFilePath();
     }
 
     @Override
-    public Optional<ReadOnlyAppointmentBook> readAppointmentBook() throws DataLoadingException {
-        return appointmentStorage.readAppointmentBook();
+    public Optional<ReadOnlyGroomingBook> readAppointmentData() throws DataLoadingException {
+        return appointmentStorage.readAppointmentData();
     }
 
     @Override
-    public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
-        appointmentStorage.saveAppointmentBook(appointmentBook);
+    public void saveAppointmentData(ReadOnlyGroomingBook appointmentBook) throws IOException {
+        appointmentStorage.saveAppointmentData(appointmentBook);
     }
 
     // ================ UserPrefs methods ==============================
@@ -75,23 +74,23 @@ public class StorageManager implements Storage {
     }
 
 
-    // ================ AddressBook methods ==============================
+    // ================ GroomingBook methods ==============================
 
     @Override
-    public Path getAddressBookFilePath() {
-        return addressBookStorage.getAddressBookFilePath();
+    public Path getClientPetFilePath() {
+        return groomingBookStorage.getClientPetFilePath();
     }
 
     @Override
-    public Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException {
-        logger.fine("Attempting to read data from file: " + addressBookStorage.getAddressBookFilePath());
-        return addressBookStorage.readAddressBook();
+    public Optional<ReadOnlyGroomingBook> readClientPetData() throws DataLoadingException {
+        logger.fine("Attempting to read data from file: " + groomingBookStorage.getClientPetFilePath());
+        return groomingBookStorage.readClientPetData();
     }
 
     @Override
-    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-        logger.fine("Attempting to write to data file: " + addressBookStorage.getAddressBookFilePath());
-        addressBookStorage.saveAddressBook(addressBook);
+    public void saveClientPetData(ReadOnlyGroomingBook groomingBook) throws IOException {
+        logger.fine("Attempting to write to data file: " + groomingBookStorage.getClientPetFilePath());
+        groomingBookStorage.saveClientPetData(groomingBook);
     }
 
 }
