@@ -1,7 +1,7 @@
 package seedu.address.logic.parser.client;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_IDENTIFIER;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_IDENTIFIER;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.client.DeleteClientCommand;
@@ -36,7 +36,7 @@ public class DeleteClientCommandParser implements Parser<DeleteClientCommand> {
                 Index index = ParserUtil.parseIndex(args);
                 return new DeleteClientCommand(index);
             }
-            return new DeleteClientCommand(ParserUtil.parsePhone(argMultimap.getValue(PREFIX_IDENTIFIER).get()));
+            return new DeleteClientCommand(ClientParserUtil.parsePhone(argMultimap.getValue(PREFIX_IDENTIFIER).get()));
         } catch (ParseException pe) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), pe);

@@ -13,7 +13,7 @@ import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.client.EditClientCommand;
@@ -21,7 +21,7 @@ import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
-import seedu.address.logic.parser.appointment.ScheduleCommandParser;
+import seedu.address.logic.parser.appointment.ScheduleAppointmentCommandParser;
 import seedu.address.logic.parser.client.AddClientCommandParser;
 import seedu.address.logic.parser.client.DeleteClientCommandParser;
 import seedu.address.logic.parser.client.EditClientCommandParser;
@@ -34,7 +34,7 @@ import seedu.address.model.appointment.AppointmentParticipantLookup;
 /**
  * Parses user input.
  */
-public class AddressBookParser {
+public class BuBuParser {
     public static final String MESSAGE_SCHEDULING_UNAVAILABLE =
             "Scheduling is not available until owner and pet lookup is connected.";
 
@@ -42,19 +42,19 @@ public class AddressBookParser {
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
-    private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
+    private static final Logger logger = LogsCenter.getLogger(BuBuParser.class);
 
-    private final Optional<ScheduleCommandParser> scheduleParser;
+    private final Optional<ScheduleAppointmentCommandParser> scheduleParser;
 
     /** Creates a parser without the unfinished owner/pet lookup integration. */
-    public AddressBookParser() {
+    public BuBuParser() {
         // TODO: Supply the real owner/pet lookup from application startup when those features are ready.
         scheduleParser = Optional.empty();
     }
 
     /** Enables scheduling using the supplied owner/pet lookup implementation. */
-    public AddressBookParser(AppointmentParticipantLookup participantLookup) {
-        scheduleParser = Optional.of(new ScheduleCommandParser(participantLookup));
+    public BuBuParser(AppointmentParticipantLookup participantLookup) {
+        scheduleParser = Optional.of(new ScheduleAppointmentCommandParser(participantLookup));
     }
 
     /**
@@ -79,7 +79,7 @@ public class AddressBookParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
-            case ScheduleCommand.COMMAND_WORD -> scheduleParser.orElseThrow(() ->
+            case ScheduleAppointmentCommand.COMMAND_WORD -> scheduleParser.orElseThrow(() ->
                     new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
             case AddClientCommand.COMMAND_WORD -> new AddClientCommandParser().parse(arguments);
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);

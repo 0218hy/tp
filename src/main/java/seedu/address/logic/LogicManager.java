@@ -9,11 +9,11 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
-import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -40,14 +40,14 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
-    private final AddressBookParser addressBookParser;
+    private final BuBuParser buBuParser;
     private final boolean isAddressBookCorrupted;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this(model, storage, new AddressBookParser(), false);
+        this(model, storage, new BuBuParser(), false);
     }
 
     /**
@@ -55,23 +55,23 @@ public class LogicManager implements Logic {
      * Add-pet commands cannot verify existing records when this state is true.
      */
     public LogicManager(Model model, Storage storage, boolean isAddressBookCorrupted) {
-        this(model, storage, new AddressBookParser(), isAddressBookCorrupted);
+        this(model, storage, new BuBuParser(), isAddressBookCorrupted);
     }
 
     /** Constructs logic with a parser configured for the available feature dependencies. */
-    public LogicManager(Model model, Storage storage, AddressBookParser addressBookParser) {
-        this(model, storage, addressBookParser, false);
+    public LogicManager(Model model, Storage storage, BuBuParser buBuParser) {
+        this(model, storage, buBuParser, false);
     }
 
     /**
      * Constructs logic with parser dependencies and the address book corruption state.
      * Add-pet commands report a data error if existing records could not be loaded.
      */
-    public LogicManager(Model model, Storage storage, AddressBookParser addressBookParser,
+    public LogicManager(Model model, Storage storage, BuBuParser buBuParser,
             boolean isAddressBookCorrupted) {
         this.model = model;
         this.storage = storage;
-        this.addressBookParser = addressBookParser;
+        this.buBuParser = buBuParser;
         this.isAddressBookCorrupted = isAddressBookCorrupted;
     }
 
@@ -79,13 +79,13 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        Command command = addressBookParser.parseCommand(commandText);
+        Command command = buBuParser.parseCommand(commandText);
         if (command instanceof AddPetCommand && isAddressBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
         ReadOnlyAddressBook previousAddressBook = command instanceof AddPetCommand
                 ? new AddressBook(model.getAddressBook()) : null;
-        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleCommand
+        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleAppointmentCommand
                 ? new AppointmentBook(model.getAppointmentBook()) : null;
         CommandResult commandResult = command.execute(model);
         saveCommandResult(command, previousAddressBook, previousAppointments);

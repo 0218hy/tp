@@ -20,7 +20,7 @@ import seedu.address.model.appointment.exceptions.OverlappingAppointmentExceptio
  * Schedules a grooming appointment after verifying its participants and start time.
  * Requires an owner/pet lookup implementation to be supplied by the corresponding features.
  */
-public class ScheduleCommand extends Command {
+public class ScheduleAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "schedule";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Schedules a grooming appointment. "
             + "The owner identifier is their phone number.\n"
@@ -42,7 +42,7 @@ public class ScheduleCommand extends Command {
      * Creates a command for normal application use, using the real clock in Singapore.
      * Delegates to the constructor below so both constructors share the same setup.
      */
-    public ScheduleCommand(Appointment appointment, AppointmentParticipantLookup participantLookup) {
+    public ScheduleAppointmentCommand(Appointment appointment, AppointmentParticipantLookup participantLookup) {
         this(appointment, participantLookup, Clock.system(SINGAPORE_ZONE));
     }
 
@@ -50,7 +50,8 @@ public class ScheduleCommand extends Command {
      * Creates a command with a supplied clock. Tests use a fixed clock so their results
      * do not depend on the actual date and time when the tests run.
      */
-    public ScheduleCommand(Appointment appointment, AppointmentParticipantLookup participantLookup, Clock clock) {
+    public ScheduleAppointmentCommand(Appointment appointment,
+            AppointmentParticipantLookup participantLookup, Clock clock) {
         requireAllNonNull(appointment, participantLookup, clock);
         toSchedule = appointment;
         this.participantLookup = participantLookup;
@@ -87,7 +88,7 @@ public class ScheduleCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || (other instanceof ScheduleCommand otherCommand
+        return other == this || (other instanceof ScheduleAppointmentCommand otherCommand
                 && toSchedule.equals(otherCommand.toSchedule));
     }
 

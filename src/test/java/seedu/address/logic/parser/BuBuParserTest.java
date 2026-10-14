@@ -32,9 +32,9 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
-public class AddressBookParserTest {
+public class BuBuParserTest {
 
-    private final AddressBookParser parser = new AddressBookParser();
+    private final BuBuParser parser = new BuBuParser();
 
     @Test
     public void parseCommand_add() throws Exception {

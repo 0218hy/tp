@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.LogicManager;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -70,7 +70,7 @@ public class AppointmentPersistenceTest {
         assertEquals(model.getAppointmentBook(), restarted.getAppointmentBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
-        assertEquals(ScheduleCommand.MESSAGE_OVERLAP, exception.getMessage());
+        assertEquals(ScheduleAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
         assertEquals(1, restarted.getAppointmentBook().getAppointmentList().size());
     }
 
@@ -115,7 +115,7 @@ public class AppointmentPersistenceTest {
     public void scheduleWithoutLookup_reportsPendingIntegrationAndDoesNotSave() {
         LogicManager defaultLogic = new LogicManager(model, storage);
         ParseException exception = assertThrows(ParseException.class, () -> defaultLogic.execute(COMMAND));
-        assertEquals(AddressBookParser.MESSAGE_SCHEDULING_UNAVAILABLE, exception.getMessage());
+        assertEquals(BuBuParser.MESSAGE_SCHEDULING_UNAVAILABLE, exception.getMessage());
         assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
         assertFalse(Files.exists(storage.getAppointmentBookFilePath()));
     }
@@ -184,7 +184,7 @@ public class AppointmentPersistenceTest {
                 return hasOwner(ownerPhone) && petName.equals("BuBu");
             }
         };
-        return new LogicManager(target, targetStorage, new AddressBookParser(lookup));
+        return new LogicManager(target, targetStorage, new BuBuParser(lookup));
     }
 
     private AppointmentBook historicalBook() {

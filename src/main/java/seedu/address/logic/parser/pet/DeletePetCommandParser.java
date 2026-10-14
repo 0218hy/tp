@@ -1,8 +1,8 @@
 package seedu.address.logic.parser.pet;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_OWNER_IDENTIFIER;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PET_NAME;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
 
 import java.util.stream.Stream;
 
@@ -10,8 +10,8 @@ import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
-import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.Prefix;
+import seedu.address.logic.parser.client.ClientParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetName;
@@ -35,8 +35,8 @@ public class DeletePetCommandParser implements Parser<DeletePetCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_PET_NAME, PREFIX_OWNER_IDENTIFIER);
-        PetName petName = ParserUtil.parsePetName(argMultimap.getValue(PREFIX_PET_NAME).get());
-        Phone ownerPhone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_OWNER_IDENTIFIER).get());
+        PetName petName = PetParserUtil.parsePetName(argMultimap.getValue(PREFIX_PET_NAME).get());
+        Phone ownerPhone = ClientParserUtil.parsePhone(argMultimap.getValue(PREFIX_OWNER_IDENTIFIER).get());
 
         return new DeletePetCommand(petName, ownerPhone);
     }

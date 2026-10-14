@@ -12,7 +12,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.ModelManager;
@@ -24,7 +24,7 @@ import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Phone;
 
-public class ScheduleCommandParserTest {
+public class ScheduleAppointmentCommandParserTest {
     private static final String VALID_ARGS = "i/91234567 p/BuBu d/01-01-9999 st/10:00 et/11:00 s/Full groom";
     private static final List<String> FIELDS = List.of("i/91234567", "p/BuBu", "d/01-01-9999",
             "st/10:00", "et/11:00", "s/Full groom");
@@ -34,11 +34,11 @@ public class ScheduleCommandParserTest {
             AppointmentCliSyntax.PREFIX_SERVICE);
 
     private final ParticipantLookupStub lookup = new ParticipantLookupStub();
-    private final ScheduleCommandParser parser = new ScheduleCommandParser(lookup);
+    private final ScheduleAppointmentCommandParser parser = new ScheduleAppointmentCommandParser(lookup);
 
     @Test
     public void parse_validArgumentsWithOrWithoutLeadingSpace_success() {
-        ScheduleCommand expected = expected("BuBu", "01-01-9999", "10:00", "11:00", Service.FULL_GROOM);
+        ScheduleAppointmentCommand expected = expected("BuBu", "01-01-9999", "10:00", "11:00", Service.FULL_GROOM);
         assertParseSuccess(parser, VALID_ARGS, expected);
         assertParseSuccess(parser, "  " + VALID_ARGS + "  ", expected);
     }
@@ -70,7 +70,7 @@ public class ScheduleCommandParserTest {
 
     @Test
     public void parse_missingFieldsOrPreamble_failure() {
-        String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ScheduleCommand.MESSAGE_USAGE);
+        String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ScheduleAppointmentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "", usage);
         assertParseFailure(parser, "  ", usage);
         assertParseFailure(parser, "unexpected " + VALID_ARGS, usage);
@@ -155,22 +155,23 @@ public class ScheduleCommandParserTest {
 
     @Test
     public void parseAndExecute_missingOwner_usesSuppliedLookup() throws Exception {
-        ScheduleCommand command = parser.parse(VALID_ARGS);
+        ScheduleAppointmentCommand command = parser.parse(VALID_ARGS);
         lookup.ownerExists = false;
         ModelManager model = new ModelManager();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
-        assertEquals(ScheduleCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
+        assertEquals(ScheduleAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
     }
 
     @Test
     public void constructorAndParse_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new ScheduleCommandParser(null));
+        assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommandParser(null));
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
 
-    private ScheduleCommand expected(String petName, String date, String start, String end, Service service) {
-        return new ScheduleCommand(new Appointment(new Phone("91234567"), petName, new AppointmentDate(date),
+    private ScheduleAppointmentCommand expected(String petName, String date, String start, String end,
+            Service service) {
+        return new ScheduleAppointmentCommand(new Appointment(new Phone("91234567"), petName, new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), service), lookup);
     }
 
