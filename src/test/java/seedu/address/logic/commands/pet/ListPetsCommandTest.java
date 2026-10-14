@@ -17,6 +17,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.Species;
+import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.testutil.TypicalPersons;
 
@@ -39,6 +40,21 @@ public class ListPetsCommandTest {
                 + "Benson Meier\nZoe Cat Daily walk";
         assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
         assertEquals(savedOrder, model.getAddressBook().getPetList());
+    }
+
+    @Test
+    public void execute_ownersWithSameName_keepsPetsInSeparateGroups() throws Exception {
+        Model model = createModel();
+        Person sameNameOwner = new PersonBuilder(ALICE).withPhone("81234567")
+                .withEmail("other-alice@example.com").build();
+        model.addPerson(sameNameOwner);
+        addPet(model, ALICE, "Mochi", Species.DOG, null);
+        addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
+        addPet(model, ALICE, "BuBu", Species.CAT, null);
+
+        String expected = "All pet profiles\n\nAlice Pauline\nMochi Cat Daily walk\n\n"
+                + "Alice Pauline\nBuBu Cat Daily walk\nMochi Dog Daily walk";
+        assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
     }
 
     @Test

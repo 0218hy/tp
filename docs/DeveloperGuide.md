@@ -716,39 +716,73 @@ testers are expected to do more *exploratory* testing.
 
 4. _{ more test cases …​ }_
 
-### Adding and listing pets
+### Adding a pet
 
-1. Adding pets under an existing client
+1. Adding pets with and without a breed
 
-   1. Prerequisites: A client named `Alex Yeoh` with phone number `87438807` exists and has no pet named `Mochi`.
+   1. Prerequisites: A client named `Alex Yeoh` with phone number `87438807` exists and has no pets named `Mochi` or `BuBu`.
 
-   1. Test case: `add-pet p/Mochi i/87438807 s/Dog b/Golden retriever r/Nervous around dryers`<br>
+   2. Test case: `add-pet p/Mochi i/87438807 s/Dog b/Golden retriever r/Nervous around dryers`<br>
       Expected: `Pet added: Mochi (Dog, Golden retriever) under Alex Yeoh.`
 
-   1. Test case: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`<br>
-      Expected: The pet is not added; the status message is `This client already has a pet named Mochi.`
-
-   1. Test case: `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`<br>
+   3. Test case: `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`<br>
       Expected: `Pet added: BuBu (Cat) under Alex Yeoh.` Both pets remain saved under Alex Yeoh.
 
-2. Listing pets
+2. Rejecting a duplicate pet name
 
-   1. Prerequisites: `Mochi` and `BuBu` have been added under Alex Yeoh as above.
+   1. Prerequisites: Alex Yeoh already has a pet named `Mochi`.
 
-   1. Test case: `list-pets`<br>
+   2. Test case: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`<br>
+      Expected: The pet is not added; the status message is `This client already has a pet named Mochi.`
+
+3. Invalid pet details and owner identifiers
+
+   1. Prerequisites: Alex Yeoh (phone number `87438807`) exists.
+
+   2. Test case: `add-pet p/Mochi i/87438807 s/Dog`<br>
+      Expected: No pet is added. The status message is `Missing required field: REQUIREMENTS.`
+
+   3. Test case: `add-pet p/Mochi i/87438807 s/Horse r/Calm with baths`<br>
+      Expected: No pet is added. The status message is `Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.`
+
+   4. Test case: `add-pet p/Mochi i/99999999 s/Dog r/Calm with baths` when no client has that phone number<br>
+      Expected: No pet is added. The status message is `The owner identifier does not belong to the specified client.`
+
+   5. Test case: `add-pet p/Mochi p/BuBu i/87438807 s/Dog r/Calm with baths`<br>
+      Expected: No pet is added. The status message is `Each pet field may be specified only once.`
+
+### Listing pets
+
+1. Listing all saved pets
+
+   1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`).
+
+   2. Test case: `list-pets`<br>
       Expected: `All pet profiles`, followed by Alex Yeoh's pets in the order `BuBu`, `Mochi`.
 
-   1. Test case: `list-pets i/87438807`<br>
+2. Listing one client's pets
+
+   1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`), and Bernice Yu (phone number `99272758`) has no pets.
+
+   2. Test case: `list-pets i/87438807`<br>
       Expected: `Pets under Alex Yeoh`, followed by `BuBu` and `Mochi` with their species, optional breed, and requirements.
 
-   1. Test case: `list-pets i/99272758` when Bernice Yu has no pets<br>
+   3. Test case: `list-pets i/99272758`<br>
       Expected: `Bernice Yu has no saved pet profiles.`
 
-   1. Test case: `list-pets i/99999999` when no client has that phone number<br>
+   4. Test case: `list-pets i/99999999` when no client has that phone number<br>
       Expected: `No saved client has this phone number.`
 
-   1. Test case: `list-pets i/87438807 i/99272758`<br>
+3. Invalid owner identifiers and command formats
+
+   1. Test case: `list-pets i/71234567`<br>
+      Expected: The status message is `Owner identifier must be a valid phone number belonging to the specified client.`
+
+   2. Test case: `list-pets i/87438807 i/99272758`<br>
       Expected: `Each owner identifier may be specified only once.`
+
+   3. Test case: `list-pets x/extra`<br>
+      Expected: The status message is `Invalid command format. Check the command syntax and try again.`
 
 ### Deleting a pet
 
