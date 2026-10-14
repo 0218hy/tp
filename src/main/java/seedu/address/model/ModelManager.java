@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -28,6 +29,7 @@ public class ModelManager implements Model {
     private final FilteredList<Client> filteredClients;
     private final SortedList<Client> sortedClients;
     private final FilteredList<Pet> filteredPets;
+    private final SortedList<Pet> sortedPets;
     private final FilteredList<Appointment> filteredAppointments;
     private final SortedList<Appointment> sortedAppointments;
 
@@ -44,6 +46,10 @@ public class ModelManager implements Model {
         filteredClients = new FilteredList<>(this.groomingBook.getClientList());
         sortedClients = new SortedList<>(filteredClients);
         filteredPets = new FilteredList<>(this.groomingBook.getPetList());
+        sortedPets = new SortedList<>(filteredPets, Comparator
+                .comparing((Pet pet) -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT))
+                .thenComparing(pet -> pet.getOwner().getPhone().value)
+                .thenComparing(pet -> pet.getName().getNormalizedName()));
         filteredAppointments = new FilteredList<>(this.groomingBook.getAppointmentList());
         sortedAppointments = new SortedList<>(filteredAppointments,
                 Comparator.comparing((Appointment appointment) -> appointment.getDate().value)
@@ -187,7 +193,7 @@ public class ModelManager implements Model {
 
     @Override
     public ObservableList<Pet> getFilteredPetList() {
-        return filteredPets;
+        return sortedPets;
     }
 
     @Override

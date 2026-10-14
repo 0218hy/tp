@@ -36,9 +36,9 @@ public class ListPetsCommandTest {
     @Test
     public void execute_allPets_groupsAndSortsByOwnerThenPet() throws Exception {
         Model model = createModel();
-        addPet(model, BENSON, "Zoe", Species.CAT, null);
-        addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
-        addPet(model, ALICE, "BuBu", Species.CAT, null);
+        Pet zoe = addPet(model, BENSON, "Zoe", Species.CAT, null);
+        Pet mochi = addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
+        Pet bubu = addPet(model, ALICE, "BuBu", Species.CAT, null);
         List<Pet> savedOrder = List.copyOf(model.getGroomingBook().getPetList());
         model.updateFilteredPetList(pet -> false);
 
@@ -49,7 +49,7 @@ public class ListPetsCommandTest {
         assertEquals(expected, result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(savedOrder, model.getGroomingBook().getPetList());
-        assertEquals(savedOrder, model.getFilteredPetList());
+        assertEquals(List.of(bubu, mochi, zoe), model.getFilteredPetList());
     }
 
     @Test
@@ -149,12 +149,14 @@ public class ListPetsCommandTest {
      * @param species The pet's species.
      * @param breed The pet's breed, or {@code null} when it is not recorded.
      */
-    private void addPet(Model model, Client owner, String name,
+    private Pet addPet(Model model, Client owner, String name,
             Species species, String breed) {
         PetBuilder builder = new PetBuilder(owner).withName(name).withSpecies(species);
         if (breed != null) {
             builder.withBreed(breed);
         }
-        model.addPet(builder.build());
+        Pet pet = builder.build();
+        model.addPet(pet);
+        return pet;
     }
 }

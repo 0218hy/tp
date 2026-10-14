@@ -4,9 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import seedu.address.logic.commands.Command;
@@ -33,15 +31,6 @@ public class ListPetsCommand extends Command {
     private static final String DETAIL_SEPARATOR = " ";
     private static final String LINE_SEPARATOR = "\n";
     private static final String GROUP_SEPARATOR = "\n\n";
-
-    /**
-     * The phone tie-breaker keeps different clients with the same name in separate groups.
-     * Pet names use their normalized form so case and extra whitespace do not affect ordering.
-     */
-    private static final Comparator<Pet> PET_ORDER = Comparator
-            .comparing((Pet pet) -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT))
-            .thenComparing(pet -> pet.getOwner().getPhone().value)
-            .thenComparing(pet -> pet.getName().getNormalizedName());
 
     private final PetOwnerPhoneMatchesPredicate predicate;
 
@@ -71,9 +60,7 @@ public class ListPetsCommand extends Command {
 
         Client owner = findOwner(model);
         model.updateFilteredPetList(predicate);
-        List<Pet> pets = model.getFilteredPetList().stream()
-                .sorted(PET_ORDER)
-                .toList();
+        List<Pet> pets = model.getFilteredPetList();
         return new CommandResult(formatOwnerPets(owner, pets), CommandResult.DisplayType.PETS);
     }
 
@@ -101,7 +88,7 @@ public class ListPetsCommand extends Command {
 
         StringBuilder result = new StringBuilder(MESSAGE_ALL_PETS);
         String previousOwnerPhone = null;
-        for (Pet pet : savedPets.stream().sorted(PET_ORDER).toList()) {
+        for (Pet pet : savedPets) {
             String currentOwnerPhone = pet.getOwner().getPhone().value;
             if (!currentOwnerPhone.equals(previousOwnerPhone)) {
                 result.append(GROUP_SEPARATOR).append(pet.getOwner().getName());

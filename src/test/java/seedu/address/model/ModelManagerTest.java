@@ -116,7 +116,7 @@ public class ModelManagerTest {
 
         assertEquals(List.of(cat), modelManager.getFilteredPetList());
         modelManager.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
-        assertEquals(List.of(dog, cat), modelManager.getFilteredPetList());
+        assertEquals(List.of(cat, dog), modelManager.getFilteredPetList());
     }
 
     @Test
