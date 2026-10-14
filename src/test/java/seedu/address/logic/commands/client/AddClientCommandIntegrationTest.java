@@ -2,7 +2,7 @@ package seedu.address.logic.commands.client;
 
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.testutil.TypicalClients.getTypicalClientBook;
+import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,14 +22,14 @@ public class AddClientCommandIntegrationTest {
 
     @BeforeEach
     public void setUp() {
-        model = new ModelManager(getTypicalClientBook(), new UserPrefs());
+        model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
     }
 
     @Test
     public void execute_newClient_success() {
         Client validClient = new ClientBuilder().build();
 
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.addClient(validClient);
 
         assertCommandSuccess(new AddClientCommand(validClient), model,
@@ -39,7 +39,7 @@ public class AddClientCommandIntegrationTest {
 
     @Test
     public void execute_duplicateClient_throwsCommandException() {
-        Client clientInList = model.getClientBook().getClientList().get(0);
+        Client clientInList = model.getGroomingBook().getClientList().get(0);
         assertCommandFailure(new AddClientCommand(clientInList), model,
                 AddClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
@@ -47,10 +47,10 @@ public class AddClientCommandIntegrationTest {
 
     @Test
     public void execute_sharedNameAndAddress_success() {
-        Client existing = model.getClientBook().getClientList().get(0);
+        Client existing = model.getGroomingBook().getClientList().get(0);
         Client client = new ClientBuilder(existing).withPhone("81234567")
                 .withEmail("another@example.com").build();
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.addClient(client);
         assertCommandSuccess(new AddClientCommand(client), model,
                 String.format(AddClientCommand.MESSAGE_SUCCESS, client.getName(), client.getPhone()), expectedModel);
@@ -58,7 +58,7 @@ public class AddClientCommandIntegrationTest {
 
     @Test
     public void execute_sharedPhoneOrEmailInFilteredList_failure() {
-        Client existing = model.getClientBook().getClientList().get(0);
+        Client existing = model.getGroomingBook().getClientList().get(0);
         model.updateFilteredClientList(client -> false);
         Client samePhone = new ClientBuilder().withPhone(existing.getPhone().value).build();
         Client sameEmail = new ClientBuilder().withEmail(existing.getEmail().value).build();

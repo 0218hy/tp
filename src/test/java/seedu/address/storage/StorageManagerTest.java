@@ -2,7 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static seedu.address.testutil.TypicalClients.getTypicalClientBook;
+import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
 
 import java.nio.file.Path;
 
@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.client.ClientBook;
-import seedu.address.model.pet.PetBook;
 
 public class StorageManagerTest {
 
@@ -48,16 +47,16 @@ public class StorageManagerTest {
     }
 
     @Test
-    public void clientBookReadSave() throws Exception {
+    public void groomingBookReadSave() throws Exception {
         /*
          * Note: This is an integration test that verifies the StorageManager is properly wired to the
          * {@link JsonClientPetStorage} class.
          * More extensive testing of UserPref saving/reading is done in {@link JsonClientPetStorageTest} class.
          */
-        ClientBook original = getTypicalClientBook();
-        storageManager.saveClientPetData(new ClientPetData(original, new PetBook()));
-        ClientPetData retrieved = storageManager.readClientPetData().get();
-        assertEquals(original, new ClientBook(retrieved.getClientBook()));
+        GroomingBook original = getTypicalGroomingBook();
+        storageManager.saveClientPetData(new GroomingBook(original));
+        GroomingBook retrieved = storageManager.readClientPetData().get();
+        assertEquals(original, new GroomingBook(retrieved));
     }
 
     @Test

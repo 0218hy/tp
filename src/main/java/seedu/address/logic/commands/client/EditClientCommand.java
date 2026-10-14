@@ -1,11 +1,11 @@
 package seedu.address.logic.commands.client;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import java.util.Collections;
@@ -31,7 +31,7 @@ import seedu.address.model.client.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Edits the details of an existing client in the client book.
+ * Edits the details of an existing client in the grooming book.
  */
 public class EditClientCommand extends Command {
 
@@ -82,7 +82,7 @@ public class EditClientCommand extends Command {
         Client clientToEdit = lastShownList.get(index.getZeroBased());
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
-        for (Client client : model.getClientBook().getClientList()) {
+        for (Client client : model.getGroomingBook().getClientList()) {
             if (!client.equals(clientToEdit) && client.isSameClient(editedClient)) {
                 throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
             }

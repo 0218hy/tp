@@ -9,15 +9,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.PetBook;
 import seedu.address.storage.client.JsonAdaptedClient;
 import seedu.address.storage.pet.JsonAdaptedPet;
 
 /**
- * A JSON snapshot of separate client and pet books, preserving the legacy file format.
+ * A JSON snapshot of client and pet records from the grooming book, preserving the legacy file format.
  */
 @JsonRootName(value = "addressbook")
 class JsonSerializableClientPetData {
@@ -43,39 +43,38 @@ class JsonSerializableClientPetData {
     }
 
     /**
-     * Converts a given {@code ClientPetData} into this class for Jackson use.
+     * Converts a given {@code GroomingBook} into this class for Jackson use.
      *
      * @param source future changes to this will not affect the created {@code JsonSerializableClientPetData}.
      */
-    public JsonSerializableClientPetData(ClientPetData source) {
-        clients.addAll(source.getClientBook().getClientList().stream()
+    public JsonSerializableClientPetData(ReadOnlyGroomingBook source) {
+        clients.addAll(source.getClientList().stream()
                 .map(JsonAdaptedClient::new).collect(Collectors.toList()));
-        pets.addAll(source.getPetBook().getPetList().stream().map(JsonAdaptedPet::new).collect(Collectors.toList()));
+        pets.addAll(source.getPetList().stream().map(JsonAdaptedPet::new).collect(Collectors.toList()));
     }
 
     /**
-     * Loads separate client and pet books, resolving pets to their loaded owners.
+     * Loads client and pet records from the grooming book, resolving pets to their loaded owners.
      *
      * @throws IllegalValueException if there were any data constraints violated.
      */
-    public ClientPetData toModelType() throws IllegalValueException {
-        ClientBook clientBook = new ClientBook();
-        PetBook petBook = new PetBook();
+    public GroomingBook toModelType() throws IllegalValueException {
+        GroomingBook groomingBook = new GroomingBook();
         for (JsonAdaptedClient jsonAdaptedClient : clients) {
             Client client = jsonAdaptedClient.toModelType();
-            if (clientBook.hasClient(client)) {
+            if (groomingBook.hasClient(client)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_CLIENT);
             }
-            clientBook.addClient(client);
+            groomingBook.addClient(client);
         }
         for (JsonAdaptedPet jsonAdaptedPet : pets) {
-            Pet pet = jsonAdaptedPet.toModelType(clientBook.getClientList());
-            if (petBook.hasPet(pet)) {
+            Pet pet = jsonAdaptedPet.toModelType(groomingBook.getClientList());
+            if (groomingBook.hasPet(pet)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PET);
             }
-            petBook.addPet(pet);
+            groomingBook.addPet(pet);
         }
-        return new ClientPetData(clientBook, petBook);
+        return groomingBook;
     }
 
 }

@@ -10,18 +10,20 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.testutil.PetBuilder;
 
-/** Tests collection ownership and validation at the pet book boundary. */
-public class PetBookTest {
+/** Tests collection ownership and validation at the grooming book boundary. */
+public class GroomingBookPetTest {
     private final Pet milo = new PetBuilder(ALICE).build();
 
     @Test
     public void constructor_copiesSourceWithoutSharingMutableList() {
-        PetBook original = new PetBook();
+        GroomingBook original = bookWithOwner();
         original.addPet(milo);
-        PetBook copy = new PetBook(original);
+        GroomingBook copy = new GroomingBook(original);
         original.removePet(milo);
 
         assertEquals(List.of(milo), copy.getPetList());
@@ -29,10 +31,15 @@ public class PetBookTest {
 
     @Test
     public void resetData_duplicatePets_rejectsWithoutLosingExistingData() {
-        PetBook book = new PetBook();
+        GroomingBook book = bookWithOwner();
         book.addPet(milo);
         Pet luna = new PetBuilder(ALICE).withName("Luna").build();
-        ReadOnlyPetBook invalid = () -> FXCollections.observableArrayList(luna, luna);
+        ReadOnlyGroomingBook invalid = new GroomingBook(book) {
+            @Override
+            public javafx.collections.ObservableList<Pet> getPetList() {
+                return FXCollections.observableArrayList(luna, luna);
+            }
+        };
 
         assertThrows(DuplicatePetException.class, () -> book.resetData(invalid));
         assertEquals(List.of(milo), book.getPetList());
@@ -40,9 +47,9 @@ public class PetBookTest {
 
     @Test
     public void resetData_validReplacement_updatesExistingReadOnlyView() {
-        PetBook book = new PetBook();
+        GroomingBook book = bookWithOwner();
         var view = book.getPetList();
-        PetBook replacement = new PetBook();
+        GroomingBook replacement = bookWithOwner();
         replacement.addPet(milo);
 
         book.resetData(replacement);
@@ -53,7 +60,7 @@ public class PetBookTest {
 
     @Test
     public void setPet_duplicateIdentity_preservesBothPets() {
-        PetBook book = new PetBook();
+        GroomingBook book = bookWithOwner();
         Pet luna = new PetBuilder(ALICE).withName("Luna").build();
         book.addPet(milo);
         book.addPet(luna);
@@ -64,7 +71,7 @@ public class PetBookTest {
 
     @Test
     public void removePet_onlyRemovesRequestedRecord() {
-        PetBook book = new PetBook();
+        GroomingBook book = bookWithOwner();
         Pet luna = new PetBuilder(ALICE).withName("Luna").build();
         book.addPet(milo);
         book.addPet(luna);
@@ -74,4 +81,10 @@ public class PetBookTest {
         assertFalse(book.hasPet(milo));
         assertEquals(List.of(luna), book.getPetList());
     }
+    private GroomingBook bookWithOwner() {
+        GroomingBook book = new GroomingBook();
+        book.addClient(ALICE);
+        return book;
+    }
 }
+

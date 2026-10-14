@@ -12,31 +12,31 @@ import java.util.Optional;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 
 /**
  * Reads and writes appointments in a dedicated JSON file.
  */
-public class JsonAppointmentBookStorage implements AppointmentStorage {
+public class JsonAppointmentStorage implements AppointmentStorage {
     private final Path filePath;
 
-    public JsonAppointmentBookStorage(Path filePath) {
+    public JsonAppointmentStorage(Path filePath) {
         this.filePath = requireNonNull(filePath);
     }
 
     @Override
-    public Path getAppointmentBookFilePath() {
+    public Path getAppointmentFilePath() {
         return filePath;
     }
 
     @Override
-    public Optional<ReadOnlyAppointmentBook> readAppointmentBook() throws DataLoadingException {
+    public Optional<ReadOnlyGroomingBook> readAppointmentData() throws DataLoadingException {
         if (!Files.exists(filePath)) {
             return Optional.empty();
         }
         try {
-            JsonSerializableAppointmentBook data = JsonUtil.fromJsonString(
-                    Files.readString(filePath), JsonSerializableAppointmentBook.class);
+            JsonSerializableAppointments data = JsonUtil.fromJsonString(
+                    Files.readString(filePath), JsonSerializableAppointments.class);
             if (data == null) {
                 throw new IllegalValueException("Appointment book must not be null.");
             }
@@ -47,9 +47,9 @@ public class JsonAppointmentBookStorage implements AppointmentStorage {
     }
 
     @Override
-    public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
+    public void saveAppointmentData(ReadOnlyGroomingBook appointmentBook) throws IOException {
         requireNonNull(appointmentBook);
-        String json = JsonUtil.toJsonString(new JsonSerializableAppointmentBook(appointmentBook));
+        String json = JsonUtil.toJsonString(new JsonSerializableAppointments(appointmentBook));
         Path target = filePath.toAbsolutePath();
         Files.createDirectories(target.getParent());
         Path temporary = Files.createTempFile(target.getParent(), "appointments-", ".tmp");

@@ -44,6 +44,11 @@ BuBu is built with Java and JavaFX. With JDK 25 installed, run the current devel
 ./gradlew run
 ```
 
+The shared `GroomingBook` model contains clients, pets, and appointments. Feature-specific model,
+command, parser, and storage classes live in `client`, `pet`, and `appointment` packages;
+`GroomingBook` and `ReadOnlyGroomingBook` live in the shared `model` package. Existing
+`data/addressbook.json` (clients and pets) and `data/appointments.json` files remain compatible.
+
 Run the automated checks with `./gradlew check`. On Windows, use `gradlew.bat` in place of `./gradlew`.
 
 ## Acknowledgements

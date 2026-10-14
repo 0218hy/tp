@@ -21,25 +21,22 @@ import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.client.Phone;
-import seedu.address.model.pet.PetBook;
-import seedu.address.storage.ClientPetData;
 import seedu.address.storage.JsonClientPetStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.storage.appointment.AppointmentStorage;
-import seedu.address.storage.appointment.JsonAppointmentBookStorage;
+import seedu.address.storage.appointment.JsonAppointmentStorage;
 
 public class AppointmentPersistenceTest {
     private static final String COMMAND = "schedule i/" + ALICE.getPhone()
@@ -54,10 +51,10 @@ public class AppointmentPersistenceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        storage = storageWith(new JsonAppointmentBookStorage(temporaryFolder.resolve("appointments.json")));
-        ClientBook owners = new ClientBook();
+        storage = storageWith(new JsonAppointmentStorage(temporaryFolder.resolve("appointments.json")));
+        GroomingBook owners = new GroomingBook();
         owners.addClient(ALICE);
-        storage.saveClientPetData(new ClientPetData(owners, new PetBook()));
+        storage.saveClientPetData(new GroomingBook(owners));
         model = new MainApp().initModelManager(storage, new UserPrefs());
         logic = logicFor(model, storage);
     }
@@ -67,50 +64,51 @@ public class AppointmentPersistenceTest {
         String ownersBefore = Files.readString(storage.getClientPetFilePath());
         logic.execute(COMMAND);
         assertEquals(ownersBefore, Files.readString(storage.getClientPetFilePath()));
-        assertEquals(model.getAppointmentBook(), storage.readAppointmentBook().orElseThrow());
+        assertEquals(model.getGroomingBook().getAppointmentList(),
+                storage.readAppointmentData().orElseThrow().getAppointmentList());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertEquals(model.getAppointmentBook(), restarted.getAppointmentBook());
+        assertEquals(model.getGroomingBook(), restarted.getGroomingBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
         assertEquals(ScheduleAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
-        assertEquals(1, restarted.getAppointmentBook().getAppointmentList().size());
+        assertEquals(1, restarted.getGroomingBook().getAppointmentList().size());
     }
 
     @Test
     public void startup_missingAppointmentFile_startsEmptyWithoutCreatingFile() {
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
-        assertFalse(Files.exists(storage.getAppointmentBookFilePath()));
-        assertEquals(List.of(ALICE), model.getClientBook().getClientList());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertFalse(Files.exists(storage.getAppointmentFilePath()));
+        assertEquals(List.of(ALICE), model.getGroomingBook().getClientList());
     }
 
     @Test
     public void startup_invalidAppointmentFile_preservesFileAndLoadsOwners() throws Exception {
-        Files.writeString(storage.getAppointmentBookFilePath(), "broken appointment data");
+        Files.writeString(storage.getAppointmentFilePath(), "broken appointment data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertTrue(restarted.getAppointmentBook().getAppointmentList().isEmpty());
-        assertEquals(List.of(ALICE), restarted.getClientBook().getClientList());
+        assertTrue(restarted.getGroomingBook().getAppointmentList().isEmpty());
+        assertEquals(List.of(ALICE), restarted.getGroomingBook().getClientList());
         new LogicManager(restarted, storage).execute("list");
-        assertEquals("broken appointment data", Files.readString(storage.getAppointmentBookFilePath()));
+        assertEquals("broken appointment data", Files.readString(storage.getAppointmentFilePath()));
     }
 
     @Test
     public void startup_invalidOwnerFile_stillLoadsHistoricalAppointments() throws Exception {
-        AppointmentBook appointments = historicalBook();
-        storage.saveAppointmentBook(appointments);
+        GroomingBook appointments = historicalBook();
+        storage.saveAppointmentData(appointments);
         Files.writeString(storage.getClientPetFilePath(), "broken owner data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertTrue(restarted.getClientBook().getClientList().isEmpty());
-        assertEquals(appointments, restarted.getAppointmentBook());
+        assertTrue(restarted.getGroomingBook().getClientList().isEmpty());
+        assertEquals(appointments, restarted.getGroomingBook());
     }
 
     @Test
     public void clearContacts_leavesScheduleAndAppointmentFileUnchanged() throws Exception {
         logic.execute(COMMAND);
-        String appointmentsBefore = Files.readString(storage.getAppointmentBookFilePath());
+        String appointmentsBefore = Files.readString(storage.getAppointmentFilePath());
         logic.execute("clear");
-        assertTrue(model.getClientBook().getClientList().isEmpty());
-        assertEquals(1, model.getAppointmentBook().getAppointmentList().size());
-        assertEquals(appointmentsBefore, Files.readString(storage.getAppointmentBookFilePath()));
+        assertTrue(model.getGroomingBook().getClientList().isEmpty());
+        assertEquals(1, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(appointmentsBefore, Files.readString(storage.getAppointmentFilePath()));
     }
 
     @Test
@@ -118,15 +116,15 @@ public class AppointmentPersistenceTest {
         LogicManager defaultLogic = new LogicManager(model, storage);
         ParseException exception = assertThrows(ParseException.class, () -> defaultLogic.execute(COMMAND));
         assertEquals(BuBuParser.MESSAGE_SCHEDULING_UNAVAILABLE, exception.getMessage());
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
-        assertFalse(Files.exists(storage.getAppointmentBookFilePath()));
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertFalse(Files.exists(storage.getAppointmentFilePath()));
     }
 
     @Test
     public void scheduleWithInvalidArguments_doesNotSave() {
         assertThrows(ParseException.class, () -> logic.execute(COMMAND.replace("10:00", "10:15")));
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
-        assertFalse(Files.exists(storage.getAppointmentBookFilePath()));
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertFalse(Files.exists(storage.getAppointmentFilePath()));
     }
 
     @Test
@@ -142,30 +140,31 @@ public class AppointmentPersistenceTest {
     }
 
     private void assertSaveFailure(IOException failure, String expectedMessage) throws Exception {
-        AppointmentBook before = historicalBook();
-        model.setAppointmentBook(before);
-        storage.saveAppointmentBook(before);
-        String savedBefore = Files.readString(storage.getAppointmentBookFilePath());
-        JsonAppointmentBookStorage failOnce = new JsonAppointmentBookStorage(storage.getAppointmentBookFilePath()) {
+        GroomingBook before = historicalBook();
+        model.setAppointments(before.getAppointmentList());
+        storage.saveAppointmentData(before);
+        String savedBefore = Files.readString(storage.getAppointmentFilePath());
+        JsonAppointmentStorage failOnce = new JsonAppointmentStorage(storage.getAppointmentFilePath()) {
             private boolean failNext = true;
 
             @Override
-            public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
+            public void saveAppointmentData(ReadOnlyGroomingBook appointmentBook) throws IOException {
                 if (failNext) {
                     failNext = false;
                     throw failure;
                 }
-                super.saveAppointmentBook(appointmentBook);
+                super.saveAppointmentData(appointmentBook);
             }
         };
         LogicManager failingLogic = logicFor(model, storageWith(failOnce));
         CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute(COMMAND));
         assertEquals(expectedMessage, exception.getMessage());
-        assertEquals(before, model.getAppointmentBook());
-        assertEquals(savedBefore, Files.readString(storage.getAppointmentBookFilePath()));
+        assertEquals(before.getAppointmentList(), model.getGroomingBook().getAppointmentList());
+        assertEquals(savedBefore, Files.readString(storage.getAppointmentFilePath()));
         failingLogic.execute(COMMAND);
-        assertEquals(2, model.getAppointmentBook().getAppointmentList().size());
-        assertEquals(model.getAppointmentBook(), storage.readAppointmentBook().orElseThrow());
+        assertEquals(2, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(model.getGroomingBook().getAppointmentList(),
+                storage.readAppointmentData().orElseThrow().getAppointmentList());
     }
 
     private StorageManager storageWith(AppointmentStorage appointmentStorage) {
@@ -189,8 +188,8 @@ public class AppointmentPersistenceTest {
         return new LogicManager(target, targetStorage, new BuBuParser(lookup));
     }
 
-    private AppointmentBook historicalBook() {
-        AppointmentBook book = new AppointmentBook();
+    private GroomingBook historicalBook() {
+        GroomingBook book = new GroomingBook();
         book.addAppointment(new Appointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;

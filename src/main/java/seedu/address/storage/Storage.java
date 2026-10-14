@@ -5,6 +5,8 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.storage.appointment.AppointmentStorage;
@@ -40,18 +42,18 @@ public interface Storage extends AppointmentStorage {
     Path getClientPetFilePath();
 
     /**
-     * Returns client and pet data as a {@link ClientPetData}.
+     * Returns client and pet records in a {@link GroomingBook} with an empty appointment list.
      * Returns {@code Optional.empty()} if storage file is not found.
      *
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    Optional<ClientPetData> readClientPetData() throws DataLoadingException;
+    Optional<GroomingBook> readClientPetData() throws DataLoadingException;
 
     /**
-     * Saves the given {@link ClientPetData} to the storage.
+     * Saves the client and pet records from the given grooming book.
      * @param data cannot be null.
      * @throws IOException if there was any problem writing to the file.
      */
-    void saveClientPetData(ClientPetData data) throws IOException;
+    void saveClientPetData(ReadOnlyGroomingBook data) throws IOException;
 
 }

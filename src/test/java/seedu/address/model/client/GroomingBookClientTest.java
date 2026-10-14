@@ -7,7 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
-import static seedu.address.testutil.TypicalClients.getTypicalClientBook;
+import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,12 +16,13 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.testutil.ClientBuilder;
 
-public class ClientBookTest {
+public class GroomingBookClientTest {
 
-    private final ClientBook clientBook = new ClientBook();
+    private final GroomingBook clientBook = new GroomingBook();
 
     @Test
     public void constructor() {
@@ -34,8 +35,8 @@ public class ClientBookTest {
     }
 
     @Test
-    public void resetData_withValidReadOnlyClientBook_replacesData() {
-        ClientBook newData = getTypicalClientBook();
+    public void resetData_withValidReadOnlyGroomingBook_replacesData() {
+        GroomingBook newData = getTypicalGroomingBook();
         clientBook.resetData(newData);
         assertEquals(newData, clientBook);
     }
@@ -57,18 +58,18 @@ public class ClientBookTest {
     }
 
     @Test
-    public void hasClient_clientNotInClientBook_returnsFalse() {
+    public void hasClient_clientNotInGroomingBook_returnsFalse() {
         assertFalse(clientBook.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientInClientBook_returnsTrue() {
+    public void hasClient_clientInGroomingBook_returnsTrue() {
         clientBook.addClient(ALICE);
         assertTrue(clientBook.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientWithSameIdentityFieldsInClientBook_returnsTrue() {
+    public void hasClient_clientWithSameIdentityFieldsInGroomingBook_returnsTrue() {
         clientBook.addClient(ALICE);
         Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
@@ -86,14 +87,15 @@ public class ClientBookTest {
 
     @Test
     public void toStringMethod() {
-        String expected = ClientBook.class.getCanonicalName() + "{clients=" + clientBook.getClientList() + "}";
+        String expected = GroomingBook.class.getCanonicalName() + "{clients=" + clientBook.getClientList()
+                + ", pets=[], appointments=[]}";
         assertEquals(expected, clientBook.toString());
     }
 
     /**
-     * A stub ReadOnlyClientBook whose clients list can violate interface constraints.
+     * A stub GroomingBook whose clients list can violate interface constraints.
      */
-    private static class ClientBookStub implements ReadOnlyClientBook {
+    private static class ClientBookStub extends GroomingBook {
         private final ObservableList<Client> clients = FXCollections.observableArrayList();
 
         ClientBookStub(Collection<Client> clients) {

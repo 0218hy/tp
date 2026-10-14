@@ -10,7 +10,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 
 /**
- * Finds and lists all clients in the client book whose name contains any of the argument keywords.
+ * Finds and lists all clients in the grooming book whose name contains any of the argument keywords.
  * Keyword matching is case insensitive.
  */
 public class FindClientsCommand extends Command {

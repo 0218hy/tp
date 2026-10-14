@@ -3,23 +3,20 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.model.Model;
-import seedu.address.model.client.ClientBook;
-import seedu.address.model.pet.PetBook;
 
 /**
- * Clears the address book.
+ * Clears clients and pets from the grooming book.
  */
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
-    public static final String MESSAGE_SUCCESS = "Address book has been cleared!";
+    public static final String MESSAGE_SUCCESS = "Clients and pets have been cleared!";
 
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.setPetBook(new PetBook());
-        model.setClientBook(new ClientBook());
+        model.clearClientsAndPets();
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }

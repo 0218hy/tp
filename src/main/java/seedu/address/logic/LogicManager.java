@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -15,10 +16,8 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
-import seedu.address.model.appointment.AppointmentBook;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
-import seedu.address.storage.ClientPetData;
 import seedu.address.storage.Storage;
 
 /**
@@ -57,19 +56,19 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = buBuParser.parseCommand(commandText);
-        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleAppointmentCommand
-                ? new AppointmentBook(model.getAppointmentBook()) : null;
+        List<Appointment> previousAppointments = command instanceof ScheduleAppointmentCommand
+                ? List.copyOf(model.getGroomingBook().getAppointmentList()) : null;
         commandResult = command.execute(model);
 
         try {
             if (previousAppointments != null) {
-                storage.saveAppointmentBook(model.getAppointmentBook());
+                storage.saveAppointmentData(model.getGroomingBook());
             } else {
-                storage.saveClientPetData(new ClientPetData(model.getClientBook(), model.getPetBook()));
+                storage.saveClientPetData(model.getGroomingBook());
             }
         } catch (IOException ioe) {
             if (previousAppointments != null) {
-                model.setAppointmentBook(previousAppointments);
+                model.setAppointments(previousAppointments);
             }
             if (command instanceof AddClientCommand) {
                 throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);

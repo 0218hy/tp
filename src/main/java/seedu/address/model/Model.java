@@ -1,15 +1,13 @@
 package seedu.address.model;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ReadOnlyClientBook;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.ReadOnlyPetBook;
 
 /**
  * The API of the Model component.
@@ -35,25 +33,17 @@ public interface Model {
      */
     void setGuiSettings(GuiSettings guiSettings);
 
-    /**
-     * Replaces client book data with the data in {@code clientBook}.
-     */
-    void setClientBook(ReadOnlyClientBook clientBook);
+    /** Replaces all grooming records with a validated copy of the supplied data. */
+    void setGroomingBook(ReadOnlyGroomingBook groomingBook);
 
-    /** Returns the ClientBook */
-    ReadOnlyClientBook getClientBook();
+    /** Returns read-only access to the shared grooming book. */
+    ReadOnlyGroomingBook getGroomingBook();
 
-    /** Returns the read-only pet book. */
-    ReadOnlyPetBook getPetBook();
+    /** Clears clients and pets, retaining historical appointments. */
+    void clearClientsAndPets();
 
-    /** Replaces the pet book after validating that every owner exists. */
-    void setPetBook(ReadOnlyPetBook petBook);
-
-    /** Returns the read-only appointment schedule. */
-    ReadOnlyAppointmentBook getAppointmentBook();
-
-    /** Replaces the appointment schedule with a validated copy of the supplied data. */
-    void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook);
+    /** Replaces the appointment schedule after validating all slots. */
+    void setAppointments(List<Appointment> appointments);
 
     /**
      * Adds an appointment that does not overlap an existing appointment.
@@ -64,49 +54,49 @@ public interface Model {
     void addAppointment(Appointment appointment);
 
     /**
-     * Returns true if a client with the same identity as {@code client} exists in the client book.
+     * Returns true if a client with the same identity as {@code client} exists in the grooming book.
      */
     boolean hasClient(Client client);
 
     /**
      * Deletes the given client.
-     * The client must exist in the client book.
+     * The client must exist in the grooming book.
      */
     void deleteClient(Client target);
 
     /**
      * Adds the given client.
-     * {@code client} must not already exist in the client book.
+     * {@code client} must not already exist in the grooming book.
      */
     void addClient(Client client);
 
     /**
      * Replaces the given client {@code target} with {@code editedClient}.
-     * {@code target} must exist in the client book.
-     * The client identity of {@code editedClient} must not be the same as another existing client in the client book.
+     * {@code target} must exist in the grooming book.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the grooming book.
      */
     void setClient(Client target, Client editedClient);
 
     /**
-     * Returns true if a pet with the same identity as {@code pet} exists in the pet book.
+     * Returns true if a pet with the same identity as {@code pet} exists in the grooming book.
      */
     boolean hasPet(Pet pet);
 
     /**
      * Deletes the given pet.
-     * The pet must exist in the pet book.
+     * The pet must exist in the grooming book.
      */
     void deletePet(Pet pet);
 
     /**
      * Adds the given pet.
-     * The pet must not already exist in the pet book.
+     * The pet must not already exist in the grooming book.
      */
     void addPet(Pet pet);
 
     /**
      * Replaces the given pet {@code target} with {@code editedPet}.
-     * The target pet must exist in the pet book.
+     * The target pet must exist in the grooming book.
      */
     void setPet(Pet target, Pet editedPet);
 

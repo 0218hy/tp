@@ -2,11 +2,11 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.ArrayList;
@@ -15,12 +15,11 @@ import java.util.List;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.client.EditClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.PetBook;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
 /**
@@ -106,14 +105,12 @@ public class CommandTestUtil {
     public static void assertCommandFailure(Command command, Model actualModel, String expectedMessage) {
         // we are unable to defensively copy the model for comparison later, so we can
         // only do so by copying its components.
-        PetBook expectedPetBook = new PetBook(actualModel.getPetBook());
-        ClientBook expectedClientBook = new ClientBook(actualModel.getClientBook());
+        GroomingBook expectedGroomingBook = new GroomingBook(actualModel.getGroomingBook());
         List<Client> expectedFilteredList = new ArrayList<>(actualModel.getFilteredClientList());
         List<Pet> expectedFilteredPetList = new ArrayList<>(actualModel.getFilteredPetList());
 
         assertThrows(CommandException.class, expectedMessage, () -> command.execute(actualModel));
-        assertEquals(expectedClientBook, actualModel.getClientBook());
-        assertEquals(expectedPetBook, actualModel.getPetBook());
+        assertEquals(expectedGroomingBook, actualModel.getGroomingBook());
         assertEquals(expectedFilteredList, actualModel.getFilteredClientList());
         assertEquals(expectedFilteredPetList, actualModel.getFilteredPetList());
     }

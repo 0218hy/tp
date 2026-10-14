@@ -15,8 +15,8 @@ import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
-import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.Prefix;
+import seedu.address.logic.parser.client.ClientParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -55,7 +55,7 @@ public class ScheduleAppointmentCommandParser implements Parser<ScheduleAppointm
         }
         arguments.verifyNoDuplicatePrefixesFor(prefixes);
 
-        Phone ownerPhone = ParserUtil.parsePhone(arguments.getValue(PREFIX_OWNER_IDENTIFIER).get());
+        Phone ownerPhone = ClientParserUtil.parsePhone(arguments.getValue(PREFIX_OWNER_IDENTIFIER).get());
         try {
             Appointment appointment = new Appointment(ownerPhone, arguments.getValue(PREFIX_PET_NAME).get(),
                     new AppointmentDate(arguments.getValue(PREFIX_DATE).get()),

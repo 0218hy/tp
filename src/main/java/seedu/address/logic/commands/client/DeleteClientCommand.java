@@ -14,7 +14,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.Client;
 
 /**
- * Deletes a client identified using its displayed index from the client book.
+ * Deletes a client identified using its displayed index from the grooming book.
  */
 public class DeleteClientCommand extends Command {
 

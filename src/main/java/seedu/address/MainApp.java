@@ -13,15 +13,12 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.appointment.AppointmentBook;
-import seedu.address.model.client.ClientBook;
-import seedu.address.model.pet.PetBook;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.ClientPetData;
 import seedu.address.storage.JsonClientPetStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -65,14 +62,14 @@ public class MainApp extends Application {
     /**
      * Returns a {@code ModelManager} with the client and pet data from {@code storage} and {@code userPrefs}. <br>
      * Sample clients are used if the client/pet data file is not found,
-     * or empty client and pet books are used if errors occur when loading it.
+     * or an empty grooming book is used if errors occur when loading it.
      * Appointments load independently; a missing or invalid appointment file starts an empty schedule.
      */
     protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getClientPetFilePath());
 
-        Optional<ClientPetData> clientPetDataOptional;
-        ClientPetData initialData;
+        Optional<GroomingBook> clientPetDataOptional;
+        GroomingBook initialData;
         try {
             clientPetDataOptional = storage.readClientPetData();
             if (clientPetDataOptional.isEmpty()) {
@@ -80,18 +77,19 @@ public class MainApp extends Application {
                         + " populated with sample clients.");
             }
             initialData = clientPetDataOptional.orElseGet(() ->
-                    new ClientPetData(SampleDataUtil.getSampleClientBook(), new PetBook()));
+                    new GroomingBook(SampleDataUtil.getSampleGroomingBook()));
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getClientPetFilePath() + " could not be loaded."
-                    + " Will be starting with empty client and pet books.");
-            initialData = new ClientPetData(new ClientBook(), new PetBook());
+                    + " Will be starting with an empty grooming book.");
+            initialData = new GroomingBook();
         }
 
-        ModelManager modelManager = new ModelManager(initialData.getClientBook(), initialData.getPetBook(), userPrefs);
+        ModelManager modelManager = new ModelManager(initialData, userPrefs);
         try {
-            modelManager.setAppointmentBook(storage.readAppointmentBook().orElseGet(AppointmentBook::new));
+            modelManager.setAppointments(storage.readAppointmentData()
+                    .orElseGet(GroomingBook::new).getAppointmentList());
         } catch (DataLoadingException e) {
-            logger.warning("Appointment file at " + storage.getAppointmentBookFilePath()
+            logger.warning("Appointment file at " + storage.getAppointmentFilePath()
                     + " could not be loaded. Will be starting with an empty schedule. "
                     + "The existing file is left unchanged.");
         }

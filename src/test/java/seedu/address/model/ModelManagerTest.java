@@ -17,15 +17,13 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.exceptions.ClientNotFoundException;
 import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.PetBook;
 import seedu.address.model.pet.Species;
-import seedu.address.testutil.ClientBookBuilder;
 import seedu.address.testutil.ClientBuilder;
+import seedu.address.testutil.GroomingBookBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class ModelManagerTest {
@@ -36,14 +34,14 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
-        assertEquals(new ClientBook(), new ClientBook(modelManager.getClientBook()));
+        assertEquals(new GroomingBook(), new GroomingBook(modelManager.getGroomingBook()));
     }
 
     @Test
     public void constructor_validUserPrefs_copiesUserPrefs() {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
-        modelManager = new ModelManager(new ClientBook(), userPrefs);
+        modelManager = new ModelManager(new GroomingBook(), userPrefs);
         assertEquals(userPrefs, modelManager.getUserPrefs());
 
         // Modifying userPrefs should not modify modelManager's userPrefs
@@ -70,12 +68,12 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasClient_clientNotInClientBook_returnsFalse() {
+    public void hasClient_clientNotInGroomingBook_returnsFalse() {
         assertFalse(modelManager.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientInClientBook_returnsTrue() {
+    public void hasClient_clientInGroomingBook_returnsTrue() {
         modelManager.addClient(ALICE);
         assertTrue(modelManager.hasClient(ALICE));
     }
@@ -91,7 +89,7 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasPet_petNotInClientBook_returnsFalse() {
+    public void hasPet_petNotInGroomingBook_returnsFalse() {
         assertFalse(modelManager.hasPet(new PetBuilder(ALICE).build()));
     }
 
@@ -122,7 +120,7 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void deletePet_petInClientBook_removesPet() {
+    public void deletePet_petInGroomingBook_removesPet() {
         Pet pet = new PetBuilder(ALICE).build();
         modelManager.addClient(ALICE);
         modelManager.addPet(pet);
@@ -140,8 +138,8 @@ public class ModelManagerTest {
 
     @Test
     public void equals() {
-        ClientBook clientBook = new ClientBookBuilder().withClient(ALICE).withClient(BENSON).build();
-        ClientBook differentClientBook = new ClientBook();
+        GroomingBook clientBook = new GroomingBookBuilder().withClient(ALICE).withClient(BENSON).build();
+        GroomingBook differentClientBook = new GroomingBook();
         UserPrefs userPrefs = new UserPrefs();
 
         // same values -> returns true
@@ -158,7 +156,7 @@ public class ModelManagerTest {
         // different types -> returns false
         assertFalse(modelManager.equals(5));
 
-        // different clientBook -> returns false
+        // different groomingBook -> returns false
         assertFalse(modelManager.equals(new ModelManager(differentClientBook, userPrefs)));
 
         // different filteredList -> returns false
@@ -176,12 +174,12 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void addPet_ownerNotInClientBook_throwsClientNotFoundException() {
+    public void addPet_ownerNotInGroomingBook_throwsClientNotFoundException() {
         assertThrows(ClientNotFoundException.class, () -> modelManager.addPet(new PetBuilder(ALICE).build()));
     }
 
     @Test
-    public void addPet_ownerInClientBook_addsPet() {
+    public void addPet_ownerInGroomingBook_addsPet() {
         Pet pet = new PetBuilder(ALICE).build();
         modelManager.addClient(ALICE);
 
@@ -192,7 +190,7 @@ public class ModelManagerTest {
 
     @Test
     public void getPetList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> modelManager.getPetBook().getPetList().remove(0));
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getGroomingBook().getPetList().remove(0));
     }
 
     @Test
@@ -204,32 +202,23 @@ public class ModelManagerTest {
 
         modelManager.setClient(ALICE, editedAlice);
 
-        assertSame(editedAlice, modelManager.getPetBook().getPetList().get(0).getOwner());
+        assertSame(editedAlice, modelManager.getGroomingBook().getPetList().get(0).getOwner());
     }
 
     @Test
-    public void constructor_copiesBothBooksAndKeepsTheirListsSeparate() {
-        ClientBook clients = new ClientBook();
-        clients.addClient(ALICE);
-        PetBook pets = new PetBook();
+    public void constructor_copiesAllRecordsWithoutSharingMutableLists() {
+        GroomingBook source = new GroomingBook();
+        source.addClient(ALICE);
         Pet pet = new PetBuilder(ALICE).build();
-        pets.addPet(pet);
-        ModelManager model = new ModelManager(clients, pets, new UserPrefs());
+        source.addPet(pet);
+        ModelManager model = new ModelManager(source, new UserPrefs());
 
-        clients.addClient(BENSON);
-        pets.removePet(pet);
+        source.addClient(BENSON);
+        source.removePet(pet);
 
-        assertEquals(List.of(ALICE), model.getClientBook().getClientList());
-        assertEquals(List.of(pet), model.getPetBook().getPetList());
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
-    }
-
-    @Test
-    public void constructor_petOwnerMissing_rejectsData() {
-        PetBook pets = new PetBook();
-        pets.addPet(new PetBuilder(ALICE).build());
-        assertThrows(ClientNotFoundException.class, () ->
-                new ModelManager(new ClientBook(), pets, new UserPrefs()));
+        assertEquals(List.of(ALICE), model.getGroomingBook().getClientList());
+        assertEquals(List.of(pet), model.getGroomingBook().getPetList());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -240,20 +229,24 @@ public class ModelManagerTest {
 
         assertThrows(ClientNotFoundException.class, () ->
                 modelManager.setPet(pet, pet.withOwner(BENSON)));
-        assertEquals(List.of(pet), modelManager.getPetBook().getPetList());
+        assertEquals(List.of(pet), modelManager.getGroomingBook().getPetList());
     }
 
     @Test
-    public void setPetBook_ownerMissing_keepsBothBooksUnchanged() {
+    public void setGroomingBook_ownerMissing_keepsAllRecordsUnchanged() {
         modelManager.addClient(ALICE);
         Pet pet = new PetBuilder(ALICE).build();
         modelManager.addPet(pet);
-        PetBook replacement = new PetBook();
-        replacement.addPet(new PetBuilder(BENSON).build());
+        ReadOnlyGroomingBook replacement = new GroomingBook() {
+            @Override
+            public javafx.collections.ObservableList<Pet> getPetList() {
+                return javafx.collections.FXCollections.observableArrayList(new PetBuilder(BENSON).build());
+            }
+        };
 
-        assertThrows(ClientNotFoundException.class, () -> modelManager.setPetBook(replacement));
-        assertEquals(List.of(ALICE), modelManager.getClientBook().getClientList());
-        assertEquals(List.of(pet), modelManager.getPetBook().getPetList());
+        assertThrows(ClientNotFoundException.class, () -> modelManager.setGroomingBook(replacement));
+        assertEquals(List.of(ALICE), modelManager.getGroomingBook().getClientList());
+        assertEquals(List.of(pet), modelManager.getGroomingBook().getPetList());
     }
 
     @Test
@@ -264,44 +257,35 @@ public class ModelManagerTest {
         modelManager.addPet(pet);
 
         assertThrows(DuplicateClientException.class, () -> modelManager.setClient(ALICE, BENSON));
-        assertEquals(List.of(ALICE, BENSON), modelManager.getClientBook().getClientList());
-        assertSame(ALICE, modelManager.getPetBook().getPetList().get(0).getOwner());
+        assertEquals(List.of(ALICE, BENSON), modelManager.getGroomingBook().getClientList());
+        assertSame(ALICE, modelManager.getGroomingBook().getPetList().get(0).getOwner());
     }
 
     @Test
-    public void setClientBook_ownerMissing_keepsBothBooksUnchanged() {
-        modelManager.addClient(ALICE);
-        Pet pet = new PetBuilder(ALICE).build();
-        modelManager.addPet(pet);
-
-        assertThrows(ClientNotFoundException.class, () -> modelManager.setClientBook(new ClientBook()));
-        assertEquals(List.of(ALICE), modelManager.getClientBook().getClientList());
-        assertEquals(List.of(pet), modelManager.getPetBook().getPetList());
-    }
-
-    @Test
-    public void setClientBook_updatedOwner_refreshesPetReference() {
+    public void setGroomingBook_updatedOwner_refreshesPetReference() {
         modelManager.addClient(ALICE);
         modelManager.addPet(new PetBuilder(ALICE).build());
         Client updatedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
-        ClientBook replacement = new ClientBook();
+        GroomingBook replacement = new GroomingBook();
         replacement.addClient(updatedAlice);
 
-        modelManager.setClientBook(replacement);
+        replacement.addPet(new PetBuilder(ALICE).build());
+        modelManager.setGroomingBook(replacement);
 
-        assertSame(updatedAlice, modelManager.getPetBook().getPetList().get(0).getOwner());
+        assertSame(updatedAlice, modelManager.getGroomingBook().getPetList().get(0).getOwner());
         assertEquals(List.of(updatedAlice), modelManager.getFilteredClientList());
     }
 
     @Test
-    public void setPetBook_validReplacement_updatesExistingFilteredView() {
+    public void setGroomingBook_validReplacement_updatesExistingFilteredView() {
         modelManager.addClient(ALICE);
         var filteredPets = modelManager.getFilteredPetList();
         Pet pet = new PetBuilder(ALICE).build();
-        PetBook replacement = new PetBook();
+        GroomingBook replacement = new GroomingBook();
+        replacement.addClient(ALICE);
         replacement.addPet(pet);
 
-        modelManager.setPetBook(replacement);
+        modelManager.setGroomingBook(replacement);
         replacement.removePet(pet);
 
         assertSame(filteredPets, modelManager.getFilteredPetList());

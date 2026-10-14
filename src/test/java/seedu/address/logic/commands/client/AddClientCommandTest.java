@@ -17,15 +17,13 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
-import seedu.address.model.client.ReadOnlyClientBook;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.ReadOnlyPetBook;
 import seedu.address.testutil.ClientBuilder;
 
 public class AddClientCommandTest {
@@ -93,22 +91,12 @@ public class AddClientCommandTest {
      */
     private class ModelStub implements Model {
         @Override
-        public ReadOnlyPetBook getPetBook() {
+        public void clearClientsAndPets() {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public void setPetBook(ReadOnlyPetBook petBook) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook) {
-            throw new AssertionError("This method should not be called.");
-        }
-
-        @Override
-        public ReadOnlyAppointmentBook getAppointmentBook() {
+        public void setAppointments(List<Appointment> appointments) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -138,12 +126,12 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public void setClientBook(ReadOnlyClientBook newData) {
+        public void setGroomingBook(ReadOnlyGroomingBook newData) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ReadOnlyClientBook getClientBook() {
+        public ReadOnlyGroomingBook getGroomingBook() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -240,8 +228,8 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public ReadOnlyClientBook getClientBook() {
-            return new ClientBook();
+        public ReadOnlyGroomingBook getGroomingBook() {
+            return new GroomingBook();
         }
     }
 

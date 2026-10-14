@@ -12,6 +12,8 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.FileUtil;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 
 /**
  * A class to access client and pet data stored as a JSON file on the hard disk.
@@ -31,12 +33,12 @@ public class JsonClientPetStorage {
     }
 
     /**
-     * Returns client and pet data as a {@link ClientPetData}.
+     * Returns client and pet records in a {@link GroomingBook} with an empty appointment list.
      * Returns {@code Optional.empty()} if storage file is not found.
      *
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    public Optional<ClientPetData> readClientPetData() throws DataLoadingException {
+    public Optional<GroomingBook> readClientPetData() throws DataLoadingException {
         return readClientPetData(filePath);
     }
 
@@ -46,7 +48,7 @@ public class JsonClientPetStorage {
      * @param filePath location of the data. Cannot be null.
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    public Optional<ClientPetData> readClientPetData(Path filePath) throws DataLoadingException {
+    public Optional<GroomingBook> readClientPetData(Path filePath) throws DataLoadingException {
         requireNonNull(filePath);
 
         Optional<JsonSerializableClientPetData> jsonData = JsonUtil.readJsonFile(
@@ -64,20 +66,20 @@ public class JsonClientPetStorage {
     }
 
     /**
-     * Saves the given {@link ClientPetData} to the storage.
+     * Saves the client and pet records from the given grooming book.
      * @param data cannot be null.
      * @throws IOException if there was any problem writing to the file.
      */
-    public void saveClientPetData(ClientPetData data) throws IOException {
+    public void saveClientPetData(ReadOnlyGroomingBook data) throws IOException {
         saveClientPetData(data, filePath);
     }
 
     /**
-     * Similar to {@link #saveClientPetData(ClientPetData)}.
+     * Similar to {@link #saveClientPetData(ReadOnlyGroomingBook)}.
      *
      * @param filePath location of the data. Cannot be null.
      */
-    public void saveClientPetData(ClientPetData data, Path filePath) throws IOException {
+    public void saveClientPetData(ReadOnlyGroomingBook data, Path filePath) throws IOException {
         requireNonNull(data);
         requireNonNull(filePath);
 

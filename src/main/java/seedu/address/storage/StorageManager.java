@@ -7,11 +7,12 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.storage.appointment.AppointmentStorage;
-import seedu.address.storage.appointment.JsonAppointmentBookStorage;
+import seedu.address.storage.appointment.JsonAppointmentStorage;
 
 /**
  * Manages storage of client and pet data in local storage.
@@ -27,7 +28,7 @@ public class StorageManager implements Storage {
      * Creates a {@code StorageManager} with the given client/pet and user preference storage.
      */
     public StorageManager(JsonClientPetStorage clientPetStorage, JsonUserPrefsStorage userPrefsStorage) {
-        this(clientPetStorage, userPrefsStorage, new JsonAppointmentBookStorage(
+        this(clientPetStorage, userPrefsStorage, new JsonAppointmentStorage(
                 clientPetStorage.getClientPetFilePath().resolveSibling("appointments.json")));
     }
 
@@ -42,18 +43,18 @@ public class StorageManager implements Storage {
     // ================ Appointment methods ==============================
 
     @Override
-    public Path getAppointmentBookFilePath() {
-        return appointmentStorage.getAppointmentBookFilePath();
+    public Path getAppointmentFilePath() {
+        return appointmentStorage.getAppointmentFilePath();
     }
 
     @Override
-    public Optional<ReadOnlyAppointmentBook> readAppointmentBook() throws DataLoadingException {
-        return appointmentStorage.readAppointmentBook();
+    public Optional<ReadOnlyGroomingBook> readAppointmentData() throws DataLoadingException {
+        return appointmentStorage.readAppointmentData();
     }
 
     @Override
-    public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
-        appointmentStorage.saveAppointmentBook(appointmentBook);
+    public void saveAppointmentData(ReadOnlyGroomingBook appointmentBook) throws IOException {
+        appointmentStorage.saveAppointmentData(appointmentBook);
     }
 
     // ================ UserPrefs methods ==============================
@@ -82,13 +83,13 @@ public class StorageManager implements Storage {
     }
 
     @Override
-    public Optional<ClientPetData> readClientPetData() throws DataLoadingException {
+    public Optional<GroomingBook> readClientPetData() throws DataLoadingException {
         logger.fine("Attempting to read data from file: " + clientPetStorage.getClientPetFilePath());
         return clientPetStorage.readClientPetData();
     }
 
     @Override
-    public void saveClientPetData(ClientPetData data) throws IOException {
+    public void saveClientPetData(ReadOnlyGroomingBook data) throws IOException {
         logger.fine("Attempting to write to data file: " + clientPetStorage.getClientPetFilePath());
         clientPetStorage.saveClientPetData(data);
     }

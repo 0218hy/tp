@@ -4,17 +4,17 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import seedu.address.model.GroomingBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.client.Address;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.client.ClientName;
 import seedu.address.model.client.Email;
 import seedu.address.model.client.Phone;
-import seedu.address.model.client.ReadOnlyClientBook;
 import seedu.address.model.tag.Tag;
 
 /**
- * Contains utility methods for populating {@code ClientBook} with sample data.
+ * Contains utility methods for populating {@code GroomingBook} with sample data.
  */
 public class SampleDataUtil {
     public static Client[] getSampleClients() {
@@ -40,8 +40,8 @@ public class SampleDataUtil {
         };
     }
 
-    public static ReadOnlyClientBook getSampleClientBook() {
-        ClientBook sampleAb = new ClientBook();
+    public static ReadOnlyGroomingBook getSampleGroomingBook() {
+        GroomingBook sampleAb = new GroomingBook();
         for (Client sampleClient : getSampleClients()) {
             sampleAb.addClient(sampleClient);
         }

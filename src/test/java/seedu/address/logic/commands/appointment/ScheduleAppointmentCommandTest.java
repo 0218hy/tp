@@ -15,9 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentBook;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
@@ -38,7 +38,7 @@ public class ScheduleAppointmentCommandTest {
     @Test
     public void execute_validAppointment_addsToModelAndReturnsDetails() throws Exception {
         CommandResult result = command(VALID_APPOINTMENT).execute(model);
-        assertEquals(List.of(VALID_APPOINTMENT), model.getAppointmentBook().getAppointmentList());
+        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
         assertEquals("Appointment scheduled: BuBu; Owner phone: 91234567; Date: 07-10-2026; "
                 + "Time: 10:30-11:00; Service: Full groom", result.getFeedbackToUser());
         assertFalse(result.isExit());
@@ -69,7 +69,7 @@ public class ScheduleAppointmentCommandTest {
         lookup.ownerExists = false;
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(ScheduleAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -84,7 +84,7 @@ public class ScheduleAppointmentCommandTest {
     public void execute_futureDateWithEarlierTimeOfDay_success() throws Exception {
         Appointment tomorrow = create("08-10-2026", "08:00", "08:30");
         command(tomorrow).execute(model);
-        assertEquals(List.of(tomorrow), model.getAppointmentBook().getAppointmentList());
+        assertEquals(List.of(tomorrow), model.getGroomingBook().getAppointmentList());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class ScheduleAppointmentCommandTest {
                 create("07-10-2026", "12:00", "12:30"), create("08-10-2026", "11:00", "12:00"))) {
             command(appointment).execute(model);
         }
-        assertEquals(4, model.getAppointmentBook().getAppointmentList().size());
+        assertEquals(4, model.getGroomingBook().getAppointmentList().size());
     }
 
     @Test
@@ -121,7 +121,7 @@ public class ScheduleAppointmentCommandTest {
         ScheduleAppointmentCommand command = command(VALID_APPOINTMENT);
         command.execute(model);
         assertFailure(VALID_APPOINTMENT, CLOCK, ScheduleAppointmentCommand.MESSAGE_OVERLAP);
-        assertEquals(List.of(VALID_APPOINTMENT), model.getAppointmentBook().getAppointmentList());
+        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
     }
 
     @Test
@@ -138,7 +138,7 @@ public class ScheduleAppointmentCommandTest {
         assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommand(VALID_APPOINTMENT, null));
         assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommand(VALID_APPOINTMENT, lookup, null));
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -162,11 +162,11 @@ public class ScheduleAppointmentCommandTest {
     }
 
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
-        AppointmentBook before = new AppointmentBook(model.getAppointmentBook());
+        GroomingBook before = new GroomingBook(model.getGroomingBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 new ScheduleAppointmentCommand(appointment, lookup, clock).execute(model));
         assertEquals(message, exception.getMessage());
-        assertEquals(before, model.getAppointmentBook());
+        assertEquals(before, model.getGroomingBook());
         return exception;
     }
 

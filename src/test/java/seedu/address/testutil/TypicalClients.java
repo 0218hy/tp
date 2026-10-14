@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import seedu.address.model.GroomingBook;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientBook;
 
 /**
  * A utility class containing a list of {@code Client} objects to be used in tests.
@@ -60,10 +60,10 @@ public class TypicalClients {
     private TypicalClients() {} // prevents instantiation
 
     /**
-     * Returns an {@code ClientBook} with all the typical clients.
+     * Returns an {@code GroomingBook} with all the typical clients.
      */
-    public static ClientBook getTypicalClientBook() {
-        ClientBook ab = new ClientBook();
+    public static GroomingBook getTypicalGroomingBook() {
+        GroomingBook ab = new GroomingBook();
         for (Client client : getTypicalClients()) {
             ab.addClient(client);
         }

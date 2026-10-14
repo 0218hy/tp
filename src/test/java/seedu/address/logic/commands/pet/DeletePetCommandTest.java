@@ -14,13 +14,12 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.client.ClientBook;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
-import seedu.address.model.pet.PetBook;
 import seedu.address.model.pet.PetName;
 import seedu.address.testutil.PetBuilder;
 
@@ -35,19 +34,19 @@ public class DeletePetCommandTest {
 
     @BeforeEach
     public void setUp() {
-        ClientBook clientBook = new ClientBook();
+        GroomingBook clientBook = new GroomingBook();
         clientBook.addClient(ALICE);
         clientBook.addClient(BOB);
-        PetBook petBook = new PetBook();
+        GroomingBook petBook = new GroomingBook(clientBook);
         petBook.addPet(milo);
         petBook.addPet(miloWithDifferentOwner);
-        model = new ModelManager(clientBook, petBook, new UserPrefs());
+        model = new ModelManager(petBook, new UserPrefs());
     }
 
     @Test
     public void execute_matchingNameAndOwnerPhone_deletesPet() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deletePet(milo);
 
         assertCommandSuccess(deletePetCommand, model,
@@ -90,7 +89,7 @@ public class DeletePetCommandTest {
     public void execute_petHiddenByFilter_deletesPet() {
         model.updateFilteredPetList(pet -> false);
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.updateFilteredPetList(pet -> false);
         expectedModel.deletePet(milo);
 

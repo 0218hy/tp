@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
-import seedu.address.model.client.ClientBook;
-import seedu.address.model.pet.PetBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.storage.client.JsonAdaptedClient;
 import seedu.address.storage.pet.JsonAdaptedPet;
 import seedu.address.testutil.PetBuilder;
@@ -32,9 +31,9 @@ public class JsonSerializableClientPetDataTest {
     public void toModelType_typicalClientsFile_success() throws Exception {
         JsonSerializableClientPetData dataFromFile = JsonUtil.readJsonFile(TYPICAL_CLIENTS_FILE,
                 JsonSerializableClientPetData.class).get();
-        ClientPetData data = dataFromFile.toModelType();
-        ClientBook typicalClientsClientBook = TypicalClients.getTypicalClientBook();
-        assertEquals(data.getClientBook(), typicalClientsClientBook);
+        GroomingBook data = dataFromFile.toModelType();
+        GroomingBook typicalClientsClientBook = TypicalClients.getTypicalGroomingBook();
+        assertEquals(data, typicalClientsClientBook);
     }
 
     @Test
@@ -54,16 +53,16 @@ public class JsonSerializableClientPetDataTest {
 
     @Test
     public void toModelType_petWithOwner_success() throws Exception {
-        ClientBook clientBook = TypicalClients.getTypicalClientBook();
-        PetBook petBook = new PetBook();
+        GroomingBook clientBook = TypicalClients.getTypicalGroomingBook();
+        GroomingBook petBook = new GroomingBook(clientBook);
         petBook.addPet(new PetBuilder(TypicalClients.ALICE).build());
-        ClientPetData data = new ClientPetData(clientBook, petBook);
+        GroomingBook data = new GroomingBook(petBook);
 
-        ClientPetData convertedData = new JsonSerializableClientPetData(data).toModelType();
+        GroomingBook convertedData = new JsonSerializableClientPetData(data).toModelType();
 
         assertEquals(data, convertedData);
-        assertSame(convertedData.getClientBook().getClientList().get(0),
-                convertedData.getPetBook().getPetList().get(0).getOwner());
+        assertSame(convertedData.getClientList().get(0),
+                convertedData.getPetList().get(0).getOwner());
     }
 
     @Test
@@ -78,18 +77,18 @@ public class JsonSerializableClientPetDataTest {
 
 
     @Test
-    public void legacyJson_loadsClientsAndPetsIntoSeparateBooks() throws Exception {
+    public void legacyJson_loadsClientsAndPetsIntoGroomingBook() throws Exception {
         String legacyJson = """
                 {"persons": [{"name": "Alice", "phone": "91234567", "email": "alice@example.com",
                   "address": "1 Main Street", "tags": []}],
                  "pets": [{"name": "Milo", "ownerName": "Alice", "species": "DOG", "requirement": "Daily walk"}]}
                 """;
 
-        ClientPetData data = JsonUtil.fromJsonString(legacyJson, JsonSerializableClientPetData.class).toModelType();
+        GroomingBook data = JsonUtil.fromJsonString(legacyJson, JsonSerializableClientPetData.class).toModelType();
 
-        assertEquals(1, data.getClientBook().getClientList().size());
-        assertEquals(1, data.getPetBook().getPetList().size());
-        assertSame(data.getClientBook().getClientList().get(0), data.getPetBook().getPetList().get(0).getOwner());
+        assertEquals(1, data.getClientList().size());
+        assertEquals(1, data.getPetList().size());
+        assertSame(data.getClientList().get(0), data.getPetList().get(0).getOwner());
         String savedJson = JsonUtil.toJsonString(new JsonSerializableClientPetData(data));
         assertTrue(savedJson.contains("\"persons\""));
         assertTrue(savedJson.contains("\"pets\""));
@@ -99,15 +98,15 @@ public class JsonSerializableClientPetDataTest {
 
     @Test
     public void snapshot_laterBookChanges_doNotChangeSavedData() {
-        ClientBook clients = TypicalClients.getTypicalClientBook();
-        PetBook pets = new PetBook();
+        GroomingBook clients = TypicalClients.getTypicalGroomingBook();
+        GroomingBook pets = new GroomingBook(clients);
         pets.addPet(new PetBuilder(TypicalClients.ALICE).build());
-        ClientPetData snapshot = new ClientPetData(clients, pets);
+        GroomingBook snapshot = new GroomingBook(pets);
 
         clients.removeClient(TypicalClients.ALICE);
         pets.setPets(List.of());
 
-        assertTrue(snapshot.getClientBook().getClientList().contains(TypicalClients.ALICE));
-        assertEquals(1, snapshot.getPetBook().getPetList().size());
+        assertTrue(snapshot.getClientList().contains(TypicalClients.ALICE));
+        assertEquals(1, snapshot.getPetList().size());
     }
 }

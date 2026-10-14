@@ -8,7 +8,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
 
 /**
- * Lists all clients in the client book to the user.
+ * Lists all clients in the grooming book to the user.
  */
 public class ListClientsCommand extends Command {
 

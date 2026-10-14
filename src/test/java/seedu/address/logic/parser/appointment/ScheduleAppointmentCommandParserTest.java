@@ -149,7 +149,7 @@ public class ScheduleAppointmentCommandParserTest {
         parser.parse(VALID_ARGS).execute(model);
         Appointment appointment = new Appointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
-        assertEquals(List.of(appointment), model.getAppointmentBook().getAppointmentList());
+        assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
         assertEquals(2, lookup.calls);
     }
 
@@ -160,7 +160,7 @@ public class ScheduleAppointmentCommandParserTest {
         ModelManager model = new ModelManager();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(ScheduleAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
-        assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test

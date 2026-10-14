@@ -24,12 +24,13 @@ import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
-import seedu.address.storage.ClientPetData;
 import seedu.address.storage.JsonClientPetStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -74,19 +75,19 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_deletePet_successAndSavesUpdatedClientBook() throws Exception {
+    public void execute_deletePet_successAndSavesUpdatedGroomingBook() throws Exception {
         Pet pet = new PetBuilder(AMY).build();
         model.addClient(AMY);
         model.addPet(pet);
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         expectedModel.deletePet(pet);
 
         assertCommandSuccess("delete-pet p/Milo i/" + AMY.getPhone().value,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
 
-        ClientPetData savedClientBook = new JsonClientPetStorage(
+        GroomingBook savedClientBook = new JsonClientPetStorage(
                 temporaryFolder.resolve("clientBook.json")).readClientPetData().get();
-        assertEquals(new ClientPetData(expectedModel.getClientBook(), expectedModel.getPetBook()), savedClientBook);
+        assertEquals(new GroomingBook(expectedModel.getGroomingBook()), savedClientBook);
     }
 
     @Test
@@ -146,7 +147,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getClientBook(), model.getPetBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 
@@ -175,7 +176,7 @@ public class LogicManagerTest {
         // Inject LogicManager with a JsonClientPetStorage that throws the IOException e when saving
         JsonClientPetStorage clientPetStorage = new JsonClientPetStorage(prefPath) {
             @Override
-            public void saveClientPetData(ClientPetData clientBook) throws IOException {
+            public void saveClientPetData(ReadOnlyGroomingBook groomingBook) throws IOException {
                 throw e;
             }
         };
@@ -203,7 +204,7 @@ public class LogicManagerTest {
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredClientList().size());
         JsonClientPetStorage saved = new JsonClientPetStorage(temporaryFolder.resolve("clientBook.json"));
-        assertEquals(new ClientPetData(model.getClientBook(), model.getPetBook()),
+        assertEquals(new GroomingBook(model.getGroomingBook()),
                 saved.readClientPetData().orElseThrow());
     }
 
