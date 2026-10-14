@@ -3,47 +3,49 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentBook;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 
 /**
- * Represents the in-memory model of the address book data.
+ * Represents the in-memory model of the grooming book data.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final AddressBook addressBook;
-    private final AppointmentBook appointmentBook = new AppointmentBook();
+    private final GroomingBook groomingBook;
     private final UserPrefs userPrefs;
-    private final FilteredList<Person> filteredPersons;
+    private final FilteredList<Client> filteredClients;
+    private final SortedList<Client> sortedClients;
     private final FilteredList<Pet> filteredPets;
 
     /**
-     * Initializes a ModelManager with the given addressBook and userPrefs.
+     * Initializes a ModelManager with the given groomingBook and userPrefs.
      */
-    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+    public ModelManager(ReadOnlyGroomingBook groomingBook, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(groomingBook, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing with grooming book: " + groomingBook + " and user prefs " + userPrefs);
 
-        this.addressBook = new AddressBook(addressBook);
+        this.groomingBook = new GroomingBook(groomingBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        filteredPets = new FilteredList<>(this.addressBook.getPetList());
+        filteredClients = new FilteredList<>(this.groomingBook.getClientList());
+        sortedClients = new SortedList<>(filteredClients);
+        filteredPets = new FilteredList<>(this.groomingBook.getPetList());
     }
 
     public ModelManager() {
-        this(new AddressBook(), new UserPrefs());
+        this(new GroomingBook(), new UserPrefs());
     }
 
     //=========== UserPrefs ==================================================================================
@@ -64,40 +66,40 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
-    //=========== AddressBook ================================================================================
+    //=========== GroomingBook ================================================================================
 
     @Override
-    public void setAddressBook(ReadOnlyAddressBook addressBook) {
-        this.addressBook.resetData(addressBook);
+    public void setGroomingBook(ReadOnlyGroomingBook groomingBook) {
+        this.groomingBook.resetData(groomingBook);
     }
 
     @Override
-    public ReadOnlyAddressBook getAddressBook() {
-        return addressBook;
+    public ReadOnlyGroomingBook getGroomingBook() {
+        return groomingBook;
     }
 
     @Override
-    public boolean hasPerson(Person person) {
-        requireNonNull(person);
-        return addressBook.hasPerson(person);
+    public boolean hasClient(Client client) {
+        requireNonNull(client);
+        return groomingBook.hasClient(client);
     }
 
     @Override
-    public void deletePerson(Person target) {
-        addressBook.removePerson(target);
+    public void deleteClient(Client target) {
+        groomingBook.removeClient(target);
     }
 
     @Override
-    public void addPerson(Person person) {
-        addressBook.addPerson(person);
-        updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+    public void addClient(Client client) {
+        groomingBook.addClient(client);
+        updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
     @Override
-    public void setPerson(Person target, Person editedPerson) {
-        requireAllNonNull(target, editedPerson);
+    public void setClient(Client target, Client editedClient) {
+        requireAllNonNull(target, editedClient);
 
-        addressBook.setPerson(target, editedPerson);
+        groomingBook.setClient(target, editedClient);
     }
 
     //=========== Pet ================================================================================
@@ -105,58 +107,68 @@ public class ModelManager implements Model {
     @Override
     public boolean hasPet(Pet pet) {
         requireNonNull(pet);
-        return addressBook.hasPet(pet);
+        return groomingBook.hasPet(pet);
     }
 
     @Override
     public void deletePet(Pet pet) {
-        addressBook.removePet(pet);
+        groomingBook.removePet(pet);
     }
 
     @Override
     public void addPet(Pet pet) {
-        addressBook.addPet(pet);
+        groomingBook.addPet(pet);
         updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
     }
 
     @Override
     public void setPet(Pet target, Pet editedPet) {
         requireAllNonNull(target, editedPet);
-        addressBook.setPet(target, editedPet);
+        groomingBook.setPet(target, editedPet);
     }
 
     //=========== Appointments ==============================================================================
 
     @Override
-    public ReadOnlyAppointmentBook getAppointmentBook() {
-        return appointmentBook;
+    public void setAppointments(List<Appointment> appointments) {
+        groomingBook.setAppointments(appointments);
     }
 
     @Override
-    public void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook) {
-        this.appointmentBook.resetData(appointmentBook);
+    public void clearClientsAndPets() {
+        groomingBook.clearClientsAndPets();
     }
 
     @Override
     public void addAppointment(Appointment appointment) {
-        appointmentBook.addAppointment(appointment);
+        groomingBook.addAppointment(appointment);
     }
 
-    //=========== Filtered Person List Accessors =============================================================
+    //=========== Filtered Client List Accessors =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Person} backed by the internal list of
-     * {@code addressBook}
+     * Returns an unmodifiable view of the list of {@code Client} backed by the internal list of
+     * {@code groomingBook}
      */
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+    public ObservableList<Client> getFilteredClientList() {
+        return sortedClients;
     }
 
     @Override
-    public void updateFilteredPersonList(Predicate<Person> predicate) {
+    public void updateFilteredClientList(Predicate<Client> predicate) {
         requireNonNull(predicate);
-        filteredPersons.setPredicate(predicate);
+        filteredClients.setPredicate(predicate);
+    }
+
+    /**
+     * Sorts the live displayed client list by name, ignoring case, without reordering stored clients.
+     * Subsequent changes to the filtered list retain this sort order.
+     */
+    @Override
+    public void sortFilteredClientList() {
+        sortedClients.setComparator(Comparator.comparing(person -> person.getName().fullName,
+                String.CASE_INSENSITIVE_ORDER));
     }
 
     //=========== Filtered Pet List Accessors ========================================================
@@ -183,10 +195,9 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return addressBook.equals(otherModelManager.addressBook)
-                && appointmentBook.equals(otherModelManager.appointmentBook)
+        return groomingBook.equals(otherModelManager.groomingBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && filteredClients.equals(otherModelManager.filteredClients)
                 && filteredPets.equals(otherModelManager.filteredPets);
     }
 

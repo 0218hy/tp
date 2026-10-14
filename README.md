@@ -23,9 +23,9 @@ BuBu is designed for freelance mobile pet groomers. It helps groomers to keep tr
 | --- | --- |
 | Manage client records | `add-client`, `list-clients`, `delete-client` |
 | Manage pet profiles | `add-pet`, `list-pets`, `delete-pet` |
-| Manage grooming appointments | `schedule`, `list-appointments`, `delete-appointment` |
+| Manage grooming appointments | `add-appointment`, `list-appointments`, `delete-appointment` |
 
-For example, `list-clients q/amelia` searches client records, `list-pets o/Amelia Tan` shows that client's pets, and `list-appointments` displays upcoming appointments in chronological order.
+For example, `list-clients q/amelia` searches client records, `list-pets i/87438807` shows the pets owned by the client with that phone number, and `list-appointments` displays upcoming appointments in chronological order.
 
 ## Documentation
 
@@ -43,6 +43,11 @@ BuBu is built with Java and JavaFX. With JDK 25 installed, run the current devel
 ```sh
 ./gradlew run
 ```
+
+The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/groombook.json`.
+Feature-specific code lives in
+`client`, `pet`, and `appointment` packages; see the [current code organization](docs/DeveloperGuide.md#current-code-organization)
+for the package layout and storage format.
 
 Run the automated checks with `./gradlew check`. On Windows, use `gradlew.bat` in place of `./gradlew`.
 
