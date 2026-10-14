@@ -1,12 +1,12 @@
 package seedu.address.model;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 
 /**
@@ -14,7 +14,7 @@ import seedu.address.model.pet.Pet;
  */
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
-    Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
+    Predicate<Client> PREDICATE_SHOW_ALL_CLIENTS = unused -> true;
     /** {@code Predicate} that always evaluates to true */
     Predicate<Pet> PREDICATE_SHOW_ALL_PETS = unused -> true;
 
@@ -34,18 +34,18 @@ public interface Model {
     void setGuiSettings(GuiSettings guiSettings);
 
     /**
-     * Replaces address book data with the data in {@code addressBook}.
+     * Replaces grooming book data with the data in {@code groomingBook}.
      */
-    void setAddressBook(ReadOnlyAddressBook addressBook);
+    void setGroomingBook(ReadOnlyGroomingBook groomingBook);
 
-    /** Returns the AddressBook */
-    ReadOnlyAddressBook getAddressBook();
+    /** Returns the GroomingBook */
+    ReadOnlyGroomingBook getGroomingBook();
 
-    /** Returns the read-only appointment schedule. */
-    ReadOnlyAppointmentBook getAppointmentBook();
+    /** Replaces the appointment schedule after validating all slots. */
+    void setAppointments(List<Appointment> appointments);
 
-    /** Replaces the appointment schedule with a validated copy of the supplied data. */
-    void setAppointmentBook(ReadOnlyAppointmentBook appointmentBook);
+    /** Clears clients and pets together, retaining historical appointments. */
+    void clearClientsAndPets();
 
     /**
      * Adds an appointment that does not overlap an existing appointment.
@@ -56,63 +56,63 @@ public interface Model {
     void addAppointment(Appointment appointment);
 
     /**
-     * Returns true if a person with the same identity as {@code person} exists in the address book.
+     * Returns true if a client with the same identity as {@code client} exists in the grooming book.
      */
-    boolean hasPerson(Person person);
+    boolean hasClient(Client client);
 
     /**
-     * Deletes the given person.
-     * The person must exist in the address book.
+     * Deletes the given client.
+     * The client must exist in the grooming book.
      */
-    void deletePerson(Person target);
+    void deleteClient(Client target);
 
     /**
-     * Adds the given person.
-     * {@code person} must not already exist in the address book.
+     * Adds the given client.
+     * {@code client} must not already exist in the grooming book.
      */
-    void addPerson(Person person);
+    void addClient(Client client);
 
     /**
-     * Replaces the given person {@code target} with {@code editedPerson}.
-     * {@code target} must exist in the address book.
-     * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
+     * Replaces the given client {@code target} with {@code editedClient}.
+     * {@code target} must exist in the grooming book.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the grooming book.
      */
-    void setPerson(Person target, Person editedPerson);
+    void setClient(Client target, Client editedClient);
 
     /**
-     * Returns true if a pet with the same identity as {@code pet} exists in the address book.
+     * Returns true if a pet with the same identity as {@code pet} exists in the grooming book.
      */
     boolean hasPet(Pet pet);
 
     /**
      * Deletes the given pet.
-     * The pet must exist in the address book.
+     * The pet must exist in the grooming book.
      */
     void deletePet(Pet pet);
 
     /**
      * Adds the given pet.
-     * The pet must not already exist in the address book.
+     * The pet must not already exist in the grooming book.
      */
     void addPet(Pet pet);
 
     /**
      * Replaces the given pet {@code target} with {@code editedPet}.
-     * The target pet must exist in the address book.
+     * The target pet must exist in the grooming book.
      */
     void setPet(Pet target, Pet editedPet);
 
-    /** Returns an unmodifiable view of the filtered person list */
-    ObservableList<Person> getFilteredPersonList();
+    /** Returns an unmodifiable view of the filtered client list */
+    ObservableList<Client> getFilteredClientList();
 
     /**
-     * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Updates the filter of the filtered client list to filter by the given {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.
      */
-    void updateFilteredPersonList(Predicate<Person> predicate);
+    void updateFilteredClientList(Predicate<Client> predicate);
 
     /** Sorts the displayed clients by name, ignoring case, without modifying stored records. */
-    void sortFilteredPersonList();
+    void sortFilteredClientList();
 
     /** Returns an unmodifiable view of the filtered pet list. */
     ObservableList<Pet> getFilteredPetList();

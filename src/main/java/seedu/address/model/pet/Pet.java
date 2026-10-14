@@ -5,7 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 
 /**
  * Represents a pet in the address book.
@@ -15,7 +15,7 @@ import seedu.address.model.person.Person;
 public class Pet {
 
     private final PetName name;
-    private final Person owner;
+    private final Client owner;
     private final Species species;
     private final Breed breed;
     private final Requirement requirement;
@@ -24,7 +24,7 @@ public class Pet {
      * Creates a pet without a recorded breed.
      * All supplied fields must be non-null.
      */
-    public Pet(PetName name, Person owner, Species species, Requirement requirement) {
+    public Pet(PetName name, Client owner, Species species, Requirement requirement) {
         this(name, owner, species, null, requirement);
     }
 
@@ -32,7 +32,7 @@ public class Pet {
      * Creates a pet with an optional breed.
      * All other fields must be non-null.
      */
-    public Pet(PetName name, Person owner, Species species, Breed breed, Requirement requirement) {
+    public Pet(PetName name, Client owner, Species species, Breed breed, Requirement requirement) {
         requireAllNonNull(name, owner, species, requirement);
         this.name = name;
         this.owner = owner;
@@ -45,7 +45,7 @@ public class Pet {
         return name;
     }
 
-    public Person getOwner() {
+    public Client getOwner() {
         return owner;
     }
 
@@ -68,7 +68,7 @@ public class Pet {
      * Returns a copy of this pet with the given owner.
      * The pet's name, species, breed, and care requirements are preserved.
      */
-    public Pet withOwner(Person newOwner) {
+    public Pet withOwner(Client newOwner) {
         return new Pet(name, newOwner, species, breed, requirement);
     }
 

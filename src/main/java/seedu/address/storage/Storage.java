@@ -5,15 +5,14 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.storage.appointment.AppointmentStorage;
 
 /**
  * API of the Storage component
  */
-public interface Storage extends AppointmentStorage {
+public interface Storage {
 
     /**
      * Returns the file path of the UserPrefs data file.
@@ -36,23 +35,23 @@ public interface Storage extends AppointmentStorage {
     void saveUserPrefs(ReadOnlyUserPrefs userPrefs) throws IOException;
 
     /**
-     * Returns the file path of the AddressBook data file.
+     * Returns the file path of the GroomingBook data file.
      */
-    Path getAddressBookFilePath();
+    Path getGroomingBookFilePath();
 
     /**
-     * Returns AddressBook data as a {@link ReadOnlyAddressBook}.
+     * Returns all client, pet, and appointment records.
      * Returns {@code Optional.empty()} if storage file is not found.
      *
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException;
+    Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException;
 
     /**
-     * Saves the given {@link ReadOnlyAddressBook} to the storage.
-     * @param addressBook cannot be null.
+     * Saves all records from the given grooming book.
+     * @param groomingBook cannot be null.
      * @throws IOException if there was any problem writing to the file.
      */
-    void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException;
+    void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException;
 
 }
