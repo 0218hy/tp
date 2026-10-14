@@ -236,6 +236,17 @@ Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
 Example:
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
+### Listing appointments: `list-appointments`
+
+Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
+Each entry shows its date, start and end times, pet name, owner phone number, and service.
+
+Format: `list-appointments`
+
+Appointments are included until their end time, using Singapore time. Completed appointments remain saved
+but are excluded from this list. If none remain, the command displays `No ongoing or future appointments.`
+This command currently takes no parameters; the optional `d/` date filter is not yet supported.
+
 ### Clearing all entries: `clear`
 
 Clears all contacts from the address book. Any saved appointments are retained separately.
@@ -296,6 +307,7 @@ Action | Format, Examples
 **List** | `list`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
+**List appointments** | `list-appointments`
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Clear** | `clear`
 **Help** | `help`
