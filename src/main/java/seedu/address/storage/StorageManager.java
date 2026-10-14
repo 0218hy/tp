@@ -7,54 +7,24 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.storage.appointment.AppointmentStorage;
-import seedu.address.storage.appointment.JsonAppointmentBookStorage;
 
 /**
- * Manages storage of AddressBook data in local storage.
+ * Manages storage of GroomingBook data in local storage.
  */
 public class StorageManager implements Storage {
 
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
-    private JsonAddressBookStorage addressBookStorage;
+    private JsonGroomingBookStorage groomingBookStorage;
     private JsonUserPrefsStorage userPrefsStorage;
-    private final AppointmentStorage appointmentStorage;
-
     /**
-     * Creates a {@code StorageManager} with the given address book and user prefs storage.
+     * Creates a storage manager for the shared grooming book and user preferences.
      */
-    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage) {
-        this(addressBookStorage, userPrefsStorage, new JsonAppointmentBookStorage(
-                addressBookStorage.getAddressBookFilePath().resolveSibling("appointments.json")));
-    }
-
-    /** Creates storage with a separately configurable appointment file. */
-    public StorageManager(JsonAddressBookStorage addressBookStorage, JsonUserPrefsStorage userPrefsStorage,
-            AppointmentStorage appointmentStorage) {
-        this.addressBookStorage = addressBookStorage;
+    public StorageManager(JsonGroomingBookStorage groomingBookStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this.groomingBookStorage = groomingBookStorage;
         this.userPrefsStorage = userPrefsStorage;
-        this.appointmentStorage = appointmentStorage;
-    }
-
-    // ================ Appointment methods ==============================
-
-    @Override
-    public Path getAppointmentBookFilePath() {
-        return appointmentStorage.getAppointmentBookFilePath();
-    }
-
-    @Override
-    public Optional<ReadOnlyAppointmentBook> readAppointmentBook() throws DataLoadingException {
-        return appointmentStorage.readAppointmentBook();
-    }
-
-    @Override
-    public void saveAppointmentBook(ReadOnlyAppointmentBook appointmentBook) throws IOException {
-        appointmentStorage.saveAppointmentBook(appointmentBook);
     }
 
     // ================ UserPrefs methods ==============================
@@ -75,23 +45,23 @@ public class StorageManager implements Storage {
     }
 
 
-    // ================ AddressBook methods ==============================
+    // ================ GroomingBook methods ==============================
 
     @Override
-    public Path getAddressBookFilePath() {
-        return addressBookStorage.getAddressBookFilePath();
+    public Path getGroomingBookFilePath() {
+        return groomingBookStorage.getGroomingBookFilePath();
     }
 
     @Override
-    public Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException {
-        logger.fine("Attempting to read data from file: " + addressBookStorage.getAddressBookFilePath());
-        return addressBookStorage.readAddressBook();
+    public Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException {
+        logger.fine("Attempting to read data from file: " + groomingBookStorage.getGroomingBookFilePath());
+        return groomingBookStorage.readGroomingBook();
     }
 
     @Override
-    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
-        logger.fine("Attempting to write to data file: " + addressBookStorage.getAddressBookFilePath());
-        addressBookStorage.saveAddressBook(addressBook);
+    public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
+        logger.fine("Attempting to write to data file: " + groomingBookStorage.getGroomingBookFilePath());
+        groomingBookStorage.saveGroomingBook(groomingBook);
     }
 
 }

@@ -1,16 +1,16 @@
 package seedu.address.logic.parser.pet;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_OWNER_IDENTIFIER;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.pet.DeletePetCommand;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetName;
 
 public class DeletePetCommandParserTest {

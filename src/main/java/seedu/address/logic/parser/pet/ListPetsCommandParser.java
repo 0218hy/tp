@@ -10,7 +10,7 @@ import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**

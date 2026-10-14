@@ -13,7 +13,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
@@ -61,7 +61,7 @@ public class AddPetCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person owner = findOwner(model);
+        Client owner = findOwner(model);
         Pet pet = new Pet(name, owner, species, breed, requirement);
         checkForDuplicate(model, pet);
         model.addPet(pet);
@@ -71,9 +71,9 @@ public class AddPetCommand extends Command {
     /**
      * Finds the registered client with the supplied phone number.
      */
-    private Person findOwner(Model model) throws CommandException {
-        return model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getPhone().value.equals(ownerPhone))
+    private Client findOwner(Model model) throws CommandException {
+        return model.getGroomingBook().getClientList().stream()
+                .filter(client -> client.getPhone().value.equals(ownerPhone))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
     }
@@ -82,7 +82,7 @@ public class AddPetCommand extends Command {
      * Rejects a pet if its owner already has one with the same normalized name.
      */
     private void checkForDuplicate(Model model, Pet pet) throws CommandException {
-        for (Pet existingPet : model.getAddressBook().getPetList()) {
+        for (Pet existingPet : model.getGroomingBook().getPetList()) {
             if (existingPet.isSamePet(pet)) {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE_PET, existingPet.getName()));
             }
@@ -92,7 +92,7 @@ public class AddPetCommand extends Command {
     /**
      * Formats the success message, including the breed when it is known.
      */
-    private String formatSuccessMessage(Person owner) {
+    private String formatSuccessMessage(Client owner) {
         return breed == null
                 ? String.format(MESSAGE_SUCCESS, name, species.getDisplayName(), owner.getName())
                 : String.format(MESSAGE_SUCCESS_WITH_BREED, name, species.getDisplayName(), breed, owner.getName());

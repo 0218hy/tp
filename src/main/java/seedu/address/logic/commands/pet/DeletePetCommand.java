@@ -7,7 +7,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 
@@ -42,7 +42,7 @@ public class DeletePetCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Pet petToDelete = model.getAddressBook().getPetList().stream()
+        Pet petToDelete = model.getGroomingBook().getPetList().stream()
                 .filter(pet -> pet.getName().equals(petName) && pet.getOwner().getPhone().equals(ownerPhone))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_PET_NOT_FOUND));

@@ -7,21 +7,18 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
-import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.AddressBook;
+import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
-import seedu.address.model.ReadOnlyAddressBook;
-import seedu.address.model.appointment.AppointmentBook;
-import seedu.address.model.appointment.ReadOnlyAppointmentBook;
-import seedu.address.model.person.Person;
+import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.client.Client;
 import seedu.address.storage.Storage;
 
 /**
@@ -41,93 +38,71 @@ public class LogicManager implements Logic {
 
     private final Model model;
     private final Storage storage;
-    private final AddressBookParser addressBookParser;
-    private final boolean isAddressBookCorrupted;
+    private final BuBuParser buBuParser;
+    private final boolean isGroomingBookCorrupted;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this(model, storage, new AddressBookParser(), false);
+        this(model, storage, new BuBuParser(), false);
     }
 
     /**
-     * Constructs logic with the address book corruption state recorded at startup.
-     * Add-pet commands cannot verify existing records when this state is true.
+     * Constructs logic with the grooming book corruption state recorded at startup.
+     * Commands cannot save records when this state is true.
      */
-    public LogicManager(Model model, Storage storage, boolean isAddressBookCorrupted) {
-        this(model, storage, new AddressBookParser(), isAddressBookCorrupted);
+    public LogicManager(Model model, Storage storage, boolean isGroomingBookCorrupted) {
+        this(model, storage, new BuBuParser(), isGroomingBookCorrupted);
     }
 
     /** Constructs logic with a parser configured for the available feature dependencies. */
-    public LogicManager(Model model, Storage storage, AddressBookParser addressBookParser) {
-        this(model, storage, addressBookParser, false);
+    public LogicManager(Model model, Storage storage, BuBuParser buBuParser) {
+        this(model, storage, buBuParser, false);
     }
 
     /**
-     * Constructs logic with parser dependencies and the address book corruption state.
-     * Add-pet commands report a data error if existing records could not be loaded.
+     * Constructs logic with parser dependencies and the grooming book corruption state.
+     * Commands report a data error if existing records could not be loaded.
      */
-    public LogicManager(Model model, Storage storage, AddressBookParser addressBookParser,
-            boolean isAddressBookCorrupted) {
+    public LogicManager(Model model, Storage storage, BuBuParser buBuParser,
+            boolean isGroomingBookCorrupted) {
         this.model = model;
         this.storage = storage;
-        this.addressBookParser = addressBookParser;
-        this.isAddressBookCorrupted = isAddressBookCorrupted;
+        this.buBuParser = buBuParser;
+        this.isGroomingBookCorrupted = isGroomingBookCorrupted;
     }
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        Command command = addressBookParser.parseCommand(commandText);
-        if (command instanceof AddPetCommand && isAddressBookCorrupted) {
+        Command command = buBuParser.parseCommand(commandText);
+        if (isGroomingBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
-
-        return executeCommand(command);
-    }
-
-    /**
-     * Executes a parsed command and applies its persistence behavior.
-     * Captures prior state for commands whose changes must be restored if saving fails.
-     *
-     * @param command The parsed command to execute.
-     * @return The result of the executed command.
-     * @throws CommandException if the command fails or its result cannot be saved.
-     */
-    private CommandResult executeCommand(Command command) throws CommandException {
-        ReadOnlyAddressBook previousAddressBook = command instanceof AddPetCommand
-                ? new AddressBook(model.getAddressBook()) : null;
-        ReadOnlyAppointmentBook previousAppointments = command instanceof ScheduleCommand
-                ? new AppointmentBook(model.getAppointmentBook()) : null;
-        CommandResult commandResult = command.execute(model);
-        if (!(command instanceof ListPetsCommand)) {
-            saveCommandResult(command, previousAddressBook, previousAppointments);
+        if (command instanceof ListPetsCommand) {
+            return command.execute(model);
         }
+        ReadOnlyGroomingBook previousGroomingBook = new GroomingBook(model.getGroomingBook());
+        CommandResult commandResult = command.execute(model);
+        saveCommandResult(command, previousGroomingBook);
         return commandResult;
     }
 
     /**
      * Saves the completed command and restores its previous data if saving fails.
      */
-    private void saveCommandResult(Command command, ReadOnlyAddressBook previousAddressBook,
-            ReadOnlyAppointmentBook previousAppointments) throws CommandException {
+    private void saveCommandResult(Command command, ReadOnlyGroomingBook previousGroomingBook)
+            throws CommandException {
         try {
-            if (previousAppointments != null) {
-                storage.saveAppointmentBook(model.getAppointmentBook());
-            } else {
-                storage.saveAddressBook(model.getAddressBook());
-            }
+            storage.saveGroomingBook(model.getGroomingBook());
         } catch (IOException ioe) {
-            if (previousAddressBook != null) {
-                model.setAddressBook(previousAddressBook);
+            model.setGroomingBook(previousGroomingBook);
+            if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
             }
-            if (previousAppointments != null) {
-                model.setAppointmentBook(previousAppointments);
-            }
-            if (command instanceof AddCommand) {
+            if (command instanceof AddClientCommand) {
                 throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);
             }
             if (ioe instanceof AccessDeniedException) {
@@ -138,8 +113,8 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public ObservableList<Person> getFilteredPersonList() {
-        return model.getFilteredPersonList();
+    public ObservableList<Client> getFilteredClientList() {
+        return model.getFilteredClientList();
     }
 
     @Override

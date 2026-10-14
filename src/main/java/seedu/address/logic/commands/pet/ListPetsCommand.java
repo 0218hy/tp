@@ -13,13 +13,13 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
- * Updates the filtered pet list without changing the saved address book or displayed person list.
+ * Updates the filtered pet list without changing the saved grooming book or displayed client list.
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
@@ -69,7 +69,7 @@ public class ListPetsCommand extends Command {
             return new CommandResult(formatAllPets(model.getFilteredPetList()));
         }
 
-        Person owner = findOwner(model);
+        Client owner = findOwner(model);
         model.updateFilteredPetList(predicate);
         List<Pet> pets = model.getFilteredPetList().stream()
                 .sorted(PET_ORDER)
@@ -82,9 +82,9 @@ public class ListPetsCommand extends Command {
      *
      * @param model The model whose registered owners are searched.
      */
-    private Person findOwner(Model model) throws CommandException {
-        return model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getPhone().equals(predicate.getOwnerPhone()))
+    private Client findOwner(Model model) throws CommandException {
+        return model.getGroomingBook().getClientList().stream()
+                .filter(client -> client.getPhone().equals(predicate.getOwnerPhone()))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
     }
@@ -118,7 +118,7 @@ public class ListPetsCommand extends Command {
      * @param owner The registered owner whose name appears in the result.
      * @param pets The selected owner's profiles in display order.
      */
-    private String formatOwnerPets(Person owner, List<Pet> pets) {
+    private String formatOwnerPets(Client owner, List<Pet> pets) {
         if (pets.isEmpty()) {
             return String.format(MESSAGE_OWNER_NO_PETS, owner.getName());
         }

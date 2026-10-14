@@ -5,7 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 /**
  * Tests whether a pet belongs to the client with the specified phone number.

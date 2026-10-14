@@ -18,7 +18,7 @@ import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;

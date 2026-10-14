@@ -250,20 +250,19 @@ Format: `exit`
 
 ### Saving the data
 
-Contact data is saved automatically after successful contact commands. Appointments have a separate save file,
-`data/appointments.json`, which loads when the app starts. Scheduling in the app is pending owner/pet lookup integration;
-once enabled, each successful booking is saved automatically. You do not need to save manually.
-Successful `add-pet` commands also save the new pet in `data/addressbook.json` automatically.
+Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
+The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
+Scheduling in the app is pending owner/pet lookup integration; once enabled, bookings use this same data file.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+Grooming records are saved in `[JAR file location]/data/groombook.json`, with `clients`, `pets`, and
+`appointments` lists. Advanced users can edit this file while the app is closed.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-If the address-book file cannot be loaded, `add-pet` reports `Unable to verify existing records. Please contact support.`
-and does not overwrite the file.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+Back up the file before editing it. If the file becomes invalid, BuBu starts with an empty model and blocks
+commands with `Unable to verify existing records. Please contact support.` to avoid overwriting your records.
+Correct the file and restart the app before continuing.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
