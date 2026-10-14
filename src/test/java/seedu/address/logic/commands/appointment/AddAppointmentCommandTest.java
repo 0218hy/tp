@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.CommandResult;
@@ -19,12 +20,15 @@ import seedu.address.model.GroomingBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
+import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
+import seedu.address.testutil.ClientBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class AddAppointmentCommandTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
@@ -33,7 +37,14 @@ public class AddAppointmentCommandTest {
     private static final Appointment VALID_APPOINTMENT = create("07-10-2026", "10:30", "11:00");
 
     private final ModelManager model = new ModelManager();
-    private final ParticipantLookupStub lookup = new ParticipantLookupStub();
+    private final Client owner = new ClientBuilder().withPhone(OWNER_PHONE.value).build();
+    private final Pet pet = new PetBuilder(owner).withName("BuBu").build();
+
+    @BeforeEach
+    public void setUp() {
+        model.addClient(owner);
+        model.addPet(pet);
+    }
 
     @Test
     public void execute_validAppointment_addsToModelAndReturnsDetails() throws Exception {
@@ -43,33 +54,66 @@ public class AddAppointmentCommandTest {
                 + "Time: 10:30-11:00; Service: Full groom", result.getFeedbackToUser());
         assertFalse(result.isExit());
         assertFalse(result.isShowHelp());
-        assertEquals(OWNER_PHONE, lookup.queriedOwnerPhone);
-        assertEquals(OWNER_PHONE, lookup.queriedPetOwnerPhone);
-        assertEquals("BuBu", lookup.queriedPetName);
     }
 
     @Test
-    public void execute_ownerMissingOrNotUnique_rejectsBeforePetLookup() {
-        lookup.ownerExists = false;
+    public void execute_missingOwner_noMutation() {
+        model.clearClientsAndPets();
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
-        assertEquals(0, lookup.petLookupCalls);
     }
 
     @Test
     public void execute_petNotRegisteredForOwner_noMutation() {
-        lookup.petBelongsToOwner = false;
+        model.deletePet(pet);
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_PET_NOT_FOUND);
-        assertEquals(OWNER_PHONE, lookup.queriedPetOwnerPhone);
-        assertEquals("BuBu", lookup.queriedPetName);
     }
 
     @Test
-    public void execute_usesLookupStateAtExecutionTime() {
+    public void execute_ownerRemovedBeforeExecution_rejectsAppointment() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
-        lookup.ownerExists = false;
+        model.clearClientsAndPets();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+    }
+
+    @Test
+    public void execute_petBelongsToDifferentOwner_noMutation() {
+        model.deletePet(pet);
+        Client otherOwner = new ClientBuilder().withPhone("81234567").withEmail("other@example.com").build();
+        model.addClient(otherOwner);
+        model.addPet(new PetBuilder(otherOwner).withName("BuBu").build());
+        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_PET_NOT_FOUND);
+    }
+
+    @Test
+    public void execute_filteredOutParticipants_usesAllSavedRecords() throws Exception {
+        model.updateFilteredClientList(client -> false);
+        model.updateFilteredPetList(savedPet -> false);
+        command(VALID_APPOINTMENT).execute(model);
+        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
+        assertTrue(model.getFilteredClientList().isEmpty());
+        assertTrue(model.getFilteredPetList().isEmpty());
+    }
+
+    @Test
+    public void execute_petRemovedBeforeExecution_rejectsAppointment() {
+        AddAppointmentCommand command = command(VALID_APPOINTMENT);
+        model.deletePet(pet);
+        CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
+        assertEquals(AddAppointmentCommand.MESSAGE_PET_NOT_FOUND, exception.getMessage());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+    }
+
+    @Test
+    public void execute_ownerPhoneEdited_usesUpdatedPetOwner() throws Exception {
+        Client editedOwner = new ClientBuilder(owner).withPhone("81234567").build();
+        model.setClient(owner, editedOwner);
+        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
+        Appointment appointment = new Appointment(editedOwner.getPhone(), "BuBu", VALID_APPOINTMENT.getDate(),
+                VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
+        command(appointment).execute(model);
+        assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
     }
 
     @Test
@@ -125,18 +169,18 @@ public class AddAppointmentCommandTest {
     }
 
     @Test
-    public void execute_normalisedPetName_passedToLookup() throws Exception {
+    public void execute_caseAndWhitespaceInPetName_matchesRegisteredPet() throws Exception {
+        model.addPet(new PetBuilder(owner).withName("bubu   JUNIOR").build());
         Appointment appointment = new Appointment(OWNER_PHONE, "  BuBu   Junior  ", VALID_APPOINTMENT.getDate(),
                 VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         command(appointment).execute(model);
-        assertEquals("BuBu Junior", lookup.queriedPetName);
+        assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
     }
 
     @Test
     public void constructorAndExecute_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null, lookup));
+        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null));
         assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, null));
-        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, lookup, null));
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
@@ -158,13 +202,13 @@ public class AddAppointmentCommandTest {
     }
 
     private AddAppointmentCommand command(Appointment appointment) {
-        return new AddAppointmentCommand(appointment, lookup, CLOCK);
+        return new AddAppointmentCommand(appointment, CLOCK);
     }
 
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
         GroomingBook before = new GroomingBook(model.getGroomingBook());
         CommandException exception = assertThrows(CommandException.class, () ->
-                new AddAppointmentCommand(appointment, lookup, clock).execute(model));
+                new AddAppointmentCommand(appointment, clock).execute(model));
         assertEquals(message, exception.getMessage());
         assertEquals(before, model.getGroomingBook());
         return exception;
@@ -175,29 +219,4 @@ public class AddAppointmentCommandTest {
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
 
-    /**
-     * Supplies participant lookup outcomes without implementing the owner or pet registries.
-     */
-    private static class ParticipantLookupStub implements AppointmentParticipantLookup {
-        private boolean ownerExists = true;
-        private boolean petBelongsToOwner = true;
-        private Phone queriedOwnerPhone;
-        private Phone queriedPetOwnerPhone;
-        private String queriedPetName;
-        private int petLookupCalls;
-
-        @Override
-        public boolean hasOwner(Phone ownerPhone) {
-            queriedOwnerPhone = ownerPhone;
-            return ownerExists;
-        }
-
-        @Override
-        public boolean hasPet(Phone ownerPhone, String petName) {
-            queriedPetOwnerPhone = ownerPhone;
-            queriedPetName = petName;
-            petLookupCalls++;
-            return petBelongsToOwner;
-        }
-    }
 }

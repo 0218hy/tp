@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.PetName;
 
 /**
  * Represents an immutable grooming appointment in BuBu.
@@ -15,17 +16,13 @@ import seedu.address.model.client.Phone;
  * and the absence of overlaps before saving. Past appointments can still be loaded.
  */
 public class Appointment {
-    public static final String MESSAGE_PET_NAME_CONSTRAINTS =
-            "Pet name must be 1-40 characters and use valid name characters.";
-
     // Identity fields: date and start time identify a slot in the non-overlapping schedule.
     private final AppointmentDate date;
     private final StartTime startTime;
 
     // Data fields
     private final Phone ownerPhone;
-    // TODO: Replace String with PetName when the pet model is available.
-    private final String petName;
+    private final PetName petName;
     private final EndTime endTime;
     private final Service service;
 
@@ -36,10 +33,7 @@ public class Appointment {
     public Appointment(Phone ownerPhone, String petName, AppointmentDate date,
                        StartTime startTime, EndTime endTime, Service service) {
         requireAllNonNull(ownerPhone, petName, date, startTime, endTime, service);
-        // TODO: Do not require triming of name after the pet model is available
-        String normalisedPetName = petName.trim().replaceAll("\\s+", " ");
-        checkArgument(normalisedPetName.matches("[A-Za-z0-9 '.-]{1,40}")
-                && !normalisedPetName.isBlank(), MESSAGE_PET_NAME_CONSTRAINTS);
+        PetName normalisedPetName = new PetName(petName.trim().replaceAll("\\s+", " "));
         checkArgument(endTime.isAtLeastThirtyMinutesAfter(startTime), EndTime.MESSAGE_CONSTRAINTS);
 
         this.ownerPhone = ownerPhone;
@@ -54,7 +48,7 @@ public class Appointment {
         return ownerPhone;
     }
 
-    public String getPetName() {
+    public PetName getPetName() {
         return petName;
     }
 
