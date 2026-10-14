@@ -9,7 +9,7 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 /**
  * Converts between appointment objects and simple fields that can be stored in JSON.

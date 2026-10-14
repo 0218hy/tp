@@ -17,16 +17,16 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.PetBuilder;
-import seedu.address.testutil.TypicalPersons;
+import seedu.address.testutil.TypicalClients;
 
 /** Tests the add-pet command against the model. */
 public class AddPetCommandTest {
-    private static final String OWNER_PHONE = TypicalPersons.ALICE.getPhone().value;
+    private static final String OWNER_PHONE = TypicalClients.ALICE.getPhone().value;
     private static final String REQUIREMENTS = "Calm with baths";
 
     @Test
     public void execute_withAndWithoutBreed_addsPets() throws Exception {
-        Model model = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
+        Model model = new ModelManager(TypicalClients.getTypicalAddressBook(), new UserPrefs());
         AddPetCommand first = command("Mochi", OWNER_PHONE, new Breed("Golden retriever"));
         AddPetCommand second = command("BuBu", OWNER_PHONE, null);
 
@@ -38,7 +38,7 @@ public class AddPetCommandTest {
 
     @Test
     public void execute_normalizedDuplicate_rejectedOnlyForSameOwner() throws Exception {
-        Model model = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
+        Model model = new ModelManager(TypicalClients.getTypicalAddressBook(), new UserPrefs());
         command("Mochi", OWNER_PHONE, null).execute(model);
         assertThrows(CommandException.class, "This client already has a pet named Mochi.", () ->
                 command("mochi", OWNER_PHONE, null).execute(model));
@@ -46,13 +46,13 @@ public class AddPetCommandTest {
             command("Mo chi", OWNER_PHONE, null).execute(model);
             command("Mo  chi", OWNER_PHONE, null).execute(model);
         });
-        command("Mochi", TypicalPersons.BENSON.getPhone().value, null).execute(model);
+        command("Mochi", TypicalClients.BENSON.getPhone().value, null).execute(model);
         assertEquals(3, model.getAddressBook().getPetList().size());
     }
 
     @Test
     public void execute_unknownOwner_rejected() {
-        Model model = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
+        Model model = new ModelManager(TypicalClients.getTypicalAddressBook(), new UserPrefs());
         assertThrows(CommandException.class, AddPetCommand.MESSAGE_OWNER_NOT_FOUND, () ->
                 command("Mochi", "91234567", null).execute(model));
         assertEquals(List.of(), model.getAddressBook().getPetList());
@@ -60,8 +60,8 @@ public class AddPetCommandTest {
 
     @Test
     public void execute_sameNameWithDifferentBreed_rejectsWithoutMutation() {
-        Model model = new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
-        Pet existingPet = new PetBuilder(TypicalPersons.ALICE).withName("Mochi").withBreed("Bengal").build();
+        Model model = new ModelManager(TypicalClients.getTypicalAddressBook(), new UserPrefs());
+        Pet existingPet = new PetBuilder(TypicalClients.ALICE).withName("Mochi").withBreed("Bengal").build();
         model.addPet(existingPet);
         List<Pet> petsBefore = List.copyOf(model.getAddressBook().getPetList());
 

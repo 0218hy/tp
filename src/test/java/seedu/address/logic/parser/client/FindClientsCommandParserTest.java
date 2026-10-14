@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.client.FindClientsCommand;
-import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 
 public class FindClientsCommandParserTest {
 
@@ -25,7 +25,7 @@ public class FindClientsCommandParserTest {
     public void parse_validArgs_returnsFindCommand() {
         // no leading and trailing whitespaces
         FindClientsCommand expectedFindCommand =
-                new FindClientsCommand(new NameContainsKeywordsPredicate(List.of("Alice", "Bob")));
+                new FindClientsCommand(new ClientNameContainsKeywordsPredicate(List.of("Alice", "Bob")));
         assertParseSuccess(parser, "Alice Bob", expectedFindCommand);
 
         // multiple whitespaces between keywords

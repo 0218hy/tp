@@ -12,10 +12,10 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 
 /**
- * Adds a person to the address book.
+ * Adds a client to the address book.
  */
 public class AddClientCommand extends Command {
 
@@ -37,28 +37,28 @@ public class AddClientCommand extends Command {
             + PREFIX_TAG + "owesMoney";
 
     public static final String MESSAGE_SUCCESS = "Client added: %1$s (%2$s).";
-    public static final String MESSAGE_DUPLICATE_PERSON =
+    public static final String MESSAGE_DUPLICATE_CLIENT =
             "A client with this phone number or email already exists.";
 
-    private final Person toAdd;
+    private final Client toAdd;
 
     /**
-     * Creates an AddClientCommand to add the specified {@code Person}
+     * Creates an AddClientCommand to add the specified {@code Client}
      */
-    public AddClientCommand(Person person) {
-        requireNonNull(person);
-        toAdd = person;
+    public AddClientCommand(Client client) {
+        requireNonNull(client);
+        toAdd = client;
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasPerson(toAdd)) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        if (model.hasClient(toAdd)) {
+            throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
         }
 
-        model.addPerson(toAdd);
+        model.addClient(toAdd);
         return new CommandResult(String.format(
                 MESSAGE_SUCCESS, toAdd.getName(), toAdd.getPhone()));
     }

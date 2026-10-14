@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalClients.ALICE;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -32,7 +32,7 @@ import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.ReadOnlyAppointmentBook;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -54,7 +54,7 @@ public class AppointmentPersistenceTest {
     public void setUp() throws Exception {
         storage = storageWith(new JsonAppointmentBookStorage(temporaryFolder.resolve("appointments.json")));
         AddressBook owners = new AddressBook();
-        owners.addPerson(ALICE);
+        owners.addClient(ALICE);
         storage.saveAddressBook(owners);
         model = new MainApp().initModelManager(storage, new UserPrefs());
         logic = logicFor(model, storage);
@@ -78,7 +78,7 @@ public class AppointmentPersistenceTest {
     public void startup_missingAppointmentFile_startsEmptyWithoutCreatingFile() {
         assertTrue(model.getAppointmentBook().getAppointmentList().isEmpty());
         assertFalse(Files.exists(storage.getAppointmentBookFilePath()));
-        assertEquals(List.of(ALICE), model.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE), model.getAddressBook().getClientList());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class AppointmentPersistenceTest {
         Files.writeString(storage.getAppointmentBookFilePath(), "broken appointment data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertTrue(restarted.getAppointmentBook().getAppointmentList().isEmpty());
-        assertEquals(List.of(ALICE), restarted.getAddressBook().getPersonList());
+        assertEquals(List.of(ALICE), restarted.getAddressBook().getClientList());
         new LogicManager(restarted, storage).execute("list");
         assertEquals("broken appointment data", Files.readString(storage.getAppointmentBookFilePath()));
     }
@@ -97,7 +97,7 @@ public class AppointmentPersistenceTest {
         storage.saveAppointmentBook(appointments);
         Files.writeString(storage.getAddressBookFilePath(), "broken owner data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertTrue(restarted.getAddressBook().getPersonList().isEmpty());
+        assertTrue(restarted.getAddressBook().getClientList().isEmpty());
         assertEquals(appointments, restarted.getAppointmentBook());
     }
 
@@ -106,7 +106,7 @@ public class AppointmentPersistenceTest {
         logic.execute(COMMAND);
         String appointmentsBefore = Files.readString(storage.getAppointmentBookFilePath());
         logic.execute("clear");
-        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertTrue(model.getAddressBook().getClientList().isEmpty());
         assertEquals(1, model.getAppointmentBook().getAppointmentList().size());
         assertEquals(appointmentsBefore, Files.readString(storage.getAppointmentBookFilePath()));
     }

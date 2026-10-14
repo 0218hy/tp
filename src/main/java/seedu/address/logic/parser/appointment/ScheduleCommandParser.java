@@ -24,7 +24,7 @@ import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 /**
  * Parses schedule arguments into a command. Participant, future-start and overlap checks

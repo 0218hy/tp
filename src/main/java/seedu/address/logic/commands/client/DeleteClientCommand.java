@@ -12,11 +12,11 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 
 /**
- * Deletes a person identified using its displayed index or phone number from the address book.
+ * Deletes a client identified using its displayed index or phone number from the address book.
  */
 public class DeleteClientCommand extends Command {
 
@@ -28,15 +28,15 @@ public class DeleteClientCommand extends Command {
             + "Examples: " + COMMAND_WORD + " 1\n"
             + "          " + COMMAND_WORD + " i/91234567";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_CLIENT_SUCCESS = "Deleted person: %1$s";
 
     private final Index targetIndex;
     private final Phone phoneNumber;
 
     /**
-     * Creates a {@code DeleteClientCommand} to delete the person at the given displayed index.
+     * Creates a {@code DeleteClientCommand} to delete the client at the given displayed index.
      *
-     * @param targetIndex index of the person to delete
+     * @param targetIndex index of the client to delete
      */
     public DeleteClientCommand(Index targetIndex) {
         this.targetIndex = requireNonNull(targetIndex);
@@ -44,9 +44,9 @@ public class DeleteClientCommand extends Command {
     }
 
     /**
-     * Creates a {@code DeleteClientCommand} to delete the person with the given phone number.
+     * Creates a {@code DeleteClientCommand} to delete the client with the given phone number.
      *
-     * @param phoneNumber phone number of the person to delete
+     * @param phoneNumber phone number of the client to delete
      */
     public DeleteClientCommand(Phone phoneNumber) {
         this.phoneNumber = requireNonNull(phoneNumber);
@@ -56,26 +56,26 @@ public class DeleteClientCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person personToDelete;
+        Client clientToDelete;
         if (targetIndex != null) {
-            List<Person> lastShownList = model.getFilteredPersonList();
+            List<Client> lastShownList = model.getFilteredClientList();
 
             if (targetIndex.getZeroBased() >= lastShownList.size()) {
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+                throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
             }
 
-            personToDelete = lastShownList.get(targetIndex.getZeroBased());
+            clientToDelete = lastShownList.get(targetIndex.getZeroBased());
         } else {
             //TODO: use SLAP
-            personToDelete = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getPhone().equals(phoneNumber))
+            clientToDelete = model.getAddressBook().getClientList().stream()
+                    .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
                     .orElseThrow(() -> new CommandException(
                             "No person with the given phone number exists."));
         }
 
-        model.deletePerson(personToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        model.deleteClient(clientToDelete);
+        return new CommandResult(String.format(MESSAGE_DELETE_CLIENT_SUCCESS, Messages.format(clientToDelete)));
     }
 
     @Override

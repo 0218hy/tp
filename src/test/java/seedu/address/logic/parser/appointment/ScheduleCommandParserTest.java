@@ -22,7 +22,7 @@ import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 public class ScheduleCommandParserTest {
     private static final String VALID_ARGS = "i/91234567 p/BuBu d/01-01-9999 st/10:00 et/11:00 s/Full groom";

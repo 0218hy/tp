@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.getTypicalAddressBook;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,11 +17,11 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.exceptions.DuplicatePersonException;
-import seedu.address.model.person.exceptions.PersonNotFoundException;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.exceptions.ClientNotFoundException;
+import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.model.pet.Pet;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class AddressBookTest {
@@ -30,7 +30,7 @@ public class AddressBookTest {
 
     @Test
     public void constructor() {
-        assertEquals(List.of(), addressBook.getPersonList());
+        assertEquals(List.of(), addressBook.getClientList());
         assertEquals(List.of(), addressBook.getPetList());
     }
 
@@ -47,49 +47,49 @@ public class AddressBookTest {
     }
 
     @Test
-    public void resetData_withDuplicatePersons_throwsDuplicatePersonException() {
-        // Two persons with the same identity fields
-        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
+    public void resetData_withDuplicateClients_throwsDuplicateClientException() {
+        // Two clients with the same identity fields
+        Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
-        List<Person> newPersons = List.of(ALICE, editedAlice);
-        AddressBookStub newData = new AddressBookStub(newPersons);
+        List<Client> newClients = List.of(ALICE, editedAlice);
+        AddressBookStub newData = new AddressBookStub(newClients);
 
-        assertThrows(DuplicatePersonException.class, () -> addressBook.resetData(newData));
+        assertThrows(DuplicateClientException.class, () -> addressBook.resetData(newData));
     }
 
     @Test
-    public void hasPerson_nullPerson_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> addressBook.hasPerson(null));
+    public void hasClient_nullClient_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.hasClient(null));
     }
 
     @Test
-    public void hasPerson_personNotInAddressBook_returnsFalse() {
-        assertFalse(addressBook.hasPerson(ALICE));
+    public void hasClient_clientNotInAddressBook_returnsFalse() {
+        assertFalse(addressBook.hasClient(ALICE));
     }
 
     @Test
-    public void hasPerson_personInAddressBook_returnsTrue() {
-        addressBook.addPerson(ALICE);
-        assertTrue(addressBook.hasPerson(ALICE));
+    public void hasClient_clientInAddressBook_returnsTrue() {
+        addressBook.addClient(ALICE);
+        assertTrue(addressBook.hasClient(ALICE));
     }
 
     @Test
-    public void hasPerson_personWithSameIdentityFieldsInAddressBook_returnsTrue() {
-        addressBook.addPerson(ALICE);
-        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
+    public void hasClient_clientWithSameIdentityFieldsInAddressBook_returnsTrue() {
+        addressBook.addClient(ALICE);
+        Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
-        assertTrue(addressBook.hasPerson(editedAlice));
+        assertTrue(addressBook.hasClient(editedAlice));
     }
 
     @Test
-    public void addPet_ownerNotInAddressBook_throwsPersonNotFoundException() {
-        assertThrows(PersonNotFoundException.class, () -> addressBook.addPet(new PetBuilder(ALICE).build()));
+    public void addPet_ownerNotInAddressBook_throwsClientNotFoundException() {
+        assertThrows(ClientNotFoundException.class, () -> addressBook.addPet(new PetBuilder(ALICE).build()));
     }
 
     @Test
     public void addPet_ownerInAddressBook_addsPet() {
         Pet pet = new PetBuilder(ALICE).build();
-        addressBook.addPerson(ALICE);
+        addressBook.addClient(ALICE);
 
         addressBook.addPet(pet);
 
@@ -102,42 +102,42 @@ public class AddressBookTest {
     }
 
     @Test
-    public void getPersonList_modifyList_throwsUnsupportedOperationException() {
-        assertThrows(UnsupportedOperationException.class, () -> addressBook.getPersonList().remove(0));
+    public void getClientList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getClientList().remove(0));
     }
 
     @Test
-    public void setPerson_ownerOfPet_replacesPetOwner() {
-        addressBook.addPerson(ALICE);
+    public void setClient_ownerOfPet_replacesPetOwner() {
+        addressBook.addClient(ALICE);
         Pet pet = new PetBuilder(ALICE).build();
         addressBook.addPet(pet);
-        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
+        Client editedAlice = new ClientBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
 
-        addressBook.setPerson(ALICE, editedAlice);
+        addressBook.setClient(ALICE, editedAlice);
 
         assertSame(editedAlice, addressBook.getPetList().get(0).getOwner());
     }
 
     @Test
     public void toStringMethod() {
-        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList()
+        String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getClientList()
                 + ", pets=" + addressBook.getPetList() + "}";
         assertEquals(expected, addressBook.toString());
     }
 
     /**
-     * A stub ReadOnlyAddressBook whose persons list can violate interface constraints.
+     * A stub ReadOnlyAddressBook whose clients list can violate interface constraints.
      */
     private static class AddressBookStub implements ReadOnlyAddressBook {
-        private final ObservableList<Person> persons = FXCollections.observableArrayList();
+        private final ObservableList<Client> clients = FXCollections.observableArrayList();
 
-        AddressBookStub(Collection<Person> persons) {
-            this.persons.setAll(persons);
+        AddressBookStub(Collection<Client> clients) {
+            this.clients.setAll(clients);
         }
 
         @Override
-        public ObservableList<Person> getPersonList() {
-            return persons;
+        public ObservableList<Client> getClientList() {
+            return clients;
         }
 
         @Override

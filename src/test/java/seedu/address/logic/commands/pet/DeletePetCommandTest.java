@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.BOB;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BOB;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.testutil.PetBuilder;
@@ -35,8 +35,8 @@ public class DeletePetCommandTest {
     @BeforeEach
     public void setUp() {
         AddressBook addressBook = new AddressBook();
-        addressBook.addPerson(ALICE);
-        addressBook.addPerson(BOB);
+        addressBook.addClient(ALICE);
+        addressBook.addClient(BOB);
         addressBook.addPet(milo);
         addressBook.addPet(miloWithDifferentOwner);
         model = new ModelManager(addressBook, new UserPrefs());

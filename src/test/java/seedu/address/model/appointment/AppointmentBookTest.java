@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 public class AppointmentBookTest {
     private static final Appointment APPOINTMENT = create("10:00", "11:00");

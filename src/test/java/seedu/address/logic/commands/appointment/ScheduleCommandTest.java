@@ -24,7 +24,7 @@ import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 public class ScheduleCommandTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
