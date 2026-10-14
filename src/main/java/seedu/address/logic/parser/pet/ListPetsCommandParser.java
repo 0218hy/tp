@@ -11,6 +11,7 @@ import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Phone;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Parses the optional owner phone number for {@code list-pets}.
@@ -38,6 +39,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
      * Parses an optional owner identifier and rejects repeated or unsupported fields.
      *
      * @param args The text following the {@code list-pets} command word.
+     * @return A command for all pets or for the specified owner's pets.
      * @throws ParseException if the command structure or phone number is invalid.
      */
     @Override
@@ -51,7 +53,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
         // The tokenizer recognizes a prefix only when whitespace precedes it, including the first prefix.
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + input, PREFIX_OWNER_IDENTIFIER);
         validateStructure(input, fields);
-        return new ListPetsCommand(parseOwnerPhone(fields));
+        return new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(parseOwnerPhone(fields)));
     }
 
     /**

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Phone;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Tests input parsing for {@code list-pets}.
@@ -23,8 +24,10 @@ public class ListPetsCommandParserTest {
 
     @Test
     public void parse_validOwner_createsFilteredCommand() throws Exception {
-        assertEquals(new ListPetsCommand(new Phone("91234567")), parser.parse(" i/91234567 "));
-        assertEquals(new ListPetsCommand(new Phone("81234567")), parser.parse("i/81234567"));
+        assertEquals(new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(new Phone("91234567"))),
+                parser.parse(" i/91234567 "));
+        assertEquals(new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(new Phone("81234567"))),
+                parser.parse("i/81234567"));
     }
 
     @Test

@@ -2,6 +2,7 @@ package seedu.address.logic.commands.pet;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 
 import java.util.Comparator;
 import java.util.List;
@@ -13,16 +14,17 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.Phone;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
- * This command only reads the address book and does not change the displayed person list.
+ * Updates the filtered pet list without changing the saved address book or displayed person list.
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + PREFIX_OWNER_IDENTIFIER + "OWNER_IDENTIFIER]";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + PREFIX_OWNER_IDENTIFIER
+            + "OWNER_IDENTIFIER]";
     public static final String MESSAGE_ALL_PETS = "All pet profiles";
     public static final String MESSAGE_NO_PETS = "No saved pet profiles.";
     public static final String MESSAGE_OWNER_NOT_FOUND = "No saved client has this phone number.";
@@ -41,33 +43,35 @@ public class ListPetsCommand extends Command {
             .thenComparing(pet -> pet.getOwner().getPhone().value)
             .thenComparing(pet -> pet.getName().getNormalizedName());
 
-    private final Phone ownerPhone;
+    private final PetOwnerPhoneMatchesPredicate predicate;
 
     /**
-     * Creates a command for all owners when {@code ownerPhone} is null, or for one owner otherwise.
+     * Creates a command for all owners when {@code predicate} is null, or for one owner otherwise.
      *
-     * @param ownerPhone The registered owner's phone number, or {@code null} to list every owner's pets.
+     * @param predicate The owner filter, or {@code null} to list every owner's pets.
      */
-    public ListPetsCommand(Phone ownerPhone) {
-        this.ownerPhone = ownerPhone;
+    public ListPetsCommand(PetOwnerPhoneMatchesPredicate predicate) {
+        this.predicate = predicate;
     }
 
     /**
-     * Reads and formats the saved pet profiles in owner and pet name order.
+     * Filters and formats the saved pet profiles in owner and pet name order.
      *
      * @param model The model containing the saved owners and pet profiles.
+     * @return The formatted profiles, or a message when no pets match.
      * @throws CommandException if the specified owner phone is not registered.
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        if (ownerPhone == null) {
-            return new CommandResult(formatAllPets(model.getAddressBook().getPetList()));
+        if (predicate == null) {
+            model.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
+            return new CommandResult(formatAllPets(model.getFilteredPetList()));
         }
 
         Person owner = findOwner(model);
-        List<Pet> pets = model.getAddressBook().getPetList().stream()
-                .filter(pet -> pet.getOwner().getPhone().equals(ownerPhone))
+        model.updateFilteredPetList(predicate);
+        List<Pet> pets = model.getFilteredPetList().stream()
                 .sorted(PET_ORDER)
                 .toList();
         return new CommandResult(formatOwnerPets(owner, pets));
@@ -80,7 +84,7 @@ public class ListPetsCommand extends Command {
      */
     private Person findOwner(Model model) throws CommandException {
         return model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getPhone().equals(ownerPhone))
+                .filter(person -> person.getPhone().equals(predicate.getOwnerPhone()))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
     }
@@ -143,11 +147,11 @@ public class ListPetsCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || (other instanceof ListPetsCommand otherCommand
-                && Objects.equals(ownerPhone, otherCommand.ownerPhone));
+                && Objects.equals(predicate, otherCommand.predicate));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(ownerPhone);
+        return Objects.hashCode(predicate);
     }
 }

@@ -29,6 +29,7 @@ import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -132,7 +133,7 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_listPets() throws Exception {
         assertEquals(new ListPetsCommand(null), parser.parseCommand(ListPetsCommand.COMMAND_WORD));
-        assertEquals(new ListPetsCommand(new Phone("91234567")),
+        assertEquals(new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(new Phone("91234567"))),
                 parser.parseCommand(ListPetsCommand.COMMAND_WORD + " i/91234567"));
     }
 

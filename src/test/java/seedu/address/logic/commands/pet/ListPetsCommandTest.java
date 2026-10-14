@@ -1,6 +1,7 @@
 package seedu.address.logic.commands.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -16,6 +17,7 @@ import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PetBuilder;
@@ -25,7 +27,10 @@ import seedu.address.testutil.TypicalPersons;
  * Tests listing pet profiles without changing the saved model.
  */
 public class ListPetsCommandTest {
-    private static final Phone UNKNOWN_PHONE = new Phone("91234567");
+    private static final PetOwnerPhoneMatchesPredicate ALICE_PREDICATE =
+            new PetOwnerPhoneMatchesPredicate(ALICE.getPhone());
+    private static final PetOwnerPhoneMatchesPredicate UNKNOWN_OWNER_PREDICATE =
+            new PetOwnerPhoneMatchesPredicate(new Phone("91234567"));
 
     @Test
     public void execute_allPets_groupsAndSortsByOwnerThenPet() throws Exception {
@@ -34,12 +39,14 @@ public class ListPetsCommandTest {
         addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
         addPet(model, ALICE, "BuBu", Species.CAT, null);
         List<Pet> savedOrder = List.copyOf(model.getAddressBook().getPetList());
+        model.updateFilteredPetList(pet -> false);
 
         String expected = "All pet profiles\n\nAlice Pauline\n"
                 + "BuBu Cat Daily walk\nmochi Dog Golden retriever Daily walk\n\n"
                 + "Benson Meier\nZoe Cat Daily walk";
         assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
         assertEquals(savedOrder, model.getAddressBook().getPetList());
+        assertEquals(savedOrder, model.getFilteredPetList());
     }
 
     @Test
@@ -66,7 +73,9 @@ public class ListPetsCommandTest {
 
         String expected = "Pets under Alice Pauline\nBuBu Cat Daily walk\n"
                 + "Mochi Dog Golden retriever Daily walk";
-        assertEquals(expected, new ListPetsCommand(ALICE.getPhone()).execute(model).getFeedbackToUser());
+        assertEquals(expected, new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
+        assertEquals(2, model.getFilteredPetList().size());
+        assertTrue(model.getFilteredPetList().stream().allMatch(ALICE_PREDICATE));
     }
 
     @Test
@@ -76,11 +85,12 @@ public class ListPetsCommandTest {
         assertEquals(ListPetsCommand.MESSAGE_NO_PETS,
                 new ListPetsCommand(null).execute(model).getFeedbackToUser());
         assertEquals("Alice Pauline has no saved pet profiles.",
-                new ListPetsCommand(ALICE.getPhone()).execute(model).getFeedbackToUser());
+                new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
 
         addPet(model, BENSON, "Zoe", Species.CAT, null);
         assertEquals("Alice Pauline has no saved pet profiles.",
-                new ListPetsCommand(ALICE.getPhone()).execute(model).getFeedbackToUser());
+                new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredPetList());
     }
 
     @Test
@@ -89,15 +99,19 @@ public class ListPetsCommandTest {
         addPet(model, ALICE, "Pip", Species.GUINEA_PIG, null);
 
         assertEquals("Pets under Alice Pauline\nPip Guinea pig Daily walk",
-                new ListPetsCommand(ALICE.getPhone()).execute(model).getFeedbackToUser());
+                new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
     }
 
     @Test
     public void execute_unknownOwner_throwsCommandException() {
         Model model = createModel();
+        addPet(model, ALICE, "Mochi", Species.DOG, null);
+        model.updateFilteredPetList(pet -> false);
         String message = ListPetsCommand.MESSAGE_OWNER_NOT_FOUND;
-        assertThrows(CommandException.class, message, () -> new ListPetsCommand(UNKNOWN_PHONE).execute(model));
-        assertEquals(List.of(), model.getAddressBook().getPetList());
+        assertThrows(CommandException.class, message, () ->
+                new ListPetsCommand(UNKNOWN_OWNER_PREDICATE).execute(model));
+        assertEquals(1, model.getAddressBook().getPetList().size());
+        assertEquals(List.of(), model.getFilteredPetList());
     }
 
     @Test
@@ -107,10 +121,11 @@ public class ListPetsCommandTest {
 
     @Test
     public void equals_samePhone_equalCommands() {
-        assertEquals(new ListPetsCommand(ALICE.getPhone()), new ListPetsCommand(ALICE.getPhone()));
+        assertEquals(new ListPetsCommand(ALICE_PREDICATE),
+                new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(ALICE.getPhone())));
         assertEquals(new ListPetsCommand(null), new ListPetsCommand(null));
-        assertEquals(new ListPetsCommand(ALICE.getPhone()).hashCode(),
-                new ListPetsCommand(ALICE.getPhone()).hashCode());
+        assertEquals(new ListPetsCommand(ALICE_PREDICATE).hashCode(),
+                new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(ALICE.getPhone())).hashCode());
     }
 
     /**
