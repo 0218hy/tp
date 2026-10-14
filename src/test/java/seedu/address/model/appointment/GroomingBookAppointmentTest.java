@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.address.model.GroomingBook;
+import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 import seedu.address.model.client.Phone;
 
@@ -81,6 +82,21 @@ public class GroomingBookAppointmentTest {
     }
 
     @Test
+    public void removeAppointment_existingAppointment_removesOnlyTarget() {
+        book.addAppointment(APPOINTMENT);
+        book.addAppointment(ADJACENT);
+
+        book.removeAppointment(APPOINTMENT);
+
+        assertEquals(List.of(ADJACENT), book.getAppointmentList());
+    }
+
+    @Test
+    public void removeAppointment_missingAppointment_throwsException() {
+        assertThrows(AppointmentNotFoundException.class, () -> book.removeAppointment(APPOINTMENT));
+    }
+
+    @Test
     public void nullArguments_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
         assertThrows(NullPointerException.class, () -> new GroomingBook(null));
@@ -88,6 +104,7 @@ public class GroomingBookAppointmentTest {
         assertThrows(NullPointerException.class, () -> book.hasOverlappingAppointment(null));
         assertThrows(NullPointerException.class, () -> book.setAppointments(null));
         assertThrows(NullPointerException.class, () -> book.resetData(null));
+        assertThrows(NullPointerException.class, () -> book.removeAppointment(null));
         assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
     }
 

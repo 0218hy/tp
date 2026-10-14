@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 
 import seedu.address.commons.core.index.Index;
@@ -20,6 +21,9 @@ import seedu.address.model.appointment.AppointmentDate;
 
 /** Parses arguments into a {@code DeleteAppointmentCommand}. */
 public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentCommand> {
+    public static final String MESSAGE_INDEX_AND_DATE_TIME =
+            "An appointment index cannot be combined with date/time identifiers.";
+
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
             .withResolverStyle(ResolverStyle.STRICT);
 
@@ -33,6 +37,10 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
         boolean hasDate = arguments.getValue(PREFIX_DATE).isPresent();
         boolean hasTime = arguments.getValue(PREFIX_TIME).isPresent();
 
+        if (hasIndex && (hasDate || hasTime)) {
+            throw new ParseException(MESSAGE_INDEX_AND_DATE_TIME);
+        }
+
         try {
             if (hasIndex && !hasDate && !hasTime) {
                 Index index = ParserUtil.parseIndex(arguments.getPreamble());
@@ -43,7 +51,7 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
                 LocalTime time = LocalTime.parse(arguments.getValue(PREFIX_TIME).get(), TIME_FORMATTER);
                 return new DeleteAppointmentCommand(date, time);
             }
-        } catch (IllegalArgumentException e) {
+        } catch (DateTimeParseException | IllegalArgumentException | ParseException e) {
             throw invalidFormat(e);
         }
 
