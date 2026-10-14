@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -59,7 +60,7 @@ public class FindClientsCommandTest {
         ClientNameContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindClientsCommand command = new FindClientsCommand(predicate);
         expectedModel.updateFilteredClientList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+        assertCommandSuccess(command, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
         assertEquals(List.of(), model.getFilteredClientList());
     }
 
@@ -69,7 +70,7 @@ public class FindClientsCommandTest {
         ClientNameContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
         FindClientsCommand command = new FindClientsCommand(predicate);
         expectedModel.updateFilteredClientList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+        assertCommandSuccess(command, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
         assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredClientList());
     }
 

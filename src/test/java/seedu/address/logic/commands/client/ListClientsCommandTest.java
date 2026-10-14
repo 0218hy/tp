@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.model.ModelManager;
 import seedu.address.model.client.Client;
@@ -24,8 +25,9 @@ public class ListClientsCommandTest {
         model.addClient(amelia);
         ObservableList<Client> displayed = model.getFilteredClientList();
         model.updateFilteredClientList(person -> false);
-        assertEquals("Listed all clients.", new BuBuParser().parseCommand("list-clients")
-                .execute(model).getFeedbackToUser());
+        CommandResult result = new BuBuParser().parseCommand("list-clients").execute(model);
+        assertEquals("Listed all clients.", result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
         assertEquals(List.of(amelia, zoe), displayed);
         assertEquals(List.of(zoe, amelia), model.getGroomingBook().getClientList());
         model.deleteClient(displayed.getFirst());
@@ -37,8 +39,9 @@ public class ListClientsCommandTest {
         model.addClient(zoe);
         model.addClient(amelia);
         for (String query : List.of("MEL", "7654", "@EXAMPLE.COM", "SUNSET ROAD", "#01-02")) {
-            assertEquals("Found 1 client(s).", new BuBuParser().parseCommand("list-clients q/" + query)
-                    .execute(model).getFeedbackToUser());
+            CommandResult result = new BuBuParser().parseCommand("list-clients q/" + query).execute(model);
+            assertEquals("Found 1 client(s).", result.getFeedbackToUser());
+            assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
             assertEquals(List.of(amelia), model.getFilteredClientList());
         }
     }

@@ -66,7 +66,7 @@ public class ListPetsCommand extends Command {
         requireNonNull(model);
         if (predicate == null) {
             model.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
-            return new CommandResult(formatAllPets(model.getFilteredPetList()));
+            return new CommandResult(formatAllPets(model.getFilteredPetList()), CommandResult.DisplayType.PETS);
         }
 
         Client owner = findOwner(model);
@@ -74,7 +74,7 @@ public class ListPetsCommand extends Command {
         List<Pet> pets = model.getFilteredPetList().stream()
                 .sorted(PET_ORDER)
                 .toList();
-        return new CommandResult(formatOwnerPets(owner, pets));
+        return new CommandResult(formatOwnerPets(owner, pets), CommandResult.DisplayType.PETS);
     }
 
     /**

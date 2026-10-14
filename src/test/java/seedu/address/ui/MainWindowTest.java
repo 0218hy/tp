@@ -98,10 +98,14 @@ public class MainWindowTest {
         }
 
         @Override
-        public ObservableList<Pet> getFilteredPetList() { return pets; }
+        public ObservableList<Pet> getFilteredPetList() {
+            return pets;
+        }
 
         @Override
-        public ObservableList<Appointment> getFilteredAppointmentList() { return appointments; }
+        public ObservableList<Appointment> getFilteredAppointmentList() {
+            return appointments;
+        }
 
         @Override
         public GuiSettings getGuiSettings() {

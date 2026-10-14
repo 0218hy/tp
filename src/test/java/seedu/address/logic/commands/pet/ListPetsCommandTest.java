@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -44,7 +45,9 @@ public class ListPetsCommandTest {
         String expected = "All pet profiles\n\nAlice Pauline\n"
                 + "BuBu Cat Daily walk\nmochi Dog Golden retriever Daily walk\n\n"
                 + "Benson Meier\nZoe Cat Daily walk";
-        assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
+        CommandResult result = new ListPetsCommand(null).execute(model);
+        assertEquals(expected, result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(savedOrder, model.getGroomingBook().getPetList());
         assertEquals(savedOrder, model.getFilteredPetList());
     }
@@ -73,7 +76,9 @@ public class ListPetsCommandTest {
 
         String expected = "Pets under Alice Pauline\nBuBu Cat Daily walk\n"
                 + "Mochi Dog Golden retriever Daily walk";
-        assertEquals(expected, new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
+        CommandResult result = new ListPetsCommand(ALICE_PREDICATE).execute(model);
+        assertEquals(expected, result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(2, model.getFilteredPetList().size());
         assertTrue(model.getFilteredPetList().stream().allMatch(ALICE_PREDICATE));
     }

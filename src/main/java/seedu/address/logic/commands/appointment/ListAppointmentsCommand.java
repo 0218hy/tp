@@ -49,7 +49,7 @@ public class ListAppointmentsCommand extends Command {
                         .isAfter(now));
         List<Appointment> appointments = model.getFilteredAppointmentList();
         if (appointments.isEmpty()) {
-            return new CommandResult(MESSAGE_NO_APPOINTMENTS);
+            return new CommandResult(MESSAGE_NO_APPOINTMENTS, CommandResult.DisplayType.APPOINTMENTS);
         }
 
         StringBuilder result = new StringBuilder(MESSAGE_SUCCESS);
@@ -60,6 +60,6 @@ public class ListAppointmentsCommand extends Command {
                     .append("; Owner phone: ").append(appointment.getOwnerPhone())
                     .append("; Service: ").append(appointment.getService());
         }
-        return new CommandResult(result.toString());
+        return new CommandResult(result.toString(), CommandResult.DisplayType.APPOINTMENTS);
     }
 }

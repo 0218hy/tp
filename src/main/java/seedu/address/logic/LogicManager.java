@@ -121,10 +121,14 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public ObservableList<Pet> getFilteredPetList() { return model.getFilteredPetList(); }
+    public ObservableList<Pet> getFilteredPetList() {
+        return model.getFilteredPetList();
+    }
 
     @Override
-    public ObservableList<Appointment> getFilteredAppointmentList() { return model.getFilteredAppointmentList(); }
+    public ObservableList<Appointment> getFilteredAppointmentList() {
+        return model.getFilteredAppointmentList();
+    }
 
     @Override
     public GuiSettings getGuiSettings() {
