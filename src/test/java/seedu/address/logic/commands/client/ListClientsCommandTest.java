@@ -1,39 +1,59 @@
 package seedu.address.logic.commands.client;
 
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
-import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
-import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.Model;
+import javafx.collections.ObservableList;
+import seedu.address.logic.parser.BuBuParser;
 import seedu.address.model.ModelManager;
-import seedu.address.model.UserPrefs;
+import seedu.address.model.client.Client;
+import seedu.address.testutil.ClientBuilder;
 
-/**
- * Contains integration tests (interaction with the Model) and unit tests for ListClientsCommand.
- */
 public class ListClientsCommandTest {
+    private final ModelManager model = new ModelManager();
+    private final Client zoe = new ClientBuilder().withName("Zoe").withPhone("91234567").build();
+    private final Client amelia = new ClientBuilder().withName("amelia Tan").withPhone("87654321")
+            .withEmail("amelia@example.com").withAddress("10 Sunset Road #01-02").build();
 
-    private Model model;
-    private Model expectedModel;
-
-    @BeforeEach
-    public void setUp() {
-        model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
-        expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+    @Test
+    public void execute_noQuery_resetsFilterAndSortsWithoutChangingRecords() throws Exception {
+        model.addClient(zoe);
+        model.addClient(amelia);
+        ObservableList<Client> displayed = model.getFilteredClientList();
+        model.updateFilteredClientList(person -> false);
+        assertEquals("Listed all clients.", new BuBuParser().parseCommand("list-clients")
+                .execute(model).getFeedbackToUser());
+        assertEquals(List.of(amelia, zoe), displayed);
+        assertEquals(List.of(zoe, amelia), model.getGroomingBook().getClientList());
+        model.deleteClient(displayed.getFirst());
+        assertEquals(List.of(zoe), displayed);
     }
 
     @Test
-    public void execute_listIsNotFiltered_showsSameList() {
-        assertCommandSuccess(new ListClientsCommand(), model, ListClientsCommand.MESSAGE_SUCCESS, expectedModel);
+    public void execute_query_matchesEachContactFieldIgnoringCase() throws Exception {
+        model.addClient(zoe);
+        model.addClient(amelia);
+        for (String query : List.of("MEL", "7654", "@EXAMPLE.COM", "SUNSET ROAD", "#01-02")) {
+            assertEquals("Found 1 client(s).", new BuBuParser().parseCommand("list-clients q/" + query)
+                    .execute(model).getFeedbackToUser());
+            assertEquals(List.of(amelia), model.getFilteredClientList());
+        }
     }
 
     @Test
-    public void execute_listIsFiltered_showsEverything() {
-        showClientAtIndex(model, INDEX_FIRST_CLIENT);
-        assertCommandSuccess(new ListClientsCommand(), model, ListClientsCommand.MESSAGE_SUCCESS, expectedModel);
+    public void execute_noMatches_successWithEmptyList() {
+        model.addClient(amelia);
+        assertEquals("No clients match \"Nobody\".", new ListClientsCommand("Nobody")
+                .execute(model).getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredClientList());
+    }
+
+    @Test
+    public void execute_emptyAddressBook_success() {
+        assertEquals("Listed all clients.", new ListClientsCommand().execute(model).getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredClientList());
     }
 }
