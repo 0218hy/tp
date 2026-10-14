@@ -1,10 +1,56 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+
+@EnabledOnOs(OS.LINUX)
 public class ResultDisplayTest {
+
+    @Test
+    public void setHelpContent_displaysStyledHelpReference() {
+        JavaFxTestUtils.runAndWait(() -> {
+            ResultDisplay resultDisplay = new ResultDisplay();
+
+            resultDisplay.setHelpContent("AVAILABLE COMMANDS\n\nAdd client\n  add-client n/NAME");
+
+            TextArea feedbackDisplay = getField(resultDisplay, "resultDisplay", TextArea.class);
+            ScrollPane helpDisplay = getField(resultDisplay, "helpDisplay", ScrollPane.class);
+            TextFlow helpContent = getField(resultDisplay, "helpContent", TextFlow.class);
+            assertFalse(feedbackDisplay.isVisible());
+            assertTrue(helpDisplay.isVisible());
+            assertTrue(((Text) helpContent.getChildren().get(0)).getStyleClass().contains("help-heading"));
+            assertTrue(((Text) helpContent.getChildren().get(2)).getStyleClass().contains("help-command-name"));
+            assertTrue(((Text) helpContent.getChildren().get(3)).getStyleClass().contains("help-command-format"));
+        });
+    }
+
+    @Test
+    public void setFeedbackToUser_hidesHelpReferenceAndDisplaysFeedback() {
+        JavaFxTestUtils.runAndWait(() -> {
+            ResultDisplay resultDisplay = new ResultDisplay();
+            resultDisplay.setHelpContent("AVAILABLE COMMANDS");
+
+            resultDisplay.setFeedbackToUser("Listed all clients.");
+
+            TextArea feedbackDisplay = getField(resultDisplay, "resultDisplay", TextArea.class);
+            ScrollPane helpDisplay = getField(resultDisplay, "helpDisplay", ScrollPane.class);
+            assertTrue(feedbackDisplay.isVisible());
+            assertFalse(helpDisplay.isVisible());
+            assertEquals("Listed all clients.", feedbackDisplay.getText());
+        });
+    }
 
     @Test
     public void getHelpLineStyleClass_heading_returnsHeadingStyle() {
@@ -25,5 +71,15 @@ public class ResultDisplayTest {
     @Test
     public void getHelpLineStyleClass_blankLine_returnsSpacingStyle() {
         assertEquals("help-spacing", ResultDisplay.getHelpLineStyleClass("   "));
+    }
+
+    private static <T> T getField(Object target, String fieldName, Class<T> fieldType) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return fieldType.cast(field.get(target));
+        } catch (NoSuchFieldException | IllegalAccessException exception) {
+            throw new AssertionError(exception);
+        }
     }
 }
