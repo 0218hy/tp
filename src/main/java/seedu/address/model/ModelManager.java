@@ -29,6 +29,7 @@ public class ModelManager implements Model {
     private final SortedList<Client> sortedClients;
     private final FilteredList<Pet> filteredPets;
     private final FilteredList<Appointment> filteredAppointments;
+    private final SortedList<Appointment> sortedAppointments;
 
     /**
      * Initializes a ModelManager with the given groomingBook and userPrefs.
@@ -44,6 +45,9 @@ public class ModelManager implements Model {
         sortedClients = new SortedList<>(filteredClients);
         filteredPets = new FilteredList<>(this.groomingBook.getPetList());
         filteredAppointments = new FilteredList<>(this.groomingBook.getAppointmentList());
+        sortedAppointments = new SortedList<>(filteredAppointments,
+                Comparator.comparing((Appointment appointment) -> appointment.getDate().value)
+                        .thenComparing(appointment -> appointment.getStartTime().value));
     }
 
     public ModelManager() {
@@ -196,7 +200,7 @@ public class ModelManager implements Model {
 
     @Override
     public ObservableList<Appointment> getFilteredAppointmentList() {
-        return filteredAppointments;
+        return sortedAppointments;
     }
 
     @Override

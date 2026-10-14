@@ -44,11 +44,10 @@ public class ListAppointmentsCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         LocalDateTime now = LocalDateTime.now(clock);
-        List<Appointment> appointments = model.getGroomingBook().getAppointmentList().stream()
-                .filter(appointment -> appointment.getDate().value.atTime(appointment.getEndTime().value)
-                        .isAfter(now))
-                .sorted(APPOINTMENT_ORDER)
-                .toList();
+        model.updateFilteredAppointmentList(appointment ->
+                        appointment.getDate().value.atTime(appointment.getEndTime().value)
+                        .isAfter(now));
+        List<Appointment> appointments = model.getFilteredAppointmentList();
         if (appointments.isEmpty()) {
             return new CommandResult(MESSAGE_NO_APPOINTMENTS);
         }
