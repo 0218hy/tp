@@ -74,6 +74,7 @@ public class ModelManager implements Model {
         return groomingBook;
     }
 
+    //=========== Client ======================================================================================
     @Override
     public boolean hasClient(Client client) {
         requireNonNull(client);
@@ -98,7 +99,7 @@ public class ModelManager implements Model {
         groomingBook.setClient(target, editedClient);
     }
 
-    //=========== Pet ================================================================================
+    //=========== Pet ======================================================================================
 
     @Override
     public boolean hasPet(Pet pet) {
