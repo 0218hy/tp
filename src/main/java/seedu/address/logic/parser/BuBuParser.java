@@ -14,22 +14,23 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.appointment.AddAppointmentCommand;
+import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.client.EditClientCommand;
 import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
+import seedu.address.logic.commands.client.ListCommand;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.appointment.AddAppointmentCommandParser;
 import seedu.address.logic.parser.appointment.DeleteAppointmentCommandParser;
-import seedu.address.logic.parser.client.AddClientCommandParser;
-import seedu.address.logic.parser.client.DeleteClientCommandParser;
-import seedu.address.logic.parser.client.EditClientCommandParser;
-import seedu.address.logic.parser.client.FindClientsCommandParser;
+import seedu.address.logic.parser.appointment.ListAppointmentsCommandParser;
+import seedu.address.logic.parser.client.*;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.logic.parser.client.ListClientsCommandParser;
 import seedu.address.logic.parser.pet.AddPetCommandParser;
 import seedu.address.logic.parser.pet.DeletePetCommandParser;
 import seedu.address.logic.parser.pet.ListPetsCommandParser;
@@ -86,6 +87,7 @@ public class BuBuParser {
         logger.fine("Command word: " + commandWord + "; Arguments: " + arguments);
 
         return switch (commandWord) {
+            case ListAppointmentsCommand.COMMAND_WORD -> new ListAppointmentsCommandParser().parse(arguments);
             case AddAppointmentCommand.COMMAND_WORD -> addAppointmentParser.orElseThrow(() ->
                     new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
             case DeleteAppointmentCommand.COMMAND_WORD -> deleteAppointmentParser.parse(arguments);
@@ -96,7 +98,8 @@ public class BuBuParser {
             case DeletePetCommand.COMMAND_WORD -> new DeletePetCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindClientsCommand.COMMAND_WORD -> new FindClientsCommandParser().parse(arguments);
-            case ListClientsCommand.COMMAND_WORD -> new ListClientsCommand();
+            case ListCommand.COMMAND_WORD -> new ListCommand();
+            case ListClientsCommand.COMMAND_WORD -> new ListClientsCommandParser().parse(arguments);
             case ListPetsCommand.COMMAND_WORD -> new ListPetsCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();

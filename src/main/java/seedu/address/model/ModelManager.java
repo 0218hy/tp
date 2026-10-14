@@ -3,12 +3,14 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.appointment.Appointment;
@@ -24,6 +26,7 @@ public class ModelManager implements Model {
     private final GroomingBook groomingBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
+    private final SortedList<Client> sortedClients;
     private final FilteredList<Pet> filteredPets;
     private final FilteredList<Appointment> filteredAppointments;
 
@@ -38,6 +41,7 @@ public class ModelManager implements Model {
         this.groomingBook = new GroomingBook(groomingBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredClients = new FilteredList<>(this.groomingBook.getClientList());
+        sortedClients = new SortedList<>(filteredClients);
         filteredPets = new FilteredList<>(this.groomingBook.getPetList());
         filteredAppointments = new FilteredList<>(this.groomingBook.getAppointmentList());
     }
@@ -156,13 +160,23 @@ public class ModelManager implements Model {
      */
     @Override
     public ObservableList<Client> getFilteredClientList() {
-        return filteredClients;
+        return sortedClients;
     }
 
     @Override
     public void updateFilteredClientList(Predicate<Client> predicate) {
         requireNonNull(predicate);
         filteredClients.setPredicate(predicate);
+    }
+
+    /**
+     * Sorts the live displayed client list by name, ignoring case, without reordering stored clients.
+     * Subsequent changes to the filtered list retain this sort order.
+     */
+    @Override
+    public void sortFilteredClientList() {
+        sortedClients.setComparator(Comparator.comparing(person -> person.getName().fullName,
+                String.CASE_INSENSITIVE_ORDER));
     }
 
     //=========== Filtered Pet List Accessors ========================================================

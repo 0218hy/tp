@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
@@ -44,7 +45,7 @@ public class BuBuParserTest {
     @Test
     public void parseCommand_add() throws Exception {
         Client client = new ClientBuilder().build();
-        AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddCommand(client));
+        AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddClientCommand(client));
         assertEquals(new AddClientCommand(client), command);
     }
 
@@ -144,8 +145,22 @@ public class BuBuParserTest {
 
     @Test
     public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListClientsCommand);
-        assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD + " 3") instanceof ListClientsCommand);
+        assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListCommand);
+        assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_listAppointments() throws Exception {
+        assertTrue(parser.parseCommand("list-appointments") instanceof ListAppointmentsCommand);
+        assertTrue(parser.parseCommand("  list-appointments  \t") instanceof ListAppointmentsCommand);
+    }
+
+    @Test
+    public void parseCommand_listAppointmentsWithArguments_throwsParseException() {
+        for (String arguments : List.of("d/18-09-2026", "unexpected", "18-09-2026", "i/91234567")) {
+            String message = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListAppointmentsCommand.MESSAGE_USAGE);
+            assertThrows(ParseException.class, message, () -> parser.parseCommand("list-appointments " + arguments));
+        }
     }
 
     @Test

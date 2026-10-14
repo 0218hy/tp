@@ -98,6 +98,24 @@ Examples:
 * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add-client n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison i/91234567 t/criminal`
 
+### Listing and searching clients: `list-clients`
+
+Format: `list-clients [q/KEYWORD]`
+
+Shows clients alphabetically by name, ignoring case. Without `q/`, shows all clients.
+With `q/`, searches for a case-insensitive substring in the name, phone, email, or address.
+The whole keyword is searched as one phrase, including any internal spaces.
+
+The keyword must contain 1–60 characters after trimming surrounding whitespace. Allowed characters
+are English letters, digits, spaces, apostrophes, hyphens, full stops, `@`, and `#`.
+An empty or invalid keyword reports `Search keyword must be 1-60 characters and use valid text characters.`
+Specify `q/` only once; repeated prefixes report `Each search field may be specified only once.`
+
+Examples: `list-clients`, `list-clients q/amelia`, `list-clients q/@example.com`.
+
+A search reports `Found N client(s).` If nothing matches, it reports `No clients match "KEYWORD".`
+No matches is a successful search with an empty list. This command does not change stored client records.
+
 ### Listing all persons: `list`
 
 Shows a list of all persons in the address book.
@@ -236,6 +254,17 @@ Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
 Example:
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
+### Listing appointments: `list-appointments`
+
+Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
+Each entry shows its date, start and end times, pet name, owner phone number, and service.
+
+Format: `list-appointments`
+
+Appointments are included until their end time, using Singapore time. Completed appointments remain saved
+but are excluded from this list. If none remain, the command displays `No ongoing or future appointments.`
+This command currently takes no parameters; the optional `d/` date filter is not yet supported.
+
 ### Deleting an appointment: `delete-appointment`
 
 Deletes a saved grooming appointment using either its appointment-list index or a date and time within the appointment.
@@ -278,8 +307,6 @@ Format: `exit`
 
 Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Scheduling in the app is pending owner/pet lookup integration; once enabled, bookings use this same data file.
-Appointments that are already saved can still be deleted using `delete-appointment`.
 
 ### Editing the data file
 
@@ -320,9 +347,11 @@ Action | Format, Examples
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list`
+**List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
+**List appointments** | `list-appointments`
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DATE t/TIME` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
 **Clear** | `clear`
 **Help** | `help`

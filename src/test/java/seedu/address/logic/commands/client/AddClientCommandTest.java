@@ -91,6 +91,11 @@ public class AddClientCommandTest {
      */
     private class ModelStub implements Model {
         @Override
+        public void sortFilteredClientList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void setAppointments(List<Appointment> appointments) {
             throw new AssertionError("This method should not be called.");
         }
