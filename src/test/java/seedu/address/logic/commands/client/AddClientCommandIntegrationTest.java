@@ -1,4 +1,4 @@
-package seedu.address.logic.commands;
+package seedu.address.logic.commands.client;
 
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -14,9 +14,9 @@ import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Contains integration tests (interaction with the Model) for {@code AddCommand}.
+ * Contains integration tests (interaction with the Model) for {@code AddClientCommand}.
  */
-public class AddCommandIntegrationTest {
+public class AddClientCommandIntegrationTest {
 
     private Model model;
 
@@ -32,16 +32,16 @@ public class AddCommandIntegrationTest {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(validPerson);
 
-        assertCommandSuccess(new AddCommand(validPerson), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, validPerson.getName(), validPerson.getPhone()),
+        assertCommandSuccess(new AddClientCommand(validPerson), model,
+                String.format(AddClientCommand.MESSAGE_SUCCESS, validPerson.getName(), validPerson.getPhone()),
                 expectedModel);
     }
 
     @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person personInList = model.getAddressBook().getPersonList().get(0);
-        assertCommandFailure(new AddCommand(personInList), model,
-                AddCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(new AddClientCommand(personInList), model,
+                AddClientCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
 
@@ -52,8 +52,8 @@ public class AddCommandIntegrationTest {
                 .withEmail("another@example.com").build();
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         expectedModel.addPerson(client);
-        assertCommandSuccess(new AddCommand(client), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, client.getName(), client.getPhone()), expectedModel);
+        assertCommandSuccess(new AddClientCommand(client), model,
+                String.format(AddClientCommand.MESSAGE_SUCCESS, client.getName(), client.getPhone()), expectedModel);
     }
 
     @Test
@@ -62,8 +62,8 @@ public class AddCommandIntegrationTest {
         model.updateFilteredPersonList(person -> false);
         Person samePhone = new PersonBuilder().withPhone(existing.getPhone().value).build();
         Person sameEmail = new PersonBuilder().withEmail(existing.getEmail().value).build();
-        assertCommandFailure(new AddCommand(samePhone), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
-        assertCommandFailure(new AddCommand(sameEmail), model, AddCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(new AddClientCommand(samePhone), model, AddClientCommand.MESSAGE_DUPLICATE_PERSON);
+        assertCommandFailure(new AddClientCommand(sameEmail), model, AddClientCommand.MESSAGE_DUPLICATE_PERSON);
     }
 
 }

@@ -1,4 +1,4 @@
-package seedu.address.logic.commands;
+package seedu.address.logic.commands.client;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
@@ -8,6 +8,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -15,7 +17,7 @@ import seedu.address.model.person.Person;
 /**
  * Adds a person to the address book.
  */
-public class AddCommand extends Command {
+public class AddClientCommand extends Command {
 
     public static final String COMMAND_WORD = "add-client";
 
@@ -41,9 +43,9 @@ public class AddCommand extends Command {
     private final Person toAdd;
 
     /**
-     * Creates an AddCommand to add the specified {@code Person}
+     * Creates an AddClientCommand to add the specified {@code Person}
      */
-    public AddCommand(Person person) {
+    public AddClientCommand(Person person) {
         requireNonNull(person);
         toAdd = person;
     }
@@ -68,7 +70,7 @@ public class AddCommand extends Command {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof AddCommand otherAddCommand)) {
+        if (!(other instanceof AddClientCommand otherAddCommand)) {
             return false;
         }
 

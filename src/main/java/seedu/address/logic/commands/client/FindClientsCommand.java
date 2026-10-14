@@ -1,9 +1,11 @@
-package seedu.address.logic.commands;
+package seedu.address.logic.commands.client;
 
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
@@ -11,7 +13,7 @@ import seedu.address.model.person.NameContainsKeywordsPredicate;
  * Finds and lists all persons in the address book whose name contains any of the argument keywords.
  * Keyword matching is case insensitive.
  */
-public class FindCommand extends Command {
+public class FindClientsCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
@@ -22,7 +24,7 @@ public class FindCommand extends Command {
 
     private final NameContainsKeywordsPredicate predicate;
 
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
+    public FindClientsCommand(NameContainsKeywordsPredicate predicate) {
         this.predicate = predicate;
     }
 
@@ -41,7 +43,7 @@ public class FindCommand extends Command {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof FindCommand otherFindCommand)) {
+        if (!(other instanceof FindClientsCommand otherFindCommand)) {
             return false;
         }
 

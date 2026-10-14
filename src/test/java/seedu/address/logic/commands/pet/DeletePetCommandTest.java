@@ -12,7 +12,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.DeleteClientCommand;
+import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;

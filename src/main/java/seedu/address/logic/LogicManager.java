@@ -7,10 +7,10 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.parser.AddressBookParser;
@@ -111,7 +111,7 @@ public class LogicManager implements Logic {
             if (previousAppointments != null) {
                 model.setAppointmentBook(previousAppointments);
             }
-            if (command instanceof AddCommand) {
+            if (command instanceof AddClientCommand) {
                 throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);
             }
             if (ioe instanceof AccessDeniedException) {

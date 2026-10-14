@@ -9,19 +9,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
-import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
-import seedu.address.logic.commands.DeleteClientCommand;
-import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
-import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
-import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.client.AddClientCommand;
+import seedu.address.logic.commands.client.DeleteClientCommand;
+import seedu.address.logic.commands.client.EditClientCommand;
+import seedu.address.logic.commands.client.FindClientsCommand;
+import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.appointment.ScheduleCommandParser;
+import seedu.address.logic.parser.client.AddClientCommandParser;
+import seedu.address.logic.parser.client.DeleteClientCommandParser;
+import seedu.address.logic.parser.client.EditClientCommandParser;
+import seedu.address.logic.parser.client.FindClientsCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.logic.parser.pet.AddPetCommandParser;
 import seedu.address.logic.parser.pet.DeletePetCommandParser;
@@ -77,14 +81,14 @@ public class AddressBookParser {
         return switch (commandWord) {
             case ScheduleCommand.COMMAND_WORD -> scheduleParser.orElseThrow(() ->
                     new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
-            case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
+            case AddClientCommand.COMMAND_WORD -> new AddClientCommandParser().parse(arguments);
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);
-            case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
+            case EditClientCommand.COMMAND_WORD -> new EditClientCommandParser().parse(arguments);
             case DeleteClientCommand.COMMAND_WORD -> new DeleteClientCommandParser().parse(arguments);
             case DeletePetCommand.COMMAND_WORD -> new DeletePetCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
-            case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
-            case ListCommand.COMMAND_WORD -> new ListCommand();
+            case FindClientsCommand.COMMAND_WORD -> new FindClientsCommandParser().parse(arguments);
+            case ListClientsCommand.COMMAND_WORD -> new ListClientsCommand();
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {
