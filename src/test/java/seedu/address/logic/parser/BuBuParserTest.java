@@ -41,7 +41,7 @@ public class BuBuParserTest {
     @Test
     public void parseCommand_add() throws Exception {
         Client client = new ClientBuilder().build();
-        AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddCommand(client));
+        AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddClientCommand(client));
         assertEquals(new AddClientCommand(client), command);
     }
 

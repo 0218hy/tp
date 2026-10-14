@@ -70,11 +70,11 @@ public class AddClientCommand extends Command {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof AddClientCommand otherAddCommand)) {
+        if (!(other instanceof AddClientCommand otherAddClientCommand)) {
             return false;
         }
 
-        return toAdd.equals(otherAddCommand.toAdd);
+        return toAdd.equals(otherAddClientCommand.toAdd);
     }
 
     @Override
