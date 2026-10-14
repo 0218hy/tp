@@ -21,12 +21,16 @@ import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.CommandResult.DisplayType;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
+import seedu.address.ui.appointment.AppointmentListPanel;
+import seedu.address.ui.client.ClientListPanel;
+import seedu.address.ui.pet.PetListPanel;
 
 @EnabledOnOs(OS.LINUX)
 public class MainWindowTest {
@@ -53,6 +57,35 @@ public class MainWindowTest {
 
             assertFalse(helpDisplay.isVisible());
             assertEquals(100, resultDisplayPlaceholder.getPrefHeight());
+        });
+    }
+
+    @Test
+    public void executeCommand_displayTypeSwitchesVisibleListPanel() {
+        JavaFxTestUtils.runAndWait(() -> {
+            StubLogic logic = new StubLogic();
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("addressbook.json"));
+            mainWindow.fillInnerParts();
+
+            ClientListPanel clientListPanel = getField(mainWindow, "clientListPanel", ClientListPanel.class);
+            PetListPanel petListPanel = getField(mainWindow, "petListPanel", PetListPanel.class);
+            AppointmentListPanel appointmentListPanel =
+                    getField(mainWindow, "appointmentListPanel", AppointmentListPanel.class);
+            assertTrue(clientListPanel.getRoot().isVisible());
+            assertFalse(petListPanel.getRoot().isVisible());
+            assertFalse(appointmentListPanel.getRoot().isVisible());
+
+            logic.nextResult = new CommandResult("Listed pets.", DisplayType.PETS);
+            executeCommand(mainWindow, "list-pets");
+            assertFalse(clientListPanel.getRoot().isVisible());
+            assertTrue(petListPanel.getRoot().isVisible());
+            assertFalse(appointmentListPanel.getRoot().isVisible());
+
+            logic.nextResult = new CommandResult("Listed appointments.", DisplayType.APPOINTMENTS);
+            executeCommand(mainWindow, "list-appointments");
+            assertFalse(clientListPanel.getRoot().isVisible());
+            assertFalse(petListPanel.getRoot().isVisible());
+            assertTrue(appointmentListPanel.getRoot().isVisible());
         });
     }
 
