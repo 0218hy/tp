@@ -14,6 +14,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.appointment.AddAppointmentCommand;
+import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.client.EditClientCommand;
@@ -23,6 +24,7 @@ import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.appointment.AddAppointmentCommandParser;
+import seedu.address.logic.parser.appointment.DeleteAppointmentCommandParser;
 import seedu.address.logic.parser.client.AddClientCommandParser;
 import seedu.address.logic.parser.client.DeleteClientCommandParser;
 import seedu.address.logic.parser.client.EditClientCommandParser;
@@ -47,16 +49,19 @@ public class BuBuParser {
     private static final Logger logger = LogsCenter.getLogger(BuBuParser.class);
 
     private final Optional<AddAppointmentCommandParser> addAppointmentParser;
+    private final DeleteAppointmentCommandParser deleteAppointmentParser;
 
     /** Creates a parser without the unfinished owner/pet lookup integration. */
     public BuBuParser() {
         // TODO: Supply the real owner/pet lookup from application startup when those features are ready.
         addAppointmentParser = Optional.empty();
+        deleteAppointmentParser = new DeleteAppointmentCommandParser();
     }
 
     /** Enables scheduling using the supplied owner/pet lookup implementation. */
     public BuBuParser(AppointmentParticipantLookup participantLookup) {
         addAppointmentParser = Optional.of(new AddAppointmentCommandParser(participantLookup));
+        deleteAppointmentParser = new DeleteAppointmentCommandParser();
     }
 
     /**
@@ -83,6 +88,7 @@ public class BuBuParser {
         return switch (commandWord) {
             case AddAppointmentCommand.COMMAND_WORD -> addAppointmentParser.orElseThrow(() ->
                     new ParseException(MESSAGE_SCHEDULING_UNAVAILABLE)).parse(arguments);
+            case DeleteAppointmentCommand.COMMAND_WORD -> deleteAppointmentParser.parse(arguments);
             case AddClientCommand.COMMAND_WORD -> new AddClientCommandParser().parse(arguments);
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);
             case EditClientCommand.COMMAND_WORD -> new EditClientCommandParser().parse(arguments);

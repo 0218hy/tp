@@ -126,6 +126,10 @@ public class GroomingBook implements ReadOnlyGroomingBook {
         appointments.addAppointment(appointment);
     }
 
+    public void removeAppointment(Appointment appointment) {
+        appointments.removeAppointment(appointment);
+    }
+
     @Override
     public ObservableList<Client> getClientList() {
         return clients.asUnmodifiableObservableList();

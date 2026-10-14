@@ -1,5 +1,6 @@
 package seedu.address.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -54,6 +55,12 @@ public interface Model {
      * @throws seedu.address.model.appointment.exceptions.OverlappingAppointmentException if a slot overlaps.
      */
     void addAppointment(Appointment appointment);
+
+    /**
+     * Deletes the given appointment.
+     * The appointment must exist in the grooming book.
+     */
+    void deleteAppointment(Appointment appointment);
 
     /**
      * Returns true if a client with the same identity as {@code client} exists in the grooming book.
@@ -119,4 +126,13 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPetList(Predicate<Pet> predicate);
+
+    /** Returns an unmodifiable view of the filtered appointment list. */
+    ObservableList<Appointment> getFilteredAppointmentList();
+
+    /**
+     * Updates the filter of the filtered appointment list to filter by the given {@code predicate}.
+     * @throws NullPointerException if {@code predicate} is null.
+     */
+    void updateFilteredAppointmentList(Predicate<Appointment> predicate);
 }
