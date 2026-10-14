@@ -9,7 +9,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Set;
 
-import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AddClient;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -19,21 +19,21 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Parses input arguments and creates a new AddCommand object
+ * Parses input arguments and creates a new AddClient object
  */
-public class AddCommandParser implements Parser<AddCommand> {
+public class AddClientParser implements Parser<AddClient> {
 
     /**
-     * Parses the given {@code String} of arguments in the context of the AddCommand
-     * and returns an AddCommand object for execution.
+     * Parses the given {@code String} of arguments in the context of the AddClient
+     * and returns an AddClient object for execution.
      * @throws ParseException if the user input does not conform to the expected format
      */
-    public AddCommand parse(String args) throws ParseException {
+    public AddClient parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG);
         if (!argMultimap.getPreamble().isEmpty()) {
             throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddClient.MESSAGE_USAGE));
         }
 
         Prefix[] requiredPrefixes = {
@@ -58,6 +58,6 @@ public class AddCommandParser implements Parser<AddCommand> {
 
         Person person = new Person(name, phone, email, address, tagList);
 
-        return new AddCommand(person);
+        return new AddClient(person);
     }
 }
