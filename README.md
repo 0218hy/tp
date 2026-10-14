@@ -6,18 +6,18 @@
 
 BuBu is designed for freelance mobile pet groomers. It helps groomers to keep track of their clients, remember each pet's grooming requirements, and plan upcoming appointments. A command-line interface supports quick keyboard input, while a graphical interface keeps records and schedules easy to read.
 
-![BuBu UI mockup showing the command box, client and pet navigation, and upcoming grooming appointments](docs/images/Ui.png)
+![BuBu UI showing the command box and record-list panels](docs/images/Ui.png)
 
-*Mockup of the intended product. BuBu is under development; the features below describe the planned MVP.*
+BuBu provides one command-driven workflow for client records, pet profiles, and grooming appointments.
 
-## Planned features
+## Features
 
 * **Manage clients:** Add, list, search, and delete client records containing names, Singapore mobile numbers, email addresses, and service addresses.
 * **Keep pet profiles:** Link pets to their owners and record species, optional breed information, and grooming or care requirements. View all pets or filter by owner.
-* **Plan appointments:** Schedule grooming services for registered pets, view upcoming bookings or appointments on a specific date, and delete cancelled bookings. Overlapping appointments are rejected.
-* **Protect linked records:** Confirm deletions and prevent removing clients with linked pets or appointments, or pets with future appointments.
+* **Plan appointments:** Schedule grooming services for registered pets, view ongoing or future bookings in chronological order, and delete cancelled bookings. Overlapping appointments are rejected.
+* **Switch record views:** The GUI displays one of the client, pet, or appointment lists at a time. List commands select the visible record type, while index-based deletions use the corresponding displayed list.
 
-## Planned commands
+## Commands
 
 | Task | Commands |
 | --- | --- |
@@ -27,6 +27,9 @@ BuBu is designed for freelance mobile pet groomers. It helps groomers to keep tr
 
 For example, `list-clients q/amelia` searches client records, `list-pets i/87438807` shows the pets owned by the client with that phone number, and `list-appointments` displays upcoming appointments in chronological order.
 
+In the default application startup, `add-appointment` remains unavailable until owner and pet lookup is connected;
+appointment listing and deletion are available.
+
 ## Documentation
 
 * [User Guide](docs/UserGuide.md)
@@ -34,7 +37,7 @@ For example, `list-clients q/amelia` searches client records, `list-pets i/87438
 * [About Us](docs/AboutUs.md)
 * [MVP Feature Specification](https://docs.google.com/document/d/1FkVnp8Y37VR8ZQ9TC2qKz3bctjJC6KtlW0KcylmdCfQ/edit?usp=sharing)
 
-The guides are being adapted for BuBu and currently include inherited AddressBook documentation. The MVP feature specification describes the planned BuBu commands and behaviour.
+The [User Guide](docs/UserGuide.md) documents command formats and user-visible behavior. The [Developer Guide](docs/DeveloperGuide.md) documents the current model, logic, UI, storage, and manual-testing workflows.
 
 ## Development
 
@@ -44,7 +47,7 @@ BuBu is built with Java and JavaFX. With JDK 25 installed, run the current devel
 ./gradlew run
 ```
 
-The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/groombook.json`.
+The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/groombook.json`. Pet and appointment display order is maintained by the model without changing the saved record order.
 Feature-specific code lives in
 `client`, `pet`, and `appointment` packages; see the [current code organization](docs/DeveloperGuide.md#current-code-organization)
 for the package layout and storage format.

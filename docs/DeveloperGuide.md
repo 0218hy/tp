@@ -41,13 +41,14 @@ Consumers read it through `ReadOnlyGroomingBook` and `Model.getGroomingBook()`.
 | Feature parsers and CLI prefixes | `logic.parser.client`, `logic.parser.pet`, `logic.parser.appointment` |
 | Shared tokenization and command routing | `logic.parser` (`BuBuParser`) |
 | JSON record adapters | `storage.client`, `storage.pet`, `storage.appointment` |
-| Client cards and list panel | `ui.client` |
+| Client, pet, and appointment cards and list panels | `ui.client`, `ui.pet`, `ui.appointment` |
 
 Tests mirror these feature packages. Shared parsing utilities stay in `logic.parser.ParserUtil`;
 client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` respectively.
 `AddAppointmentCommand` and `AddAppointmentCommandParser` handle the `add-appointment` command.
-`DeleteAppointmentCommand` and `DeleteAppointmentCommandParser` handle the `delete-appointment` command. The latter
-accepts either a one-based appointment index or a date/time pair.
+`ListPetsCommand` and `ListAppointmentsCommand` prepare the corresponding filtered views.
+`DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
+appointment deletion also accepts a date/time pair.
 
 Replacing the grooming book validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners. Historical
@@ -58,12 +59,10 @@ All clients, pets, and appointments are saved together in `data/groombook.json` 
 `preferences.json` remains separate for window settings. The former `addressbook.json` and
 `appointments.json` files are no longer read or written; there is no automatic migration.
 
-`list-pets` reads records without saving; other successful commands save the shared book. Saving writes a temporary file before replacing
+`list-pets` and `list-appointments` read records without saving; record-changing commands save the shared book. Saving writes a temporary file before replacing
 the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
 commands so the saved file cannot be overwritten with an empty book.
 
-Some diagrams and examples below retain inherited AddressBook names. The package map above
-describes the current implementation.
 
 ### Architecture
 
@@ -111,7 +110,9 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `ClientListPanel`,
+`PetListPanel`, `AppointmentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from
+the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -120,7 +121,13 @@ The `UI` component,
 * executes user commands using the `Logic` component.
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* depends on `Client`, `Pet`, and `Appointment` classes from the `Model` component because its three list panels
+  display those records.
+
+`MainWindow` creates all three list panels once and keeps them bound to the model's observable lists. It shows exactly
+one panel at a time using the `DisplayType` carried by `CommandResult`: `CLIENTS`, `PETS`, or `APPOINTMENTS`.
+Successful list commands set this value, and commands that do not change the selected record type use
+`UNCHANGED`. Hidden panels are also unmanaged so that they do not occupy layout space.
 
 The `help` command returns the command reference stored in
 `src/main/resources/help/CommandReference.md`. `MainWindow` displays this result in
@@ -145,26 +152,31 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. When `Logic` is called upon to execute a command, the command is passed to a `BuBuParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
+2. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
+3. The command can communicate with the `Model` when it is executed (e.g. to delete a client, pet, or appointment).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+4. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
 <img src="images/ParserClasses.png" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddClientCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddClientCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* When called upon to parse a user command, the `BuBuParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddClientCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddClientCommand`). The `BuBuParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddClientCommandParser` and `DeleteClientCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
-The `delete-client` command accepts exactly one identifier:
+Index-based commands accept exactly one positive integer index:
 
-* A positive integer index, which refers to the currently displayed person list.
-* A phone identifier using the `i/PHONE_NUMBER` prefix, which searches the full address book.
+* `edit INDEX` resolves against the current filtered client list and is intended for the client view.
+* `delete-client INDEX` uses the currently displayed client list.
+* `delete-pet INDEX` uses the currently displayed pet list.
+* `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
+* Identifier forms such as `delete-client i/PHONE_NUMBER` and `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+  search the saved grooming book instead of relying on the displayed list.
 
-The command rejects inputs that provide both identifiers or neither identifier.
+`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
+list is not displayed. This prevents a deletion index from being interpreted against a different record type.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -174,9 +186,16 @@ The command rejects inputs that provide both identifiers or neither identifier.
 
 The `Model` component,
 
-* stores the address book data: `Person` objects in a `UniquePersonList` and `Pet` objects in a `UniquePetList`.
-* represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference to its owning `Person`; when a person is replaced, any pets owned by that person are updated to reference the replacement person.
-* stores the `Person` and `Pet` objects selected by their current filters in separate _filtered_ lists. It exposes these as unmodifiable `ObservableList<Person>` and `ObservableList<Pet>` instances that the UI can observe and bind to, so the UI updates when the lists change.
+* stores clients in `UniqueClientList`, pets in `UniquePetList`, and appointments in `AppointmentList` inside one
+  `GroomingBook`.
+* represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
+  to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
+* rejects duplicate clients and duplicate pet names for the same owner. `AppointmentList` rejects any appointment that
+  overlaps an existing appointment, while allowing back-to-back appointments and retaining historical appointments.
+* maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
+  observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
+* orders pets by owner name (case-insensitive), owner phone number, and normalized pet name. It orders appointments by
+  date and start time. The saved list order in `GroomingBook` is not changed by these display orderings.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -717,6 +736,34 @@ testers are expected to do more *exploratory* testing.
 
 3. _{ more test cases …​ }_
 
+### Switching the displayed record list
+
+1. Displaying each record type
+
+   1. Test case: `list`<br>
+      Expected: The client list is visible and the clients are shown in the result area/list panel.
+
+   2. Test case: `list-pets`<br>
+      Expected: The pet list replaces the client list in the GUI.
+
+   3. Test case: `list-appointments`<br>
+      Expected: The appointment list replaces the pet list and shows ongoing/future appointments in date and start-time order.
+
+2. Rejecting an index for the wrong record type
+
+   1. Prerequisites: The pet list is currently displayed and contains at least one pet.
+
+   2. Test case: `delete-client 1`<br>
+      Expected: No client is deleted. The status message is `The current displayed list does not match the record type selected by the index.`
+
+   3. Test case: `delete-pet 1`<br>
+      Expected: The first displayed pet is deleted.
+
+   4. Prerequisites: The appointment list is currently displayed and contains at least one appointment.
+
+   5. Test case: `delete-appointment 1`<br>
+      Expected: The first displayed appointment is deleted.
+
 ### Deleting a person
 
 1. Deleting by displayed index
@@ -828,7 +875,17 @@ testers are expected to do more *exploratory* testing.
 
 ### Deleting a pet
 
-1. Deleting a pet using its name and owner's phone number
+1. Deleting a pet using its displayed index
+
+   1. Prerequisites: Display the pet list using `list-pets`, with at least one pet shown.
+
+   2. Test case: `delete-pet 1`<br>
+      Expected: The first displayed pet is deleted. The status message is `Deleted pet: PET_NAME`.
+
+   3. Test case: `delete-pet 0` or `delete-pet 999`<br>
+      Expected: No pet is deleted. The status message shows an invalid-index error.
+
+2. Deleting a pet using its name and owner's phone number
 
    1. Prerequisites: The address book contains a pet named `Milo` whose owner's phone number is `98765432`.
 
@@ -847,7 +904,27 @@ testers are expected to do more *exploratory* testing.
    1. With two pets named `Milo` owned by people with different phone numbers, repeat the valid test case for one owner.<br>
       Expected: Only that owner's `Milo` is deleted.
 
-1. _{ more test cases …​ }_
+3. Invalid selector combinations
+
+   1. Test case: `delete-pet 1 p/Milo` or `delete-pet 1 i/98765432`<br>
+      Expected: No pet is deleted. The command is rejected because an index cannot be combined with pet identifiers.
+
+   2. _{ more test cases …​ }_
+
+### Listing appointments
+
+1. Listing ongoing and future appointments
+
+   1. Prerequisites: Save appointments with different dates and start times, including at least one completed appointment.
+
+   2. Test case: `list-appointments`<br>
+      Expected: Only ongoing and future appointments are shown, ordered by date and start time. Completed appointments
+      remain saved but are not displayed.
+
+2. Listing with parameters
+
+   1. Test case: `list-appointments d/01-01-9999`<br>
+      Expected: The command is rejected because `list-appointments` does not accept parameters.
 
 ### Deleting an appointment
 
@@ -869,7 +946,7 @@ testers are expected to do more *exploratory* testing.
 
 2. Deleting by appointment index
 
-   1. Prerequisites: The appointment list contains at least one appointment and index `1` refers to a saved appointment.
+   1. Prerequisites: Run `list-appointments` and ensure the displayed ongoing/future appointment list contains at least one appointment.
 
    2. Test case: `delete-appointment 1`<br>
       Expected: The first appointment is deleted and the status message confirms the deleted appointment.
