@@ -160,42 +160,69 @@ Examples:
 
 ### Adding a pet to a person: `add-pet`
 
-Creates a pet profile for a person already in the address book. Identify the owner by phone number, not by name.
-The command reports the pet and owner's name when the profile is saved; it does not change the current person list.
+Adds a pet profile under an existing client, identified by phone number. The current person list does not change.
 
 Format: `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`
 
-* `PET_NAME`: 1–40 letters, digits, spaces, apostrophes, hyphens, or full stops.
-* `OWNER_IDENTIFIER`: the owner's existing eight-digit phone number, starting with `8` or `9`. Do not include spaces or hyphens.
-* `SPECIES`: `Dog`, `Cat`, `Rabbit`, `Guinea Pig`, or `Other`, ignoring letter case. `Guinea_Pig` is also accepted.
-* `BREED`: optional; if supplied, 2–50 letters, digits, spaces, apostrophes, hyphens, or full stops.
-* `REQUIREMENTS`: 5–240 characters describing grooming or care needs. Do not include `/` in a value.
+* `PET_NAME` must be 1–40 letters, digits, spaces, apostrophes, hyphens, or full stops.
+* `OWNER_IDENTIFIER` must be an existing eight-digit phone number starting with `8` or `9`, without spaces or hyphens.
+* `SPECIES` must be `Dog`, `Cat`, `Rabbit`, `Guinea Pig`, or `Other` (case-insensitive). `Guinea_Pig` is also accepted.
+* `BREED` is optional; if given, it must be 2–50 letters, digits, spaces, apostrophes, hyphens, or full stops.
+* `REQUIREMENTS` must be 5–240 characters and cannot contain `/`.
+* Each field may appear only once. A client can have several pets, but not two with the same name after ignoring case and
+  extra whitespace. Different clients may have pets with the same name.
 
-Each field may be supplied only once. More than one pet can belong to the same owner, but pet names under that owner
-must differ after ignoring letter case and extra whitespace. Different owners may have pets with the same name.
+Examples:
 
-Example output:
 * `add-pet p/Mochi i/87438807 s/Dog b/Golden retriever r/Nervous around dryers`<br>
   Expected: `Pet added: Mochi (Dog, Golden retriever) under Alex Yeoh.`
 * `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`<br>
   Expected: `Pet added: BuBu (Cat) under Alex Yeoh.`
 
-Invalid values produce these messages:
-
-| Field | Message |
-| --- | --- |
-| `PET_NAME` | `Pet name must be 1-40 characters and use valid name characters.` |
-| `OWNER_IDENTIFIER` | `Owner identifier must be a valid phone number belonging to the specified client.` |
-| `SPECIES` | `Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.` |
-| `BREED` | `Breed must be 2-50 characters and use valid text characters.` |
-| `REQUIREMENTS` | `Requirements must be 5-240 characters and cannot contain /.` |
-
-A missing required field reports `Missing required field: [field].`; repeated fields report
-`Each pet field may be specified only once.` An unknown prefix or extra text outside a field reports
-`Invalid command format. Check the command syntax and try again.` A valid phone number with no registered owner reports
-`The owner identifier does not belong to the specified client.` A duplicate under the same owner reports
+Missing fields report `Missing required field: [field].`; repeated fields report
+`Each pet field may be specified only once.` Invalid values or command formats are rejected. An unregistered owner reports
+`The owner identifier does not belong to the specified client.` A duplicate pet name under that owner reports
 `This client already has a pet named [PET_NAME].` If saving fails, the pet is not added and the app reports
 `Unable to save a pet. Please try again.`
+
+### Listing pet profiles: `list-pets`
+
+Shows all saved pet profiles, or only those belonging to the client identified by phone number. The current person
+list does not change.
+
+Format: `list-pets [i/OWNER_IDENTIFIER]`
+
+* Without `i/`, pets are grouped by owner, ordered alphabetically by owner name and then pet name. Owners with the same
+  name remain in separate groups.
+* `OWNER_IDENTIFIER`, if given, must be an existing eight-digit phone number starting with `8` or `9`, without spaces or
+  hyphens. Only that client's pets are shown, ordered alphabetically by pet name.
+* Each entry shows the pet's name, species, optional breed, and care requirements. A missing breed is omitted.
+
+Examples after adding `Mochi` and `BuBu` under Alex Yeoh:
+
+* `list-pets` displays:
+
+  ```text
+  All pet profiles
+
+  Alex Yeoh
+  BuBu Cat Calm with baths
+  Mochi Dog Golden retriever Nervous around dryers
+  ```
+
+* `list-pets i/87438807` displays:
+
+  ```text
+  Pets under Alex Yeoh
+  BuBu Cat Calm with baths
+  Mochi Dog Golden retriever Nervous around dryers
+  ```
+
+With no pets saved, `list-pets` displays `No saved pet profiles.` For a client without pets, such as Bernice Yu,
+`list-pets i/99272758` displays `Bernice Yu has no saved pet profiles.` A phone number with no saved client reports
+`No saved client has this phone number.` Repeating `i/` reports `Each owner identifier may be specified only once.`
+An invalid phone number reports `Owner identifier must be a valid phone number belonging to the specified client.`
+Unknown fields or extra text report `Invalid command format. Check the command syntax and try again.`
 
 ### Deleting a pet: `delete-pet`
 
@@ -263,11 +290,12 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
-**Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
-**Clear** | `clear`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
+**Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
+**List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
+**Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
+**Clear** | `clear`
 **Help** | `help`

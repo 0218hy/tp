@@ -94,21 +94,8 @@ public class AddPetCommand extends Command {
      */
     private String formatSuccessMessage(Client owner) {
         return breed == null
-                ? String.format(MESSAGE_SUCCESS, name, formatSpecies(), owner.getName())
-                : String.format(MESSAGE_SUCCESS_WITH_BREED, name, formatSpecies(), breed, owner.getName());
-    }
-
-    /**
-     * Returns the species label used in the success message.
-     */
-    private String formatSpecies() {
-        return switch (species) {
-            case DOG -> "Dog";
-            case CAT -> "Cat";
-            case RABBIT -> "Rabbit";
-            case OTHER -> "Other";
-            case GUINEA_PIG -> "Guinea pig";
-        };
+                ? String.format(MESSAGE_SUCCESS, name, species.getDisplayName(), owner.getName())
+                : String.format(MESSAGE_SUCCESS_WITH_BREED, name, species.getDisplayName(), breed, owner.getName());
     }
 
     @Override
