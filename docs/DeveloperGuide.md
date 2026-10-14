@@ -26,6 +26,46 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 :bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
 </div>
 
+### Current code organization
+
+`ModelManager` owns one `GroomingBook`, which contains clients, pets, and the appointment schedule.
+Consumers read it through `ReadOnlyGroomingBook` and `Model.getGroomingBook()`.
+`Client` replaces the inherited `Person` type. `UniqueClientList`, `UniquePetList`, and
+`AppointmentList` enforce the rules for each collection inside the shared book.
+
+| Responsibility | Package under `seedu.address` |
+| --- | --- |
+| Shared model and preferences | `model` |
+| Client, pet, and appointment records | `model.client`, `model.pet`, `model.appointment` |
+| Feature commands | `logic.commands.client`, `logic.commands.pet`, `logic.commands.appointment` |
+| Feature parsers and CLI prefixes | `logic.parser.client`, `logic.parser.pet`, `logic.parser.appointment` |
+| Shared tokenization and command routing | `logic.parser` (`BuBuParser`) |
+| JSON record adapters | `storage.client`, `storage.pet`, `storage.appointment` |
+| Client cards and list panel | `ui.client` |
+
+Tests mirror these feature packages. Shared parsing utilities stay in `logic.parser.ParserUtil`;
+client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` respectively.
+`ScheduleAppointmentCommand` and its parser handle scheduling.
+
+Replacing the grooming book validates all collections before changing existing records and keeps
+observable list views connected to the model. Client edits update linked pet owners. Historical
+appointments remain available when `clear` removes clients and pets.
+
+The in-memory consolidation preserves the existing file layout:
+
+* `data/addressbook.json` stores clients under the legacy `persons` key and their pets, through
+  `JsonClientPetStorage`. Pet breed and owner-phone fields remain supported.
+* `data/appointments.json` stores the schedule through `JsonAppointmentStorage`.
+* `preferences.json` stores user preferences.
+
+Each data reader returns a `GroomingBook` containing the records from its file; startup combines
+those records into the shared model. Scheduling saves only the appointment file, while client and
+pet commands save only the client/pet file. Failed add-pet and scheduling saves retain their
+existing rollback behaviour, and unreadable client/pet data still blocks add-pet commands.
+
+Some diagrams and examples below retain inherited AddressBook names. The package map above
+describes the current implementation.
+
 ### Architecture
 
 <img src="images/ArchitectureDiagram.png" width="280" />
