@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -21,9 +22,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -85,6 +86,18 @@ public class LogicManagerTest {
         assertEquals("Mochi", model.getAddressBook().getPetList().getFirst().getName().value);
         assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
                 .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_listPets_readsProfilesWithoutSaving() throws Exception {
+        model.addPerson(ALICE);
+        model.addPet(new PetBuilder(ALICE).withName("Mochi").build());
+
+        CommandResult result = logic.execute("list-pets i/" + ALICE.getPhone());
+
+        assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
+        assertEquals(1, model.getAddressBook().getPetList().size());
+        assertFalse(temporaryFolder.resolve("addressBook.json").toFile().exists());
     }
 
     @Test

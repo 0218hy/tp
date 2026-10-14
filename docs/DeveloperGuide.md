@@ -315,6 +315,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | -------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `* * *`  | new user                                   | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
 | `* * *`  | mobile pet groomer                         | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | mobile pet groomer                         | list all pets or one client's pets                               | review their care requirements before a visit                                  |
 | `* * *`  | user                                       | add a new person                                                |                                                                                |
 | `* * *`  | user                                       | find a person by name                                           | locate details of persons without having to go through the entire list         |
 | `* * *`  | mobile pet groomer                         | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
@@ -714,6 +715,40 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 4. _{ more test cases …​ }_
+
+### Adding and listing pets
+
+1. Adding pets under an existing client
+
+   1. Prerequisites: A client named `Alex Yeoh` with phone number `87438807` exists and has no pet named `Mochi`.
+
+   1. Test case: `add-pet p/Mochi i/87438807 s/Dog b/Golden retriever r/Nervous around dryers`<br>
+      Expected: `Pet added: Mochi (Dog, Golden retriever) under Alex Yeoh.`
+
+   1. Test case: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`<br>
+      Expected: The pet is not added; the status message is `This client already has a pet named Mochi.`
+
+   1. Test case: `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`<br>
+      Expected: `Pet added: BuBu (Cat) under Alex Yeoh.` Both pets remain saved under Alex Yeoh.
+
+2. Listing pets
+
+   1. Prerequisites: `Mochi` and `BuBu` have been added under Alex Yeoh as above.
+
+   1. Test case: `list-pets`<br>
+      Expected: `All pet profiles`, followed by Alex Yeoh's pets in the order `BuBu`, `Mochi`.
+
+   1. Test case: `list-pets i/87438807`<br>
+      Expected: `Pets under Alex Yeoh`, followed by `BuBu` and `Mochi` with their species, optional breed, and requirements.
+
+   1. Test case: `list-pets i/99272758` when Bernice Yu has no pets<br>
+      Expected: `Bernice Yu has no saved pet profiles.`
+
+   1. Test case: `list-pets i/99999999` when no client has that phone number<br>
+      Expected: `No saved client has this phone number.`
+
+   1. Test case: `list-pets i/87438807 i/99272758`<br>
+      Expected: `Each owner identifier may be specified only once.`
 
 ### Deleting a pet
 

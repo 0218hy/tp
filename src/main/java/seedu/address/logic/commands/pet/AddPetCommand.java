@@ -1,14 +1,16 @@
-package seedu.address.logic.commands;
+package seedu.address.logic.commands.pet;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_BREED;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_PET_NAME;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_REQUIREMENTS;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_SPECIES;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_BREED;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 
 import java.util.Objects;
 
+import seedu.address.logic.commands.Command;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -92,21 +94,8 @@ public class AddPetCommand extends Command {
      */
     private String formatSuccessMessage(Person owner) {
         return breed == null
-                ? String.format(MESSAGE_SUCCESS, name, formatSpecies(), owner.getName())
-                : String.format(MESSAGE_SUCCESS_WITH_BREED, name, formatSpecies(), breed, owner.getName());
-    }
-
-    /**
-     * Returns the species label used in the success message.
-     */
-    private String formatSpecies() {
-        return switch (species) {
-            case DOG -> "Dog";
-            case CAT -> "Cat";
-            case RABBIT -> "Rabbit";
-            case OTHER -> "Other";
-            case GUINEA_PIG -> "Guinea pig";
-        };
+                ? String.format(MESSAGE_SUCCESS, name, species.getDisplayName(), owner.getName())
+                : String.format(MESSAGE_SUCCESS_WITH_BREED, name, species.getDisplayName(), breed, owner.getName());
     }
 
     @Override

@@ -1,19 +1,24 @@
-package seedu.address.logic.parser;
+package seedu.address.logic.parser.pet;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_BREED;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_PET_NAME;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_REQUIREMENTS;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_SPECIES;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_BREED;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import seedu.address.logic.commands.AddPetCommand;
+import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.ArgumentTokenizer;
+import seedu.address.logic.parser.Parser;
+import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Phone;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
@@ -36,7 +41,6 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     private static final String FIELD_OWNER_IDENTIFIER = "OWNER_IDENTIFIER";
     private static final String FIELD_SPECIES = "SPECIES";
     private static final String FIELD_REQUIREMENTS = "REQUIREMENTS";
-    private static final String OWNER_PHONE_REGEX = "[89]\\d{7}";
     private static final String PARAMETER_PREFIX_REGEX = "(?:^|\\s)[a-zA-Z]/";
     private static final int MAX_FIELD_OCCURRENCES = 1;
     private static final Prefix[] PET_FIELD_PREFIXES = {PREFIX_PET_NAME, PREFIX_OWNER_IDENTIFIER,
@@ -104,7 +108,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
      * Returns a valid Singapore mobile phone number for owner lookup.
      */
     private String parseOwnerPhone(String value) throws ParseException {
-        if (!value.matches(OWNER_PHONE_REGEX)) {
+        if (!Phone.isValidPhone(value)) {
             throw new ParseException(MESSAGE_INVALID_OWNER);
         }
         return value;
