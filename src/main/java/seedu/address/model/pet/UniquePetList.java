@@ -8,7 +8,7 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.exceptions.DuplicatePetException;
 import seedu.address.model.pet.exceptions.PetNotFoundException;
 
@@ -59,11 +59,11 @@ public class UniquePetList implements Iterable<Pet> {
     /**
      * Replaces the owner of every pet owned by {@code targetOwner}.
      */
-    public void updateOwner(Person targetOwner, Person editedOwner) {
+    public void updateOwner(Client targetOwner, Client editedOwner) {
         requireAllNonNull(targetOwner, editedOwner);
         for (int index = 0; index < internalList.size(); index++) {
             Pet pet = internalList.get(index);
-            if (pet.getOwner().isSamePerson(targetOwner)) {
+            if (pet.getOwner().isSameClient(targetOwner)) {
                 internalList.set(index, pet.withOwner(editedOwner));
             }
         }

@@ -7,7 +7,7 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 
 /**
  * Represents an immutable grooming appointment in BuBu.

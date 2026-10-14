@@ -1,6 +1,6 @@
 package seedu.address.testutil;
 
-import seedu.address.model.person.Person;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
@@ -16,7 +16,7 @@ public class PetBuilder {
     public static final String DEFAULT_REQUIREMENT = "Daily walk";
 
     private PetName name;
-    private Person owner;
+    private Client owner;
     private Species species;
     private Breed breed;
     private Requirement requirement;
@@ -24,7 +24,7 @@ public class PetBuilder {
     /**
      * Creates a {@code PetBuilder} with default details.
      */
-    public PetBuilder(Person owner) {
+    public PetBuilder(Client owner) {
         name = new PetName(DEFAULT_NAME);
         this.owner = owner;
         species = Species.DOG;
@@ -53,7 +53,7 @@ public class PetBuilder {
     /**
      * Sets the owner of the pet being built.
      */
-    public PetBuilder withOwner(Person owner) {
+    public PetBuilder withOwner(Client owner) {
         this.owner = owner;
         return this;
     }
