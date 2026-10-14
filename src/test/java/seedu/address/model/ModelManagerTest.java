@@ -144,6 +144,44 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void updateFilteredAppointmentList_filtersAppointments() {
+        Appointment firstAppointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        Appointment secondAppointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("02-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        modelManager.setAppointments(List.of(firstAppointment, secondAppointment));
+
+        modelManager.updateFilteredAppointmentList(appointment -> appointment.equals(secondAppointment));
+
+        assertEquals(List.of(secondAppointment), modelManager.getFilteredAppointmentList());
+    }
+
+    @Test
+    public void addAndDeleteAppointment_updatesFilteredAppointmentList() {
+        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+
+        modelManager.addAppointment(appointment);
+        assertEquals(List.of(appointment), modelManager.getFilteredAppointmentList());
+
+        modelManager.deleteAppointment(appointment);
+        assertTrue(modelManager.getFilteredAppointmentList().isEmpty());
+    }
+
+    @Test
+    public void getFilteredAppointmentList_modifyList_throwsUnsupportedOperationException() {
+        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        modelManager.addAppointment(appointment);
+
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredAppointmentList().remove(0));
+    }
+
+    @Test
     public void getFilteredPetList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPetList().remove(0));
     }

@@ -43,6 +43,7 @@ public class ListAppointmentsCommandTest {
                 result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
         assertEquals(saved, model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(ongoing, later, tomorrow, nextMonth), model.getFilteredAppointmentList());
     }
 
     @Test
@@ -67,6 +68,7 @@ public class ListAppointmentsCommandTest {
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, completedResult.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS, completedResult.getDisplayType());
         assertEquals(2, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 
     @Test
