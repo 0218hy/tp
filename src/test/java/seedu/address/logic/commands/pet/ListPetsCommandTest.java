@@ -3,8 +3,8 @@ package seedu.address.logic.commands.pet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BENSON;
 
 import java.util.List;
 
@@ -14,14 +14,14 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 import seedu.address.model.pet.Species;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
-import seedu.address.testutil.TypicalPersons;
+import seedu.address.testutil.TypicalClients;
 
 /**
  * Tests listing pet profiles without changing the saved model.
@@ -38,23 +38,23 @@ public class ListPetsCommandTest {
         addPet(model, BENSON, "Zoe", Species.CAT, null);
         addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
         addPet(model, ALICE, "BuBu", Species.CAT, null);
-        List<Pet> savedOrder = List.copyOf(model.getAddressBook().getPetList());
+        List<Pet> savedOrder = List.copyOf(model.getGroomingBook().getPetList());
         model.updateFilteredPetList(pet -> false);
 
         String expected = "All pet profiles\n\nAlice Pauline\n"
                 + "BuBu Cat Daily walk\nmochi Dog Golden retriever Daily walk\n\n"
                 + "Benson Meier\nZoe Cat Daily walk";
         assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
-        assertEquals(savedOrder, model.getAddressBook().getPetList());
+        assertEquals(savedOrder, model.getGroomingBook().getPetList());
         assertEquals(savedOrder, model.getFilteredPetList());
     }
 
     @Test
     public void execute_ownersWithSameName_keepsPetsInSeparateGroups() throws Exception {
         Model model = createModel();
-        Person sameNameOwner = new PersonBuilder(ALICE).withPhone("81234567")
+        Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
                 .withEmail("other-alice@example.com").build();
-        model.addPerson(sameNameOwner);
+        model.addClient(sameNameOwner);
         addPet(model, ALICE, "Mochi", Species.DOG, null);
         addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
         addPet(model, ALICE, "BuBu", Species.CAT, null);
@@ -110,7 +110,7 @@ public class ListPetsCommandTest {
         String message = ListPetsCommand.MESSAGE_OWNER_NOT_FOUND;
         assertThrows(CommandException.class, message, () ->
                 new ListPetsCommand(UNKNOWN_OWNER_PREDICATE).execute(model));
-        assertEquals(1, model.getAddressBook().getPetList().size());
+        assertEquals(1, model.getGroomingBook().getPetList().size());
         assertEquals(List.of(), model.getFilteredPetList());
     }
 
@@ -132,7 +132,7 @@ public class ListPetsCommandTest {
      * Returns a model containing the typical registered clients and no pets.
      */
     private Model createModel() {
-        return new ModelManager(TypicalPersons.getTypicalAddressBook(), new UserPrefs());
+        return new ModelManager(TypicalClients.getTypicalGroomingBook(), new UserPrefs());
     }
 
     /**
@@ -144,7 +144,7 @@ public class ListPetsCommandTest {
      * @param species The pet's species.
      * @param breed The pet's breed, or {@code null} when it is not recorded.
      */
-    private void addPet(Model model, Person owner, String name,
+    private void addPet(Model model, Client owner, String name,
             Species species, String breed) {
         PetBuilder builder = new PetBuilder(owner).withName(name).withSpecies(species);
         if (breed != null) {

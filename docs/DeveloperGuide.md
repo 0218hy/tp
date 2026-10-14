@@ -56,7 +56,7 @@ All clients, pets, and appointments are saved together in `data/groombook.json` 
 `preferences.json` remains separate for window settings. The former `addressbook.json` and
 `appointments.json` files are no longer read or written; there is no automatic migration.
 
-Every successful command saves the shared book. Saving writes a temporary file before replacing
+`list-pets` reads records without saving; other successful commands save the shared book. Saving writes a temporary file before replacing
 the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
 commands so the saved file cannot be overwritten with an empty book.
 

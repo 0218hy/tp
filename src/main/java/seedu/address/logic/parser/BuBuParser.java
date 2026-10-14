@@ -21,6 +21,7 @@ import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
+import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.appointment.AddAppointmentCommandParser;
 import seedu.address.logic.parser.client.AddClientCommandParser;
 import seedu.address.logic.parser.client.DeleteClientCommandParser;
@@ -29,6 +30,7 @@ import seedu.address.logic.parser.client.FindClientsCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.logic.parser.pet.AddPetCommandParser;
 import seedu.address.logic.parser.pet.DeletePetCommandParser;
+import seedu.address.logic.parser.pet.ListPetsCommandParser;
 import seedu.address.model.appointment.AppointmentParticipantLookup;
 
 /**
@@ -89,6 +91,7 @@ public class BuBuParser {
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindClientsCommand.COMMAND_WORD -> new FindClientsCommandParser().parse(arguments);
             case ListClientsCommand.COMMAND_WORD -> new ListClientsCommand();
+            case ListPetsCommand.COMMAND_WORD -> new ListPetsCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {

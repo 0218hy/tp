@@ -23,11 +23,13 @@ import seedu.address.logic.commands.client.EditClientCommand.EditClientDescripto
 import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
+import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
 import seedu.address.testutil.EditClientDescriptorBuilder;
@@ -126,6 +128,13 @@ public class BuBuParserTest {
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListClientsCommand);
         assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD + " 3") instanceof ListClientsCommand);
+    }
+
+    @Test
+    public void parseCommand_listPets() throws Exception {
+        assertEquals(new ListPetsCommand(null), parser.parseCommand(ListPetsCommand.COMMAND_WORD));
+        assertEquals(new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(new Phone("91234567"))),
+                parser.parseCommand(ListPetsCommand.COMMAND_WORD + " i/91234567"));
     }
 
     @Test

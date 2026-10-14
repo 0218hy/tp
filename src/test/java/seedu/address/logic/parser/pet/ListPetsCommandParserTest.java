@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.Phone;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**

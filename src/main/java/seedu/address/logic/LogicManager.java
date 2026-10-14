@@ -12,6 +12,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.GroomingBook;
@@ -79,6 +80,9 @@ public class LogicManager implements Logic {
         Command command = buBuParser.parseCommand(commandText);
         if (isGroomingBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
+        }
+        if (command instanceof ListPetsCommand) {
+            return command.execute(model);
         }
         ReadOnlyGroomingBook previousGroomingBook = new GroomingBook(model.getGroomingBook());
         CommandResult commandResult = command.execute(model);

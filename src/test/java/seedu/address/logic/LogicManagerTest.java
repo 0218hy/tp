@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -88,6 +89,18 @@ public class LogicManagerTest {
         assertEquals("Mochi", model.getGroomingBook().getPetList().getFirst().getName().value);
         assertEquals(model.getGroomingBook(), new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json"))
                 .readGroomingBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_listPets_readsProfilesWithoutSaving() throws Exception {
+        model.addClient(ALICE);
+        model.addPet(new PetBuilder(ALICE).withName("Mochi").build());
+
+        CommandResult result = logic.execute("list-pets i/" + ALICE.getPhone());
+
+        assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
+        assertEquals(1, model.getGroomingBook().getPetList().size());
+        assertFalse(temporaryFolder.resolve("groombook.json").toFile().exists());
     }
 
     @Test
