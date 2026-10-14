@@ -1,18 +1,22 @@
-package seedu.address.logic.parser;
+package seedu.address.logic.parser.pet;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_BREED;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_PET_NAME;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_REQUIREMENTS;
-import static seedu.address.logic.parser.PetCliSyntax.PREFIX_SPECIES;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_BREED;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
+import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import seedu.address.logic.commands.AddPetCommand;
+import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.parser.ArgumentMultimap;
+import seedu.address.logic.parser.ArgumentTokenizer;
+import seedu.address.logic.parser.Parser;
+import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;

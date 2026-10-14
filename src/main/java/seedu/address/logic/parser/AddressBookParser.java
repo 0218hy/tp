@@ -10,20 +10,23 @@ import java.util.regex.Pattern;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.logic.commands.AddPetCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteClientCommand;
-import seedu.address.logic.commands.DeletePetCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.appointment.ScheduleCommand;
+import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.appointment.ScheduleCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.logic.parser.pet.AddPetCommandParser;
+import seedu.address.logic.parser.pet.DeletePetCommandParser;
 import seedu.address.model.appointment.AppointmentParticipantLookup;
+
 /**
  * Parses user input.
  */

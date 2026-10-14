@@ -1,4 +1,4 @@
-package seedu.address.logic.parser;
+package seedu.address.logic.parser.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -8,7 +8,7 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.commands.AddPetCommand;
+import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.PetName;
