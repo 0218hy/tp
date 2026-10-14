@@ -31,15 +31,28 @@ public class ListClientsCommand extends Command {
         keyword = null;
     }
 
-    /** Creates a command with a validated, trimmed keyword. */
+    /**
+     * Creates a command that filters clients using the given keyword.
+     *
+     * @param keyword Search keyword already validated and trimmed by the parser.
+     * @throws NullPointerException if {@code keyword} is null.
+     */
     public ListClientsCommand(String keyword) {
         this.keyword = requireNonNull(keyword);
     }
 
+    /**
+     * Filters clients by the optional keyword and sorts the displayed results by name, ignoring case.
+     * The stored client order is unchanged.
+     *
+     * @param model Model whose displayed client list is updated.
+     * @return Feedback indicating that all clients are listed, the match count, or no matches.
+     * @throws NullPointerException if {@code model} is null.
+     */
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredClientList(keyword == null ? PREDICATE_SHOW_ALL_CLIENTS : this::matches);
+        model.updateFilteredClientList(keyword == null ? PREDICATE_SHOW_ALL_CLIENTS : this::matchesKeyword);
         model.sortFilteredClientList();
         if (keyword == null) {
             return new CommandResult(MESSAGE_SUCCESS);
@@ -49,12 +62,19 @@ public class ListClientsCommand extends Command {
                 : String.format(MESSAGE_FOUND, count));
     }
 
-    private boolean matches(Client person) {
+    /**
+     * Checks whether the client's name, phone, email or address contains the search keyword, ignoring case.
+     * Only called when this command has a non-null keyword.
+     *
+     * @param client Client whose contact details are searched.
+     * @return True if at least one contact field contains the keyword.
+     */
+    private boolean matchesKeyword(Client client) {
         String query = keyword.toLowerCase(Locale.ROOT);
-        return person.getName().fullName.toLowerCase(Locale.ROOT).contains(query)
-                || person.getPhone().value.toLowerCase(Locale.ROOT).contains(query)
-                || person.getEmail().value.toLowerCase(Locale.ROOT).contains(query)
-                || person.getAddress().value.toLowerCase(Locale.ROOT).contains(query);
+        return client.getName().fullName.toLowerCase(Locale.ROOT).contains(query)
+                || client.getPhone().value.toLowerCase(Locale.ROOT).contains(query)
+                || client.getEmail().value.toLowerCase(Locale.ROOT).contains(query)
+                || client.getAddress().value.toLowerCase(Locale.ROOT).contains(query);
     }
 
     @Override

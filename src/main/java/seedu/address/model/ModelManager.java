@@ -161,6 +161,10 @@ public class ModelManager implements Model {
         filteredClients.setPredicate(predicate);
     }
 
+    /**
+     * Sorts the live displayed client list by name, ignoring case, without reordering stored clients.
+     * Subsequent changes to the filtered list retain this sort order.
+     */
     @Override
     public void sortFilteredClientList() {
         sortedClients.setComparator(Comparator.comparing(person -> person.getName().fullName,

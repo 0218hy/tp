@@ -11,6 +11,13 @@ import seedu.address.logic.parser.exceptions.ParseException;
 
 /** Parses the optional client search keyword. */
 public class ListClientsCommandParser implements Parser<ListClientsCommand> {
+    /**
+     * Parses an optional {@code q/} keyword for the list-clients command.
+     *
+     * @param args Command arguments, excluding the command word.
+     * @return A command that lists all clients or searches using the trimmed keyword.
+     * @throws ParseException if a query is repeated, the keyword is invalid, or a preamble is present.
+     */
     @Override
     public ListClientsCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + args.strip(), PREFIX_QUERY);
