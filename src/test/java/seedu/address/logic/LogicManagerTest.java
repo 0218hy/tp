@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.ListCommand;
@@ -114,6 +116,63 @@ public class LogicManagerTest {
         assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
         assertEquals(1, model.getGroomingBook().getPetList().size());
         assertFalse(temporaryFolder.resolve("groombook.json").toFile().exists());
+    }
+
+    @Test
+    public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {
+        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        model.addAppointment(appointment);
+
+        logic.execute("list-pets");
+        assertCommandException("delete-appointment 1", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
+
+        logic.execute("list-appointments");
+        String appointmentDetails = "Milo; Owner phone: " + ALICE.getPhone()
+                + "; Date: 01-01-9999; Time: 10:00-11:00; Service: Full groom";
+        assertCommandSuccess("delete-appointment 1", String.format(DeleteAppointmentCommand.MESSAGE_SUCCESS,
+                appointmentDetails), new ModelManager());
+    }
+
+    @Test
+    public void execute_clientIndexDeletionRequiresClientList() throws Exception {
+        model.addClient(ALICE);
+
+        logic.execute("list-pets");
+
+        assertCommandException("delete-client 1", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
+    }
+
+    @Test
+    public void execute_petIndexDeletionRequiresPetList() throws Exception {
+        model.addClient(ALICE);
+        Pet pet = new PetBuilder(ALICE).build();
+        model.addPet(pet);
+
+        logic.execute("list-clients");
+        assertCommandException("delete-pet 1", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
+
+        logic.execute("list-pets");
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        expectedModel.deletePet(pet);
+        assertCommandSuccess("delete-pet 1",
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_identifierDeletionDoesNotRequireMatchingDisplayedList() throws Exception {
+        model.addClient(ALICE);
+        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        model.addAppointment(appointment);
+
+        logic.execute("list-appointments");
+        logic.execute("list-pets");
+        CommandResult result = logic.execute("delete-appointment d/01-01-2000 t/10:30");
+
+        assertEquals("Deleted appointment: Milo; Owner phone: " + ALICE.getPhone() + "; Date: 01-01-2000; "
+                + "Time: 10:00-11:00; Service: Full groom", result.getFeedbackToUser());
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test
