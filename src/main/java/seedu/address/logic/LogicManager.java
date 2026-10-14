@@ -19,7 +19,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Pet;
 import seedu.address.storage.Storage;
 
 /**
@@ -117,6 +119,12 @@ public class LogicManager implements Logic {
     public ObservableList<Client> getFilteredClientList() {
         return model.getFilteredClientList();
     }
+
+    @Override
+    public ObservableList<Pet> getFilteredPetList() { return model.getFilteredPetList(); }
+
+    @Override
+    public ObservableList<Appointment> getFilteredAppointmentList() { return model.getFilteredAppointmentList(); }
 
     @Override
     public GuiSettings getGuiSettings() {

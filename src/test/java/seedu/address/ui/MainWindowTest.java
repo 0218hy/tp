@@ -24,7 +24,9 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Pet;
 
 @EnabledOnOs(OS.LINUX)
 public class MainWindowTest {
@@ -78,6 +80,8 @@ public class MainWindowTest {
 
     private static class StubLogic implements Logic {
         private final ObservableList<Client> clients = FXCollections.observableArrayList();
+        private final ObservableList<Pet> pets = FXCollections.observableArrayList();
+        private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
         private CommandResult nextResult = new CommandResult("");
         private GuiSettings guiSettings = new GuiSettings();
         private String lastCommand;
@@ -92,6 +96,12 @@ public class MainWindowTest {
         public ObservableList<Client> getFilteredClientList() {
             return clients;
         }
+
+        @Override
+        public ObservableList<Pet> getFilteredPetList() { return pets; }
+
+        @Override
+        public ObservableList<Appointment> getFilteredAppointmentList() { return appointments; }
 
         @Override
         public GuiSettings getGuiSettings() {
