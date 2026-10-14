@@ -10,7 +10,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
+import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
@@ -85,7 +85,7 @@ public class LogicManager implements Logic {
         }
         ReadOnlyGroomingBook previousGroomingBook = command instanceof AddPetCommand
                 ? new GroomingBook(model.getGroomingBook()) : null;
-        List<Appointment> previousAppointments = command instanceof ScheduleAppointmentCommand
+        List<Appointment> previousAppointments = command instanceof AddAppointmentCommand
                 ? List.copyOf(model.getGroomingBook().getAppointmentList()) : null;
         CommandResult commandResult = command.execute(model);
         saveCommandResult(command, previousGroomingBook, previousAppointments);

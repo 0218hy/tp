@@ -20,12 +20,12 @@ import seedu.address.model.appointment.exceptions.OverlappingAppointmentExceptio
  * Schedules a grooming appointment after verifying its participants and start time.
  * Requires an owner/pet lookup implementation to be supplied by the corresponding features.
  */
-public class ScheduleAppointmentCommand extends Command {
-    public static final String COMMAND_WORD = "schedule";
+public class AddAppointmentCommand extends Command {
+    public static final String COMMAND_WORD = "add-appointment";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Schedules a grooming appointment. "
             + "The owner identifier is their phone number.\n"
             + "Parameters: i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE\n"
-            + "Example: schedule i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom";
+            + "Example: " + COMMAND_WORD + " i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom";
     public static final String MESSAGE_SUCCESS = "Appointment scheduled: %1$s";
     public static final String MESSAGE_OWNER_NOT_FOUND =
             "This phone number does not identify a unique registered owner.";
@@ -42,7 +42,7 @@ public class ScheduleAppointmentCommand extends Command {
      * Creates a command for normal application use, using the real clock in Singapore.
      * Delegates to the constructor below so both constructors share the same setup.
      */
-    public ScheduleAppointmentCommand(Appointment appointment, AppointmentParticipantLookup participantLookup) {
+    public AddAppointmentCommand(Appointment appointment, AppointmentParticipantLookup participantLookup) {
         this(appointment, participantLookup, Clock.system(SINGAPORE_ZONE));
     }
 
@@ -50,7 +50,7 @@ public class ScheduleAppointmentCommand extends Command {
      * Creates a command with a supplied clock. Tests use a fixed clock so their results
      * do not depend on the actual date and time when the tests run.
      */
-    public ScheduleAppointmentCommand(Appointment appointment,
+    public AddAppointmentCommand(Appointment appointment,
             AppointmentParticipantLookup participantLookup, Clock clock) {
         requireAllNonNull(appointment, participantLookup, clock);
         toSchedule = appointment;
@@ -88,7 +88,7 @@ public class ScheduleAppointmentCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || (other instanceof ScheduleAppointmentCommand otherCommand
+        return other == this || (other instanceof AddAppointmentCommand otherCommand
                 && toSchedule.equals(otherCommand.toSchedule));
     }
 

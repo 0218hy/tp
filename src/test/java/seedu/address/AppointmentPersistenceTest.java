@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.LogicManager;
-import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
+import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -40,7 +40,7 @@ import seedu.address.storage.appointment.JsonAppointmentStorage;
 import seedu.address.testutil.PetBuilder;
 
 public class AppointmentPersistenceTest {
-    private static final String COMMAND = "schedule i/" + ALICE.getPhone()
+    private static final String COMMAND = "add-appointment i/" + ALICE.getPhone()
             + " p/BuBu d/01-01-9999 st/10:00 et/11:00 s/Full groom";
 
     @TempDir
@@ -72,7 +72,7 @@ public class AppointmentPersistenceTest {
         assertEquals(model.getGroomingBook(), restarted.getGroomingBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
-        assertEquals(ScheduleAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
+        assertEquals(AddAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
         assertEquals(1, restarted.getGroomingBook().getAppointmentList().size());
     }
 

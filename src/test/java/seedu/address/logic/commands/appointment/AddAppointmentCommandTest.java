@@ -26,7 +26,7 @@ import seedu.address.model.appointment.StartTime;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 import seedu.address.model.client.Phone;
 
-public class ScheduleAppointmentCommandTest {
+public class AddAppointmentCommandTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
     // 10:00 on 7 October in Singapore, even though the supplied clock uses UTC.
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-10-07T02:00:00Z"), ZoneOffset.UTC);
@@ -51,24 +51,24 @@ public class ScheduleAppointmentCommandTest {
     @Test
     public void execute_ownerMissingOrNotUnique_rejectsBeforePetLookup() {
         lookup.ownerExists = false;
-        assertFailure(VALID_APPOINTMENT, CLOCK, ScheduleAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
+        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
         assertEquals(0, lookup.petLookupCalls);
     }
 
     @Test
     public void execute_petNotRegisteredForOwner_noMutation() {
         lookup.petBelongsToOwner = false;
-        assertFailure(VALID_APPOINTMENT, CLOCK, ScheduleAppointmentCommand.MESSAGE_PET_NOT_FOUND);
+        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_PET_NOT_FOUND);
         assertEquals(OWNER_PHONE, lookup.queriedPetOwnerPhone);
         assertEquals("BuBu", lookup.queriedPetName);
     }
 
     @Test
     public void execute_usesLookupStateAtExecutionTime() {
-        ScheduleAppointmentCommand command = command(VALID_APPOINTMENT);
+        AddAppointmentCommand command = command(VALID_APPOINTMENT);
         lookup.ownerExists = false;
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
-        assertEquals(ScheduleAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
+        assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
@@ -76,7 +76,7 @@ public class ScheduleAppointmentCommandTest {
     public void execute_pastDateEarlierTodayAndExactNow_noMutation() {
         for (Appointment appointment : List.of(create("06-10-2026", "19:30", "20:00"),
                 create("07-10-2026", "09:30", "10:30"), create("07-10-2026", "10:00", "11:00"))) {
-            assertFailure(appointment, CLOCK, ScheduleAppointmentCommand.MESSAGE_PAST_START);
+            assertFailure(appointment, CLOCK, AddAppointmentCommand.MESSAGE_PAST_START);
         }
     }
 
@@ -91,7 +91,7 @@ public class ScheduleAppointmentCommandTest {
     public void execute_clockInDifferentZone_usesSingaporeDate() {
         // UTC still reads 7 October, but Singapore has reached 8 October.
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
-        assertFailure(create("07-10-2026", "19:30", "20:00"), midnight, ScheduleAppointmentCommand.MESSAGE_PAST_START);
+        assertFailure(create("07-10-2026", "19:30", "20:00"), midnight, AddAppointmentCommand.MESSAGE_PAST_START);
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ScheduleAppointmentCommandTest {
         for (Appointment appointment : List.of(create("07-10-2026", "11:00", "12:00"),
                 create("07-10-2026", "10:30", "11:30"), create("07-10-2026", "11:30", "12:30"),
                 create("07-10-2026", "10:30", "12:30"), create("07-10-2026", "11:00", "11:30"))) {
-            CommandException exception = assertFailure(appointment, CLOCK, ScheduleAppointmentCommand.MESSAGE_OVERLAP);
+            CommandException exception = assertFailure(appointment, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
             assertTrue(exception.getCause() instanceof OverlappingAppointmentException);
         }
     }
@@ -118,9 +118,9 @@ public class ScheduleAppointmentCommandTest {
 
     @Test
     public void execute_repeatedCommand_rejectsDuplicate() throws Exception {
-        ScheduleAppointmentCommand command = command(VALID_APPOINTMENT);
+        AddAppointmentCommand command = command(VALID_APPOINTMENT);
         command.execute(model);
-        assertFailure(VALID_APPOINTMENT, CLOCK, ScheduleAppointmentCommand.MESSAGE_OVERLAP);
+        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
         assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
     }
 
@@ -134,16 +134,16 @@ public class ScheduleAppointmentCommandTest {
 
     @Test
     public void constructorAndExecute_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommand(null, lookup));
-        assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommand(VALID_APPOINTMENT, null));
-        assertThrows(NullPointerException.class, () -> new ScheduleAppointmentCommand(VALID_APPOINTMENT, lookup, null));
+        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null, lookup));
+        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, null));
+        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, lookup, null));
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test
     public void equals_comparesAppointmentDetails() {
-        ScheduleAppointmentCommand command = command(VALID_APPOINTMENT);
+        AddAppointmentCommand command = command(VALID_APPOINTMENT);
         assertEquals(command, command);
         assertEquals(command, command(create("07-10-2026", "10:30", "11:00")));
         assertNotEquals(command, command(create("07-10-2026", "11:00", "12:00")));
@@ -153,18 +153,18 @@ public class ScheduleAppointmentCommandTest {
 
     @Test
     public void toString_includesAppointment() {
-        assertEquals(ScheduleAppointmentCommand.class.getCanonicalName() + "{toSchedule=" + VALID_APPOINTMENT + "}",
+        assertEquals(AddAppointmentCommand.class.getCanonicalName() + "{toSchedule=" + VALID_APPOINTMENT + "}",
                 command(VALID_APPOINTMENT).toString());
     }
 
-    private ScheduleAppointmentCommand command(Appointment appointment) {
-        return new ScheduleAppointmentCommand(appointment, lookup, CLOCK);
+    private AddAppointmentCommand command(Appointment appointment) {
+        return new AddAppointmentCommand(appointment, lookup, CLOCK);
     }
 
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
         GroomingBook before = new GroomingBook(model.getGroomingBook());
         CommandException exception = assertThrows(CommandException.class, () ->
-                new ScheduleAppointmentCommand(appointment, lookup, clock).execute(model));
+                new AddAppointmentCommand(appointment, lookup, clock).execute(model));
         assertEquals(message, exception.getMessage());
         assertEquals(before, model.getGroomingBook());
         return exception;

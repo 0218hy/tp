@@ -45,7 +45,7 @@ Consumers read it through `ReadOnlyGroomingBook` and `Model.getGroomingBook()`.
 
 Tests mirror these feature packages. Shared parsing utilities stay in `logic.parser.ParserUtil`;
 client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` respectively.
-`ScheduleAppointmentCommand` and its parser handle scheduling.
+`AddAppointmentCommand` and `AddAppointmentCommandParser` handle the `add-appointment` command.
 
 Replacing the grooming book validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners. Historical

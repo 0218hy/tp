@@ -23,7 +23,7 @@ BuBu is designed for freelance mobile pet groomers. It helps groomers to keep tr
 | --- | --- |
 | Manage client records | `add-client`, `list-clients`, `delete-client` |
 | Manage pet profiles | `add-pet`, `list-pets`, `delete-pet` |
-| Manage grooming appointments | `schedule`, `list-appointments`, `delete-appointment` |
+| Manage grooming appointments | `add-appointment`, `list-appointments`, `delete-appointment` |
 
 For example, `list-clients q/amelia` searches client records, `list-pets o/Amelia Tan` shows that client's pets, and `list-appointments` displays upcoming appointments in chronological order.
 

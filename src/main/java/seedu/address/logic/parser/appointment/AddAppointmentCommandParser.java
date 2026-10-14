@@ -11,7 +11,7 @@ import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX
 
 import java.util.stream.Stream;
 
-import seedu.address.logic.commands.appointment.ScheduleAppointmentCommand;
+import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
@@ -27,22 +27,22 @@ import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Phone;
 
 /**
- * Parses schedule arguments into a command. Participant, future-start and overlap checks
+ * Parses add-appointment arguments into a command. Participant, future-start and overlap checks
  * are performed when the command executes, not while parsing.
  */
-public class ScheduleAppointmentCommandParser implements Parser<ScheduleAppointmentCommand> {
+public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand> {
     private final AppointmentParticipantLookup participantLookup;
 
     /**
      * Creates a parser that passes the supplied lookup to each scheduling command.
      */
-    public ScheduleAppointmentCommandParser(AppointmentParticipantLookup participantLookup) {
-        // TODO: Remove this dependency when ScheduleAppointmentCommand uses Model owner/pet lookup methods.
+    public AddAppointmentCommandParser(AppointmentParticipantLookup participantLookup) {
+        // TODO: Remove this dependency when AddAppointmentCommand uses Model owner/pet lookup methods.
         this.participantLookup = requireNonNull(participantLookup);
     }
 
     @Override
-    public ScheduleAppointmentCommand parse(String args) throws ParseException {
+    public AddAppointmentCommand parse(String args) throws ParseException {
         requireNonNull(args);
         Prefix[] prefixes = {PREFIX_OWNER_IDENTIFIER, PREFIX_PET_NAME, PREFIX_DATE,
             PREFIX_START_TIME, PREFIX_END_TIME, PREFIX_SERVICE};
@@ -51,7 +51,7 @@ public class ScheduleAppointmentCommandParser implements Parser<ScheduleAppointm
         if (!arguments.getPreamble().isEmpty()
                 || !Stream.of(prefixes).allMatch(prefix -> arguments.getValue(prefix).isPresent())) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                    ScheduleAppointmentCommand.MESSAGE_USAGE));
+                    AddAppointmentCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(prefixes);
 
@@ -62,7 +62,7 @@ public class ScheduleAppointmentCommandParser implements Parser<ScheduleAppointm
                     new StartTime(arguments.getValue(PREFIX_START_TIME).get()),
                     new EndTime(arguments.getValue(PREFIX_END_TIME).get()),
                     Service.fromString(arguments.getValue(PREFIX_SERVICE).get()));
-            return new ScheduleAppointmentCommand(appointment, participantLookup);
+            return new AddAppointmentCommand(appointment, participantLookup);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }
