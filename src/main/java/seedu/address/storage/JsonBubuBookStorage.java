@@ -12,36 +12,36 @@ import java.util.Optional;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 
 /** Reads and writes all grooming records in one JSON file. */
-public class JsonGroomingBookStorage {
+public class JsonBubuBookStorage {
     private final Path filePath;
 
-    public JsonGroomingBookStorage(Path filePath) {
+    public JsonBubuBookStorage(Path filePath) {
         this.filePath = requireNonNull(filePath);
     }
 
-    public Path getGroomingBookFilePath() {
+    public Path getBubuBookFilePath() {
         return filePath;
     }
 
     /** Reads all grooming records, or returns empty when the file does not exist. */
-    public Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException {
-        return readGroomingBook(filePath);
+    public Optional<ReadOnlyBubuBook> readBubuBook() throws DataLoadingException {
+        return readBubuBook(filePath);
     }
 
     /** Reads the complete book at the given path. */
-    public Optional<ReadOnlyGroomingBook> readGroomingBook(Path path) throws DataLoadingException {
+    public Optional<ReadOnlyBubuBook> readBubuBook(Path path) throws DataLoadingException {
         requireNonNull(path);
         try {
             if (Files.notExists(path)) {
                 return Optional.empty();
             }
-            JsonSerializableGroomingBook data = JsonUtil.fromJsonString(
-                    Files.readString(path), JsonSerializableGroomingBook.class);
+            JsonSerializableBubuBook data = JsonUtil.fromJsonString(
+                    Files.readString(path), JsonSerializableBubuBook.class);
             if (data == null) {
-                throw new IllegalValueException("Grooming book must not be null.");
+                throw new IllegalValueException("BubuBook must not be null.");
             }
             return Optional.of(data.toModelType());
         } catch (IOException | IllegalValueException e) {
@@ -50,18 +50,18 @@ public class JsonGroomingBookStorage {
     }
 
     /** Saves all clients, pets, and appointments together. */
-    public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
-        saveGroomingBook(groomingBook, filePath);
+    public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+        saveBubuBook(bubuBook, filePath);
     }
 
     /** Finishes writing before replacing the previous file to avoid truncating saved records on failure. */
-    public void saveGroomingBook(ReadOnlyGroomingBook groomingBook, Path path) throws IOException {
-        requireNonNull(groomingBook);
+    public void saveBubuBook(ReadOnlyBubuBook bubuBook, Path path) throws IOException {
+        requireNonNull(bubuBook);
         requireNonNull(path);
-        String json = JsonUtil.toJsonString(new JsonSerializableGroomingBook(groomingBook));
+        String json = JsonUtil.toJsonString(new JsonSerializableBubuBook(bubuBook));
         Path target = path.toAbsolutePath();
         Files.createDirectories(target.getParent());
-        Path temporary = Files.createTempFile(target.getParent(), "groomingbook-", ".tmp");
+        Path temporary = Files.createTempFile(target.getParent(), "bububook-", ".tmp");
         try {
             Files.writeString(temporary, json);
             try {

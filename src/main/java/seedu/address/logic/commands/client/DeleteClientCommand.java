@@ -75,7 +75,7 @@ public class DeleteClientCommand extends Command {
             clientToDelete = lastShownList.get(targetIndex.getZeroBased());
         } else {
             //TODO: use SLAP
-            clientToDelete = model.getGroomingBook().getClientList().stream()
+            clientToDelete = model.getBubuBook().getClientList().stream()
                     .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
                     .orElseThrow(() -> new CommandException(

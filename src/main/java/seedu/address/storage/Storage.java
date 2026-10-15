@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 
@@ -35,9 +35,9 @@ public interface Storage {
     void saveUserPrefs(ReadOnlyUserPrefs userPrefs) throws IOException;
 
     /**
-     * Returns the file path of the GroomingBook data file.
+     * Returns the file path of the BubuBook data file.
      */
-    Path getGroomingBookFilePath();
+    Path getBubuBookFilePath();
 
     /**
      * Returns all client, pet, and appointment records.
@@ -45,13 +45,13 @@ public interface Storage {
      *
      * @throws DataLoadingException if loading the data from storage failed.
      */
-    Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException;
+    Optional<ReadOnlyBubuBook> readBubuBook() throws DataLoadingException;
 
     /**
-     * Saves all records from the given grooming book.
-     * @param groomingBook cannot be null.
+     * Saves all records from the given BubuBook.
+     * @param bubuBook cannot be null.
      * @throws IOException if there was any problem writing to the file.
      */
-    void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException;
+    void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException;
 
 }

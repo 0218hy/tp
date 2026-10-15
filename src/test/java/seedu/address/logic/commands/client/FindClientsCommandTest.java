@@ -8,7 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalClients.CARL;
 import static seedu.address.testutil.TypicalClients.ELLE;
 import static seedu.address.testutil.TypicalClients.FIONA;
-import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
+import static seedu.address.testutil.TypicalClients.getTypicalBubuBook;
 
 import java.util.List;
 
@@ -24,8 +24,8 @@ import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
  * Contains integration tests (interaction with the Model) for {@code FindClientsCommand}.
  */
 public class FindClientsCommandTest {
-    private Model model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
-    private Model expectedModel = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
+    private Model model = new ModelManager(getTypicalBubuBook(), new UserPrefs());
+    private Model expectedModel = new ModelManager(getTypicalBubuBook(), new UserPrefs());
 
     @Test
     public void equals() {

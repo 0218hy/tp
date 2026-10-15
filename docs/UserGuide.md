@@ -331,7 +331,7 @@ rejected when the current displayed list is not the appointment list.
 
 ### Clearing all entries: `clear`
 
-Clears all clients and pets. Saved appointments are retained in the shared grooming book.
+Clears all clients and pets. Saved appointments are retained in the shared BubuBook.
 
 Format: `clear`
 

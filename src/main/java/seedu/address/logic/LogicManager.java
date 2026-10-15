@@ -18,9 +18,9 @@ import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
@@ -46,7 +46,7 @@ public class LogicManager implements Logic {
     private final Model model;
     private final Storage storage;
     private final BuBuParser buBuParser;
-    private final boolean isGroomingBookCorrupted;
+    private final boolean isBubuBookCorrupted;
     private DisplayType currentDisplayType = DisplayType.CLIENTS;
 
     /**
@@ -57,14 +57,14 @@ public class LogicManager implements Logic {
     }
 
     /**
-     * Constructs logic with the grooming book corruption state recorded at startup.
+     * Constructs logic with the BubuBook corruption state recorded at startup.
      * Commands cannot save records when this state is true.
      */
-    public LogicManager(Model model, Storage storage, boolean isGroomingBookCorrupted) {
+    public LogicManager(Model model, Storage storage, boolean isBubuBookCorrupted) {
         this.model = model;
         this.storage = storage;
         this.buBuParser = new BuBuParser();
-        this.isGroomingBookCorrupted = isGroomingBookCorrupted;
+        this.isBubuBookCorrupted = isBubuBookCorrupted;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class LogicManager implements Logic {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
         Command command = buBuParser.parseCommand(commandText);
-        if (isGroomingBookCorrupted) {
+        if (isBubuBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
         ensureRequiredDisplayTypeIsCurrent(command);
@@ -81,9 +81,9 @@ public class LogicManager implements Logic {
             updateCurrentDisplayType(commandResult);
             return commandResult;
         }
-        ReadOnlyGroomingBook previousGroomingBook = new GroomingBook(model.getGroomingBook());
+        ReadOnlyBubuBook previousBubuBook = new BubuBook(model.getBubuBook());
         CommandResult commandResult = command.execute(model);
-        saveCommandResult(command, previousGroomingBook);
+        saveCommandResult(command, previousBubuBook);
         updateCurrentDisplayType(commandResult);
         return commandResult;
     }
@@ -110,12 +110,12 @@ public class LogicManager implements Logic {
     /**
      * Saves the completed command and restores its previous data if saving fails.
      */
-    private void saveCommandResult(Command command, ReadOnlyGroomingBook previousGroomingBook)
+    private void saveCommandResult(Command command, ReadOnlyBubuBook previousBubuBook)
             throws CommandException {
         try {
-            storage.saveGroomingBook(model.getGroomingBook());
+            storage.saveBubuBook(model.getBubuBook());
         } catch (IOException ioe) {
-            model.setGroomingBook(previousGroomingBook);
+            model.setBubuBook(previousBubuBook);
             if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
             }

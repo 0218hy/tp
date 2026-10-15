@@ -20,9 +20,9 @@ import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -30,7 +30,7 @@ import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Phone;
-import seedu.address.storage.JsonGroomingBookStorage;
+import seedu.address.storage.JsonBubuBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PetBuilder;
@@ -48,29 +48,29 @@ public class AppointmentPersistenceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        storage = storageWith(new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json")));
-        GroomingBook owners = new GroomingBook();
+        storage = storageWith(new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json")));
+        BubuBook owners = new BubuBook();
         owners.addClient(ALICE);
         owners.addPet(new PetBuilder(ALICE).withName("BuBu").withBreed("Golden retriever").build());
-        storage.saveGroomingBook(owners);
+        storage.saveBubuBook(owners);
         model = new MainApp().initModelManager(storage, new UserPrefs());
         logic = logicFor(model, storage);
     }
 
     @Test
     public void scheduleSaveAndRestart_preservesAppointmentsAndDetectsOverlap() throws Exception {
-        GroomingBook before = new GroomingBook(model.getGroomingBook());
+        BubuBook before = new BubuBook(model.getBubuBook());
         logic.execute(COMMAND);
-        assertEquals(before.getClientList(), model.getGroomingBook().getClientList());
-        assertEquals(before.getPetList(), model.getGroomingBook().getPetList());
-        assertEquals(model.getGroomingBook().getAppointmentList(),
-                storage.readGroomingBook().orElseThrow().getAppointmentList());
+        assertEquals(before.getClientList(), model.getBubuBook().getClientList());
+        assertEquals(before.getPetList(), model.getBubuBook().getPetList());
+        assertEquals(model.getBubuBook().getAppointmentList(),
+                storage.readBubuBook().orElseThrow().getAppointmentList());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertEquals(model.getGroomingBook(), restarted.getGroomingBook());
+        assertEquals(model.getBubuBook(), restarted.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
         assertEquals(AddAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
-        assertEquals(1, restarted.getGroomingBook().getAppointmentList().size());
+        assertEquals(1, restarted.getBubuBook().getAppointmentList().size());
     }
 
     @Test
@@ -84,11 +84,11 @@ public class AppointmentPersistenceTest {
         Appointment expected = new Appointment(new Phone("81234567"),
                 "CAFÉ 小白", new AppointmentDate("01-01-9999"), new StartTime("10:00"),
                 new EndTime("11:00"), Service.FULL_GROOM);
-        assertEquals(List.of(expected), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(expected), model.getBubuBook().getAppointmentList());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertEquals(model.getGroomingBook(), restarted.getGroomingBook());
+        assertEquals(model.getBubuBook(), restarted.getBubuBook());
         logicFor(restarted, storage).execute(booking.replace("01-01-9999", "02-01-9999"));
-        assertEquals(2, restarted.getGroomingBook().getAppointmentList().size());
+        assertEquals(2, restarted.getBubuBook().getAppointmentList().size());
     }
 
     @Test
@@ -97,59 +97,59 @@ public class AppointmentPersistenceTest {
 
         logic.execute("delete-appointment d/01-01-9999 t/10:30");
 
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
-        assertTrue(storage.readGroomingBook().orElseThrow().getAppointmentList().isEmpty());
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
+        assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
 
     @Test
-    public void startup_missingGroomingBook_usesSampleDataWithoutCreatingFiles() throws Exception {
-        Files.delete(storage.getGroomingBookFilePath());
+    public void startup_missingBubuBook_usesSampleDataWithoutCreatingFiles() throws Exception {
+        Files.delete(storage.getBubuBookFilePath());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertTrue(restarted.getGroomingBook().getAppointmentList().isEmpty());
-        assertFalse(restarted.getGroomingBook().getClientList().isEmpty());
-        assertFalse(Files.exists(storage.getGroomingBookFilePath()));
+        assertTrue(restarted.getBubuBook().getAppointmentList().isEmpty());
+        assertFalse(restarted.getBubuBook().getClientList().isEmpty());
+        assertFalse(Files.exists(storage.getBubuBookFilePath()));
     }
 
     @Test
-    public void startup_invalidGroomingBook_preservesFileAndBlocksCommands() throws Exception {
-        Files.writeString(storage.getGroomingBookFilePath(), "broken data");
+    public void startup_invalidBubuBook_preservesFileAndBlocksCommands() throws Exception {
+        Files.writeString(storage.getBubuBookFilePath(), "broken data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
-        assertEquals(new GroomingBook(), restarted.getGroomingBook());
+        assertEquals(new BubuBook(), restarted.getBubuBook());
         LogicManager corruptedLogic = new LogicManager(restarted, storage, true);
         CommandException exception = assertThrows(CommandException.class, () -> corruptedLogic.execute("clear"));
         assertEquals(LogicManager.MESSAGE_CORRUPTED_RECORDS, exception.getMessage());
-        assertEquals("broken data", Files.readString(storage.getGroomingBookFilePath()));
+        assertEquals("broken data", Files.readString(storage.getBubuBookFilePath()));
     }
 
     @Test
     public void clearContacts_savesEmptyContactsAndRetainsScheduleInSameFile() throws Exception {
         logic.execute(COMMAND);
         logic.execute("clear");
-        assertTrue(model.getGroomingBook().getClientList().isEmpty());
-        assertTrue(model.getGroomingBook().getPetList().isEmpty());
-        assertEquals(1, model.getGroomingBook().getAppointmentList().size());
-        assertEquals(model.getGroomingBook(), storage.readGroomingBook().orElseThrow());
+        assertTrue(model.getBubuBook().getClientList().isEmpty());
+        assertTrue(model.getBubuBook().getPetList().isEmpty());
+        assertEquals(1, model.getBubuBook().getAppointmentList().size());
+        assertEquals(model.getBubuBook(), storage.readBubuBook().orElseThrow());
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getGroomingBookFilePath()), paths.toList());
+            assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
         }
     }
 
     @Test
     public void scheduleWithMissingPet_rejectsAndDoesNotSave() throws Exception {
-        String before = Files.readString(storage.getGroomingBookFilePath());
-        model.deletePet(model.getGroomingBook().getPetList().getFirst());
+        String before = Files.readString(storage.getBubuBookFilePath());
+        model.deletePet(model.getBubuBook().getPetList().getFirst());
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(COMMAND));
         assertEquals(AddAppointmentCommand.MESSAGE_PET_NOT_FOUND, exception.getMessage());
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
-        assertEquals(before, Files.readString(storage.getGroomingBookFilePath()));
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
+        assertEquals(before, Files.readString(storage.getBubuBookFilePath()));
     }
 
     @Test
     public void scheduleWithInvalidArguments_doesNotSave() throws Exception {
-        String before = Files.readString(storage.getGroomingBookFilePath());
+        String before = Files.readString(storage.getBubuBookFilePath());
         assertThrows(ParseException.class, () -> logic.execute(COMMAND.replace("10:00", "10:15")));
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
-        assertEquals(before, Files.readString(storage.getGroomingBookFilePath()));
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
+        assertEquals(before, Files.readString(storage.getBubuBookFilePath()));
     }
 
     @Test
@@ -165,36 +165,36 @@ public class AppointmentPersistenceTest {
     }
 
     private void assertSaveFailure(IOException failure, String expectedMessage) throws Exception {
-        GroomingBook before = historicalBook();
+        BubuBook before = historicalBook();
         model.setAppointments(before.getAppointmentList());
-        storage.saveGroomingBook(model.getGroomingBook());
-        String savedBefore = Files.readString(storage.getGroomingBookFilePath());
-        JsonGroomingBookStorage failOnce = new JsonGroomingBookStorage(storage.getGroomingBookFilePath()) {
+        storage.saveBubuBook(model.getBubuBook());
+        String savedBefore = Files.readString(storage.getBubuBookFilePath());
+        JsonBubuBookStorage failOnce = new JsonBubuBookStorage(storage.getBubuBookFilePath()) {
             private boolean failNext = true;
 
             @Override
-            public void saveGroomingBook(ReadOnlyGroomingBook appointmentBook) throws IOException {
+            public void saveBubuBook(ReadOnlyBubuBook appointmentBook) throws IOException {
                 if (failNext) {
                     failNext = false;
                     throw failure;
                 }
-                super.saveGroomingBook(appointmentBook);
+                super.saveBubuBook(appointmentBook);
             }
         };
-        GroomingBook allRecordsBefore = new GroomingBook(model.getGroomingBook());
+        BubuBook allRecordsBefore = new BubuBook(model.getBubuBook());
         LogicManager failingLogic = logicFor(model, storageWith(failOnce));
         CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute(COMMAND));
         assertEquals(expectedMessage, exception.getMessage());
-        assertEquals(allRecordsBefore, model.getGroomingBook());
-        assertEquals(savedBefore, Files.readString(storage.getGroomingBookFilePath()));
+        assertEquals(allRecordsBefore, model.getBubuBook());
+        assertEquals(savedBefore, Files.readString(storage.getBubuBookFilePath()));
         failingLogic.execute(COMMAND);
-        assertEquals(2, model.getGroomingBook().getAppointmentList().size());
-        assertEquals(model.getGroomingBook().getAppointmentList(),
-                storage.readGroomingBook().orElseThrow().getAppointmentList());
+        assertEquals(2, model.getBubuBook().getAppointmentList().size());
+        assertEquals(model.getBubuBook().getAppointmentList(),
+                storage.readBubuBook().orElseThrow().getAppointmentList());
     }
 
-    private StorageManager storageWith(JsonGroomingBookStorage groomingBookStorage) {
-        return new StorageManager(groomingBookStorage,
+    private StorageManager storageWith(JsonBubuBookStorage bubuBookStorage) {
+        return new StorageManager(bubuBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
     }
 
@@ -202,8 +202,8 @@ public class AppointmentPersistenceTest {
         return new LogicManager(target, targetStorage);
     }
 
-    private GroomingBook historicalBook() {
-        GroomingBook book = new GroomingBook();
+    private BubuBook historicalBook() {
+        BubuBook book = new BubuBook();
         book.addAppointment(new Appointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;

@@ -33,7 +33,7 @@ import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -41,7 +41,7 @@ import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
 import seedu.address.model.pet.Pet;
-import seedu.address.storage.JsonGroomingBookStorage;
+import seedu.address.storage.JsonBubuBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PetBuilder;
@@ -58,10 +58,10 @@ public class LogicManagerTest {
 
     @BeforeEach
     public void setUp() {
-        JsonGroomingBookStorage groomingBookStorage =
-                new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"));
+        JsonBubuBookStorage bubuBookStorage =
+                new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(groomingBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(bubuBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
     }
 
@@ -91,9 +91,9 @@ public class LogicManagerTest {
                 + " s/Cat r/Calm with baths");
 
         assertEquals("Pet added: Mochi (Cat) under Alice Pauline.", result.getFeedbackToUser());
-        assertEquals("Mochi", model.getGroomingBook().getPetList().getFirst().getName().value);
-        assertEquals(model.getGroomingBook(), new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"))
-                .readGroomingBook().orElseThrow());
+        assertEquals("Mochi", model.getBubuBook().getPetList().getFirst().getName().value);
+        assertEquals(model.getBubuBook(), new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"))
+                .readBubuBook().orElseThrow());
     }
 
     @Test
@@ -104,7 +104,7 @@ public class LogicManagerTest {
         CommandResult result = logic.execute("list-appointments");
 
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
-        assertEquals(1, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(1, model.getBubuBook().getAppointmentList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
@@ -116,7 +116,7 @@ public class LogicManagerTest {
         CommandResult result = logic.execute("list-pets i/" + ALICE.getPhone());
 
         assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
-        assertEquals(1, model.getGroomingBook().getPetList().size());
+        assertEquals(1, model.getBubuBook().getPetList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
@@ -155,7 +155,7 @@ public class LogicManagerTest {
         assertCommandException("delete-pet 1", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
 
         logic.execute("list-pets");
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deletePet(pet);
         assertCommandSuccess("delete-pet 1",
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
@@ -174,23 +174,23 @@ public class LogicManagerTest {
 
         assertEquals("Deleted appointment: Milo; Owner phone: " + ALICE.getPhone() + "; Date: 01-01-2000; "
                 + "Time: 10:00-11:00; Service: Full groom", result.getFeedbackToUser());
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
 
     @Test
-    public void execute_deletePet_successAndSavesUpdatedGroomingBook() throws Exception {
+    public void execute_deletePet_successAndSavesUpdatedBubuBook() throws Exception {
         Pet pet = new PetBuilder(AMY).build();
         model.addClient(AMY);
         model.addPet(pet);
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deletePet(pet);
 
         assertCommandSuccess("delete-pet p/Milo i/" + AMY.getPhone().value,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
 
-        ReadOnlyGroomingBook savedGroomingBook = new JsonGroomingBookStorage(
-                temporaryFolder.resolve("bububook.json")).readGroomingBook().get();
-        assertEquals(expectedModel.getGroomingBook(), savedGroomingBook);
+        ReadOnlyBubuBook savedBubuBook = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")).readBubuBook().get();
+        assertEquals(expectedModel.getBubuBook(), savedBubuBook);
     }
 
     @Test
@@ -215,15 +215,15 @@ public class LogicManagerTest {
         model.addPet(new PetBuilder(ALICE).withBreed("Golden retriever").build());
         model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
-        JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(
                 temporaryFolder.resolve("bububook.json")) {
             @Override
-            public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
                 throw DUMMY_IO_EXCEPTION;
             }
         };
-        StorageManager storage = new StorageManager(groomingBookStorage,
+        StorageManager storage = new StorageManager(bubuBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json")));
         logic = new LogicManager(model, storage);
 
@@ -235,7 +235,7 @@ public class LogicManagerTest {
     @Test
     public void execute_addPetCorruptedRecords_reportsError() {
         logic = new LogicManager(model, new StorageManager(
-                new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json")),
+                new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), true);
         assertCommandException("add-pet p/Mochi i/91234567 s/Dog r/Calm with baths",
                 LogicManager.MESSAGE_CORRUPTED_RECORDS);
@@ -295,7 +295,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 
@@ -321,21 +321,21 @@ public class LogicManagerTest {
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
         Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
 
-        // Inject LogicManager with a JsonGroomingBookStorage that throws the IOException e when saving
-        JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(prefPath) {
+        // Inject LogicManager with a JsonBubuBookStorage that throws the IOException e when saving
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(prefPath) {
             @Override
-            public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
                 throw e;
             }
         };
 
         JsonUserPrefsStorage userPrefsStorage =
                 new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(groomingBookStorage, userPrefsStorage);
+        StorageManager storage = new StorageManager(bubuBookStorage, userPrefsStorage);
 
         logic = new LogicManager(model, storage);
 
-        // Triggers the saveGroomingBook method by executing an add command
+        // Triggers the saveBubuBook method by executing an add command
         String addCommand = AddClientCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         ModelManager expectedModel = new ModelManager();
@@ -349,8 +349,8 @@ public class LogicManagerTest {
                 + "e/amelia@example.com a/12 Punggol Drive t/regular");
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredClientList().size());
-        JsonGroomingBookStorage saved = new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"));
-        assertEquals(model.getGroomingBook(), saved.readGroomingBook().orElseThrow());
+        JsonBubuBookStorage saved = new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"));
+        assertEquals(model.getBubuBook(), saved.readBubuBook().orElseThrow());
     }
 
 }

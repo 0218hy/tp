@@ -34,12 +34,12 @@ public interface Model {
     void setGuiSettings(GuiSettings guiSettings);
 
     /**
-     * Replaces grooming book data with the data in {@code groomingBook}.
+     * Replaces BubuBook data with the data in {@code bubuBook}.
      */
-    void setGroomingBook(ReadOnlyGroomingBook groomingBook);
+    void setBubuBook(ReadOnlyBubuBook bubuBook);
 
-    /** Returns the GroomingBook */
-    ReadOnlyGroomingBook getGroomingBook();
+    /** Returns the BubuBook */
+    ReadOnlyBubuBook getBubuBook();
 
     /** Replaces the appointment schedule after validating all slots. */
     void setAppointments(List<Appointment> appointments);
@@ -57,54 +57,54 @@ public interface Model {
 
     /**
      * Deletes the given appointment.
-     * The appointment must exist in the grooming book.
+     * The appointment must exist in the BubuBook.
      */
     void deleteAppointment(Appointment appointment);
 
     /**
-     * Returns true if a client with the same identity as {@code client} exists in the grooming book.
+     * Returns true if a client with the same identity as {@code client} exists in the BubuBook.
      */
     boolean hasClient(Client client);
 
     /**
      * Deletes the given client.
-     * The client must exist in the grooming book.
+     * The client must exist in the BubuBook.
      */
     void deleteClient(Client target);
 
     /**
      * Adds the given client.
-     * {@code client} must not already exist in the grooming book.
+     * {@code client} must not already exist in the BubuBook.
      */
     void addClient(Client client);
 
     /**
      * Replaces the given client {@code target} with {@code editedClient}.
-     * {@code target} must exist in the grooming book.
-     * The client identity of {@code editedClient} must not be the same as another existing client in the grooming book.
+     * {@code target} must exist in the BubuBook.
+     * The client identity of {@code editedClient} must not be the same as another existing client in the BubuBook.
      */
     void setClient(Client target, Client editedClient);
 
     /**
-     * Returns true if a pet with the same identity as {@code pet} exists in the grooming book.
+     * Returns true if a pet with the same identity as {@code pet} exists in the BubuBook.
      */
     boolean hasPet(Pet pet);
 
     /**
      * Deletes the given pet.
-     * The pet must exist in the grooming book.
+     * The pet must exist in the BubuBook.
      */
     void deletePet(Pet pet);
 
     /**
      * Adds the given pet.
-     * The pet must not already exist in the grooming book.
+     * The pet must not already exist in the BubuBook.
      */
     void addPet(Pet pet);
 
     /**
      * Replaces the given pet {@code target} with {@code editedPet}.
-     * The target pet must exist in the grooming book.
+     * The target pet must exist in the BubuBook.
      */
     void setPet(Pet target, Pet editedPet);
 

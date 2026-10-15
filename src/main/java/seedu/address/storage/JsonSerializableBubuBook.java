@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.model.GroomingBook;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.BubuBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
@@ -21,8 +21,8 @@ import seedu.address.storage.pet.JsonAdaptedPet;
 /**
  * A snapshot of all client, pet, and appointment records.
  */
-@JsonRootName(value = "groomingbook")
-class JsonSerializableGroomingBook {
+@JsonRootName(value = "bububook")
+class JsonSerializableBubuBook {
 
     public static final String MESSAGE_DUPLICATE_CLIENT = "Clients list contains duplicate client(s).";
     public static final String MESSAGE_DUPLICATE_PET = "Pets list contains duplicate pet(s).";
@@ -31,9 +31,9 @@ class JsonSerializableGroomingBook {
     private final List<JsonAdaptedPet> pets;
     private final List<JsonAdaptedAppointment> appointments;
 
-    /** Constructs a complete serialized grooming book. */
+    /** Constructs a complete serialized BubuBook. */
     @JsonCreator
-    public JsonSerializableGroomingBook(@JsonProperty("clients") List<JsonAdaptedClient> clients,
+    public JsonSerializableBubuBook(@JsonProperty("clients") List<JsonAdaptedClient> clients,
             @JsonProperty("pets") List<JsonAdaptedPet> pets,
             @JsonProperty("appointments") List<JsonAdaptedAppointment> appointments) {
         this.clients = clients == null ? null : new ArrayList<>(clients);
@@ -42,11 +42,11 @@ class JsonSerializableGroomingBook {
     }
 
     /**
-     * Converts a given {@code ReadOnlyGroomingBook} into this class for Jackson use.
+     * Converts a given {@code ReadOnlyBubuBook} into this class for Jackson use.
      *
-     * @param source future changes to this will not affect the created {@code JsonSerializableGroomingBook}.
+     * @param source future changes to this will not affect the created {@code JsonSerializableBubuBook}.
      */
-    public JsonSerializableGroomingBook(ReadOnlyGroomingBook source) {
+    public JsonSerializableBubuBook(ReadOnlyBubuBook source) {
         clients = source.getClientList().stream().map(JsonAdaptedClient::new).collect(Collectors.toList());
         pets = source.getPetList().stream().map(JsonAdaptedPet::new).collect(Collectors.toList());
         appointments = source.getAppointmentList().stream()
@@ -58,42 +58,42 @@ class JsonSerializableGroomingBook {
      *
      * @throws IllegalValueException if there were any data constraints violated.
      */
-    public GroomingBook toModelType() throws IllegalValueException {
+    public BubuBook toModelType() throws IllegalValueException {
         if (clients == null || pets == null || appointments == null) {
             throw new IllegalValueException("Clients, pets, and appointments lists must be present.");
         }
-        GroomingBook groomingBook = new GroomingBook();
+        BubuBook bubuBook = new BubuBook();
         for (JsonAdaptedClient jsonAdaptedClient : clients) {
             if (jsonAdaptedClient == null) {
                 throw new IllegalValueException("Client must not be null.");
             }
             Client client = jsonAdaptedClient.toModelType();
-            if (groomingBook.hasClient(client)) {
+            if (bubuBook.hasClient(client)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_CLIENT);
             }
-            groomingBook.addClient(client);
+            bubuBook.addClient(client);
         }
         for (JsonAdaptedPet jsonAdaptedPet : pets) {
             if (jsonAdaptedPet == null) {
                 throw new IllegalValueException("Pet must not be null.");
             }
-            Pet pet = jsonAdaptedPet.toModelType(groomingBook.getClientList());
-            if (groomingBook.hasPet(pet)) {
+            Pet pet = jsonAdaptedPet.toModelType(bubuBook.getClientList());
+            if (bubuBook.hasPet(pet)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PET);
             }
-            groomingBook.addPet(pet);
+            bubuBook.addPet(pet);
         }
         for (JsonAdaptedAppointment appointment : appointments) {
             if (appointment == null) {
                 throw new IllegalValueException("Appointment must not be null.");
             }
             try {
-                groomingBook.addAppointment(appointment.toModelType());
+                bubuBook.addAppointment(appointment.toModelType());
             } catch (OverlappingAppointmentException e) {
                 throw new IllegalValueException(e.getMessage(), e);
             }
         }
-        return groomingBook;
+        return bubuBook;
     }
 
 }

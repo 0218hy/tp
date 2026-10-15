@@ -4,8 +4,8 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
-GroomingBook *-right-> "1" UniquePersonList
-GroomingBook *-right-> "1" UniqueTagList
+BubuBook *-right-> "1" UniquePersonList
+BubuBook *-right-> "1" UniqueTagList
 UniqueTagList -[hidden]down- UniquePersonList
 UniqueTagList -[hidden]down- UniquePersonList
 

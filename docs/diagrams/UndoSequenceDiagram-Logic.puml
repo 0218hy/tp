@@ -30,7 +30,7 @@ deactivate BuBuParser
 LogicManager -> UndoCommand : execute()
 activate UndoCommand
 
-UndoCommand -> Model : undoGroomingBook()
+UndoCommand -> Model : undoBubuBook()
 activate Model
 
 Model --> UndoCommand

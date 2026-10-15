@@ -7,23 +7,23 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 
 /**
- * Manages storage of GroomingBook data in local storage.
+ * Manages storage of BubuBook data in local storage.
  */
 public class StorageManager implements Storage {
 
     private static final Logger logger = LogsCenter.getLogger(StorageManager.class);
-    private JsonGroomingBookStorage groomingBookStorage;
+    private JsonBubuBookStorage bubuBookStorage;
     private JsonUserPrefsStorage userPrefsStorage;
     /**
-     * Creates a storage manager for the shared grooming book and user preferences.
+     * Creates a storage manager for the shared BubuBook and user preferences.
      */
-    public StorageManager(JsonGroomingBookStorage groomingBookStorage, JsonUserPrefsStorage userPrefsStorage) {
-        this.groomingBookStorage = groomingBookStorage;
+    public StorageManager(JsonBubuBookStorage bubuBookStorage, JsonUserPrefsStorage userPrefsStorage) {
+        this.bubuBookStorage = bubuBookStorage;
         this.userPrefsStorage = userPrefsStorage;
     }
 
@@ -45,23 +45,23 @@ public class StorageManager implements Storage {
     }
 
 
-    // ================ GroomingBook methods ==============================
+    // ================ BubuBook methods ==============================
 
     @Override
-    public Path getGroomingBookFilePath() {
-        return groomingBookStorage.getGroomingBookFilePath();
+    public Path getBubuBookFilePath() {
+        return bubuBookStorage.getBubuBookFilePath();
     }
 
     @Override
-    public Optional<ReadOnlyGroomingBook> readGroomingBook() throws DataLoadingException {
-        logger.fine("Attempting to read data from file: " + groomingBookStorage.getGroomingBookFilePath());
-        return groomingBookStorage.readGroomingBook();
+    public Optional<ReadOnlyBubuBook> readBubuBook() throws DataLoadingException {
+        logger.fine("Attempting to read data from file: " + bubuBookStorage.getBubuBookFilePath());
+        return bubuBookStorage.readBubuBook();
     }
 
     @Override
-    public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
-        logger.fine("Attempting to write to data file: " + groomingBookStorage.getGroomingBookFilePath());
-        groomingBookStorage.saveGroomingBook(groomingBook);
+    public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+        logger.fine("Attempting to write to data file: " + bubuBookStorage.getBubuBookFilePath());
+        bubuBookStorage.saveBubuBook(bubuBook);
     }
 
 }

@@ -13,14 +13,14 @@ import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.JsonGroomingBookStorage;
+import seedu.address.storage.JsonBubuBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
@@ -36,13 +36,13 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path GROOMING_BOOK_FILE_PATH = Paths.get("data", "bububook.json");
+    private static final Path BUBU_BOOK_FILE_PATH = Paths.get("data", "bububook.json");
 
     protected Ui ui;
     protected Logic logic;
     protected Storage storage;
     protected Model model;
-    private boolean isGroomingBookCorrupted;
+    private boolean isBubuBookCorrupted;
 
     @Override
     public void init() throws Exception {
@@ -51,38 +51,38 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(GROOMING_BOOK_FILE_PATH);
-        storage = new StorageManager(groomingBookStorage, userPrefsStorage);
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(BUBU_BOOK_FILE_PATH);
+        storage = new StorageManager(bubuBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
 
-        logic = new LogicManager(model, storage, isGroomingBookCorrupted);
+        logic = new LogicManager(model, storage, isBubuBookCorrupted);
 
-        ui = new UiManager(logic, storage.getGroomingBookFilePath());
+        ui = new UiManager(logic, storage.getBubuBookFilePath());
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s grooming book and {@code userPrefs}. <br>
-     * The data from the sample grooming book will be used instead if {@code storage}'s grooming book is not found,
-     * or an empty grooming book will be used instead if errors occur when reading {@code storage}'s grooming book.
+     * Returns a {@code ModelManager} with the data from {@code storage}'s BubuBook and {@code userPrefs}. <br>
+     * The data from the sample BubuBook will be used instead if {@code storage}'s BubuBook is not found,
+     * or an empty BubuBook will be used instead if errors occur when reading {@code storage}'s BubuBook.
      */
     protected Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
-        logger.info("Using data file : " + storage.getGroomingBookFilePath());
+        logger.info("Using data file : " + storage.getBubuBookFilePath());
 
-        Optional<ReadOnlyGroomingBook> groomingBookOptional;
-        ReadOnlyGroomingBook initialData;
+        Optional<ReadOnlyBubuBook> bubuBookOptional;
+        ReadOnlyBubuBook initialData;
         try {
-            groomingBookOptional = storage.readGroomingBook();
-            if (groomingBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getGroomingBookFilePath()
-                        + " populated with a sample grooming book.");
+            bubuBookOptional = storage.readBubuBook();
+            if (bubuBookOptional.isEmpty()) {
+                logger.info("Creating a new data file " + storage.getBubuBookFilePath()
+                        + " populated with a sample BubuBook.");
             }
-            initialData = groomingBookOptional.orElseGet(SampleDataUtil::getSampleGroomingBook);
+            initialData = bubuBookOptional.orElseGet(SampleDataUtil::getSampleBubuBook);
         } catch (DataLoadingException e) {
-            isGroomingBookCorrupted = true;
-            logger.warning("Data file at " + storage.getGroomingBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty grooming book.");
-            initialData = new GroomingBook();
+            isBubuBookCorrupted = true;
+            logger.warning("Data file at " + storage.getBubuBookFilePath() + " could not be loaded."
+                    + " Will be starting with an empty BubuBook.");
+            initialData = new BubuBook();
         }
 
         return new ModelManager(initialData, userPrefs);
