@@ -10,9 +10,6 @@ List clients
   list
   list-clients [q/KEYWORD]
 
-Edit client
-  edit INDEX [n/NAME] [i/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
-
 Find clients
   find KEYWORD [MORE_KEYWORDS]
 
