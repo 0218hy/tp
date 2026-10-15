@@ -122,6 +122,12 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+The `help` command returns the command reference stored in
+`src/main/resources/help/CommandReference.md`. `MainWindow` displays this result in
+`ResultDisplay`, which renders command names and command formats with distinct styles in a scrollable inline view.
+The **Help** menu item and <kbd>F1</kbd> invoke the same command. When adding or changing a command, keep this
+reference in sync with the User Guide.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -211,10 +217,12 @@ an error. `clear` removes clients and pets while retaining the appointment histo
 At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
 schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.
 
-**Pending integration:** the default app parser reports scheduling as unavailable until the real owner/pet lookup is
-provided. Once that feature is ready, startup can construct
-`new LogicManager(model, storage, new BuBuParser(participantLookup))`.
-The full parse, execute, save, and restart flow is tested with a test-only lookup; production has no permissive stub.
+The default app parser enables scheduling directly. `AddAppointmentCommand` checks the complete saved client
+and pet lists at execution time, independently of display filters. The owner phone must identify a registered
+client, and the pet must belong to that owner. Pet matching uses `PetName.getNormalizedName()` so case and
+repeated whitespace do not affect identity. Appointments use the shared `PetName` value type while JSON still
+stores names as strings. Historical appointments can load even after their client or pet has been removed.
+The full create-client, create-pet, schedule, save, and restart flow is tested through the default parser.
 
 ### Common classes
 

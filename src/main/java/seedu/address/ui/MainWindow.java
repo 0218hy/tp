@@ -15,6 +15,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.ui.client.ClientListPanel;
@@ -26,6 +27,8 @@ import seedu.address.ui.client.ClientListPanel;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final double DEFAULT_RESULT_DISPLAY_HEIGHT = 100;
+    private static final double HELP_RESULT_DISPLAY_HEIGHT = 300;
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -36,7 +39,6 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private ClientListPanel clientListPanel;
     private ResultDisplay resultDisplay;
-    private HelpWindow helpWindow;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -70,7 +72,6 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        helpWindow = new HelpWindow();
     }
 
     public Stage getPrimaryStage() {
@@ -99,8 +100,8 @@ public class MainWindow extends UiPart<Stage> {
          * not work when the focus is in them because the key event is consumed by
          * the TextInputControl(s).
          *
-         * For now, we add the following event filter to capture such key events and open
-         * the help window purposely so as to support accelerators even when focus is
+         * For now, we add the following event filter to capture such key events and execute
+         * the Help command purposely so as to support accelerators even when focus is
          * in CommandBox or ResultDisplay.
          */
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
@@ -120,6 +121,7 @@ public class MainWindow extends UiPart<Stage> {
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        setResultDisplayHeight(DEFAULT_RESULT_DISPLAY_HEIGHT);
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -141,14 +143,14 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens the help window or focuses on it if it's already opened.
+     * Displays the command reference in the result display.
      */
     @FXML
     public void handleHelp() {
-        if (!helpWindow.isShowing()) {
-            helpWindow.show();
-        } else {
-            helpWindow.focus();
+        try {
+            executeCommand(HelpCommand.COMMAND_WORD);
+        } catch (CommandException | ParseException exception) {
+            logger.warning("Unable to display the command reference: " + exception.getMessage());
         }
     }
 
@@ -164,7 +166,6 @@ public class MainWindow extends UiPart<Stage> {
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
-        helpWindow.hide();
         primaryStage.hide();
     }
 
@@ -181,11 +182,13 @@ public class MainWindow extends UiPart<Stage> {
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-
             if (commandResult.isShowHelp()) {
-                handleHelp();
+                resultDisplay.setHelpContent(commandResult.getFeedbackToUser());
+            } else {
+                resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             }
+            setResultDisplayHeight(commandResult.isShowHelp()
+                    ? HELP_RESULT_DISPLAY_HEIGHT : DEFAULT_RESULT_DISPLAY_HEIGHT);
 
             if (commandResult.isExit()) {
                 handleExit();
@@ -195,7 +198,17 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
+            setResultDisplayHeight(DEFAULT_RESULT_DISPLAY_HEIGHT);
             throw e;
         }
+    }
+
+    /**
+     * Sets the height of the result display area.
+     */
+    private void setResultDisplayHeight(double height) {
+        resultDisplayPlaceholder.setMinHeight(height);
+        resultDisplayPlaceholder.setPrefHeight(height);
+        resultDisplayPlaceholder.setMaxHeight(height);
     }
 }

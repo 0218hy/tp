@@ -157,6 +157,41 @@
     -fx-text-fill: black !important;
 }
 
+.help-display {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.help-display > .viewport {
+    -fx-background-color: transparent;
+}
+
+.help-content {
+    -fx-padding: 8px 12px;
+}
+
+.help-heading {
+    -fx-fill: white;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 16px;
+}
+
+.help-command-name {
+    -fx-fill: white;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 13px;
+}
+
+.help-command-format {
+    -fx-fill: #79c8ff;
+    -fx-font-family: "Monospaced";
+    -fx-font-size: 13px;
+}
+
+.help-spacing {
+    -fx-font-size: 7px;
+}
+
 .status-bar .label {
     -fx-font-family: "Segoe UI Light";
     -fx-text-fill: white;

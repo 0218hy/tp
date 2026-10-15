@@ -11,6 +11,7 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.PetName;
 
 public class AppointmentTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
@@ -20,7 +21,7 @@ public class AppointmentTest {
     public void constructor_validAppointment_preservesFields() {
         Appointment appointment = create("10:30", "12:00");
         assertEquals(OWNER_PHONE, appointment.getOwnerPhone());
-        assertEquals("BuBu", appointment.getPetName());
+        assertEquals(new PetName("BuBu"), appointment.getPetName());
         assertEquals(DATE, appointment.getDate());
         assertEquals(new StartTime("10:30"), appointment.getStartTime());
         assertEquals(new EndTime("12:00"), appointment.getEndTime());
@@ -53,7 +54,7 @@ public class AppointmentTest {
     public void constructor_petName_normalisesWhitespaceAndValidates() {
         Appointment appointment = new Appointment(OWNER_PHONE, "  BuBu   Junior  ", DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
-        assertEquals("BuBu Junior", appointment.getPetName());
+        assertEquals(new PetName("BuBu Junior"), appointment.getPetName());
         for (String name : new String[]{"", "   ", "Bu/Bu", "a".repeat(41)}) {
             assertThrows(IllegalArgumentException.class, () -> new Appointment(OWNER_PHONE, name, DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM));
@@ -110,10 +111,10 @@ public class AppointmentTest {
 
     @Test
     public void constructor_petName_acceptsLengthBoundariesAndAllowedCharacters() {
-        for (String name : new String[]{"A", "a".repeat(40), "Mr. O'Malley-2"}) {
+        for (String name : new String[]{"A", "a".repeat(40), "Mr. O'Malley-2", "小白", "Café"}) {
             Appointment appointment = new Appointment(OWNER_PHONE, name, DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
-            assertEquals(name, appointment.getPetName());
+            assertEquals(new PetName(name), appointment.getPetName());
         }
     }
 

@@ -46,7 +46,7 @@ public class LogicManager implements Logic {
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
-        this(model, storage, new BuBuParser(), false);
+        this(model, storage, false);
     }
 
     /**
@@ -54,23 +54,9 @@ public class LogicManager implements Logic {
      * Commands cannot save records when this state is true.
      */
     public LogicManager(Model model, Storage storage, boolean isGroomingBookCorrupted) {
-        this(model, storage, new BuBuParser(), isGroomingBookCorrupted);
-    }
-
-    /** Constructs logic with a parser configured for the available feature dependencies. */
-    public LogicManager(Model model, Storage storage, BuBuParser buBuParser) {
-        this(model, storage, buBuParser, false);
-    }
-
-    /**
-     * Constructs logic with parser dependencies and the grooming book corruption state.
-     * Commands report a data error if existing records could not be loaded.
-     */
-    public LogicManager(Model model, Storage storage, BuBuParser buBuParser,
-            boolean isGroomingBookCorrupted) {
         this.model = model;
         this.storage = storage;
-        this.buBuParser = buBuParser;
+        this.buBuParser = new BuBuParser();
         this.isGroomingBookCorrupted = isGroomingBookCorrupted;
     }
 

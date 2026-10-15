@@ -18,11 +18,14 @@ import seedu.address.logic.parser.Prefix;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
+import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.PetName;
+import seedu.address.testutil.ClientBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class AddAppointmentCommandParserTest {
     private static final String VALID_ARGS = "i/91234567 p/BuBu d/01-01-9999 st/10:00 et/11:00 s/Full groom";
@@ -33,8 +36,7 @@ public class AddAppointmentCommandParserTest {
             AppointmentCliSyntax.PREFIX_START_TIME, AppointmentCliSyntax.PREFIX_END_TIME,
             AppointmentCliSyntax.PREFIX_SERVICE);
 
-    private final ParticipantLookupStub lookup = new ParticipantLookupStub();
-    private final AddAppointmentCommandParser parser = new AddAppointmentCommandParser(lookup);
+    private final AddAppointmentCommandParser parser = new AddAppointmentCommandParser();
 
     @Test
     public void parse_validArgumentsWithOrWithoutLeadingSpace_success() {
@@ -98,7 +100,7 @@ public class AddAppointmentCommandParserTest {
     @Test
     public void parse_invalidOrEmptyPetName_failure() {
         for (String name : List.of("", "   ", "Bu/Bu", "a".repeat(41))) {
-            assertInvalid("BuBu", name, Appointment.MESSAGE_PET_NAME_CONSTRAINTS);
+            assertInvalid("BuBu", name, PetName.MESSAGE_CONSTRAINTS);
         }
     }
 
@@ -132,31 +134,30 @@ public class AddAppointmentCommandParserTest {
     @Test
     public void parse_unrecognisedPrefix_failure() {
         assertParseFailure(parser, VALID_ARGS + " x/extra", Service.MESSAGE_CONSTRAINTS);
-        assertInvalid("BuBu", "BuBu x/extra", Appointment.MESSAGE_PET_NAME_CONSTRAINTS);
+        assertInvalid("BuBu", "BuBu x/extra", PetName.MESSAGE_CONSTRAINTS);
     }
 
     @Test
     public void parse_pastDate_defersExecutionChecks() {
-        lookup.ownerExists = false;
         assertParseSuccess(parser, VALID_ARGS.replace("01-01-9999", "01-01-2000"),
                 expected("BuBu", "01-01-2000", "10:00", "11:00", Service.FULL_GROOM));
-        assertEquals(0, lookup.calls);
     }
 
     @Test
     public void parseAndExecute_validArguments_addsExpectedAppointment() throws Exception {
         ModelManager model = new ModelManager();
+        Client owner = new ClientBuilder().withPhone("91234567").build();
+        model.addClient(owner);
+        model.addPet(new PetBuilder(owner).withName("BuBu").build());
         parser.parse(VALID_ARGS).execute(model);
         Appointment appointment = new Appointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
-        assertEquals(2, lookup.calls);
     }
 
     @Test
-    public void parseAndExecute_missingOwner_usesSuppliedLookup() throws Exception {
+    public void parseAndExecute_missingOwner_rejectsAppointment() throws Exception {
         AddAppointmentCommand command = parser.parse(VALID_ARGS);
-        lookup.ownerExists = false;
         ModelManager model = new ModelManager();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
@@ -164,38 +165,18 @@ public class AddAppointmentCommandParserTest {
     }
 
     @Test
-    public void constructorAndParse_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new AddAppointmentCommandParser(null));
+    public void parse_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
 
     private AddAppointmentCommand expected(String petName, String date, String start, String end,
             Service service) {
         return new AddAppointmentCommand(new Appointment(new Phone("91234567"), petName, new AppointmentDate(date),
-                new StartTime(start), new EndTime(end), service), lookup);
+                new StartTime(start), new EndTime(end), service));
     }
 
     private void assertInvalid(String field, String replacement, String message) {
         assertParseFailure(parser, VALID_ARGS.replace(field, replacement), message);
     }
 
-    /**
-     * Test-only lookup that records whether parsing prematurely queries participants.
-     */
-    private static class ParticipantLookupStub implements AppointmentParticipantLookup {
-        private boolean ownerExists = true;
-        private int calls;
-
-        @Override
-        public boolean hasOwner(Phone ownerPhone) {
-            calls++;
-            return ownerExists && ownerPhone.equals(new Phone("91234567"));
-        }
-
-        @Override
-        public boolean hasPet(Phone ownerPhone, String petName) {
-            calls++;
-            return ownerPhone.equals(new Phone("91234567")) && petName.equals("BuBu");
-        }
-    }
 }

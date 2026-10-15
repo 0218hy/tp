@@ -23,7 +23,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
-5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to display the command reference.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -68,9 +68,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Displays a scrollable list of available commands and their formats in the result display below the command entry box. Command names are emphasised and command formats use a distinct monospace font for easier scanning.
 
-![help message](images/helpMessage.png)
+You can display this reference by entering `help`, selecting **Help** from the menu, or pressing <kbd>F1</kbd>. The result display expands while the reference is shown and returns to its usual size after the next command.
 
 Format: `help`
 
@@ -254,6 +254,19 @@ Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
 Example:
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
+### Scheduling an appointment: `add-appointment`
+
+Schedules a grooming appointment for a pet registered under an existing client.
+
+Format: `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
+
+* Use the client's saved phone number and a pet registered under that client. Pet names ignore case and repeated spaces.
+* The appointment must start in the future, using Singapore time, and must not overlap another appointment.
+* Times use half-hour slots between 08:00 and 20:00, with a duration of at least 30 minutes.
+* Services are `Bath and brush`, `Full groom`, `Nail trim`, or `Other`.
+
+Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom`
+
 ### Listing appointments: `list-appointments`
 
 Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
@@ -307,6 +320,7 @@ Format: `exit`
 
 Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
+Bookings use the same data file as their registered clients and pets.
 
 ### Editing the data file
 
@@ -335,8 +349,6 @@ _Details coming soon ..._
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## Command summary
@@ -347,11 +359,13 @@ Action | Format, Examples
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**List** | `list`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
+**Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DATE t/TIME` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
 **Clear** | `clear`
 **Help** | `help`
