@@ -13,12 +13,11 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.appointment.Appointment;
-import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 
 /**
  * Schedules a grooming appointment after verifying its participants and start time.
- * Requires an owner/pet lookup implementation to be supplied by the corresponding features.
+ * Resolves participants from the saved client and pet records when the command executes.
  */
 public class AddAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "add-appointment";
@@ -35,38 +34,39 @@ public class AddAppointmentCommand extends Command {
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
 
     private final Appointment toSchedule;
-    private final AppointmentParticipantLookup participantLookup;
     private final Clock clock;
 
     /**
      * Creates a command for normal application use, using the real clock in Singapore.
      * Delegates to the constructor below so both constructors share the same setup.
      */
-    public AddAppointmentCommand(Appointment appointment, AppointmentParticipantLookup participantLookup) {
-        this(appointment, participantLookup, Clock.system(SINGAPORE_ZONE));
+    public AddAppointmentCommand(Appointment appointment) {
+        this(appointment, Clock.system(SINGAPORE_ZONE));
     }
 
     /**
      * Creates a command with a supplied clock. Tests use a fixed clock so their results
      * do not depend on the actual date and time when the tests run.
      */
-    public AddAppointmentCommand(Appointment appointment,
-            AppointmentParticipantLookup participantLookup, Clock clock) {
-        requireAllNonNull(appointment, participantLookup, clock);
+    public AddAppointmentCommand(Appointment appointment, Clock clock) {
+        requireAllNonNull(appointment, clock);
         toSchedule = appointment;
-        this.participantLookup = participantLookup;
         this.clock = clock.withZone(SINGAPORE_ZONE);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        // TODO: Replace participantLookup with Model owner/pet lookup methods once those features are available.
-        // TODO: Remove AppointmentParticipantLookup and its constructor parameter after updating the tests.
-        if (!participantLookup.hasOwner(toSchedule.getOwnerPhone())) {
+        long matchingOwners = model.getGroomingBook().getClientList().stream()
+                .filter(client -> client.getPhone().equals(toSchedule.getOwnerPhone()))
+                .count();
+        if (matchingOwners != 1) {
             throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
         }
-        if (!participantLookup.hasPet(toSchedule.getOwnerPhone(), toSchedule.getPetName())) {
+        boolean hasPet = model.getGroomingBook().getPetList().stream()
+                .anyMatch(pet -> pet.getOwner().getPhone().equals(toSchedule.getOwnerPhone())
+                        && pet.getName().getNormalizedName().equals(toSchedule.getPetName().getNormalizedName()));
+        if (!hasPet) {
             throw new CommandException(MESSAGE_PET_NOT_FOUND);
         }
 

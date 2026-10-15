@@ -277,15 +277,18 @@ Example:
 If the current displayed list is not the pet list, an index-based deletion is rejected. Identifier-based deletion
 searches all saved pet profiles.
 
-### Adding an appointment: `add-appointment`
+### Scheduling an appointment: `add-appointment`
 
-Schedules a grooming appointment for a registered pet. The owner identifier is the owner's phone number.
+Schedules a grooming appointment for a pet registered under an existing client.
 
-Format: `add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
+Format: `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 
-The owner and pet must exist, the start time must be in the future in Singapore time, and the new time slot must not
-overlap any existing appointment. Back-to-back appointments are allowed. In the default application startup,
-appointment scheduling remains unavailable until owner and pet lookup is connected.
+* Use the client's saved phone number and a pet registered under that client. Pet names ignore case and repeated spaces.
+* The appointment must start in the future, using Singapore time, and must not overlap another appointment.
+* Times use half-hour slots between 08:00 and 20:00, with a duration of at least 30 minutes.
+* Services are `Bath and brush`, `Full groom`, `Nail trim`, or `Other`.
+
+Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom`
 
 ### Listing appointments: `list-appointments`
 
@@ -342,6 +345,7 @@ Format: `exit`
 
 Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
+Bookings use the same data file as their registered clients and pets.
 
 ### Editing the data file
 
@@ -380,11 +384,12 @@ Action | Format, Examples
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**List** | `list`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
-**Add appointment** | `add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DATE st/START_TIME et/END_TIME s/SERVICE`
+**Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
 **Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DATE t/TIME` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
 **Clear** | `clear`

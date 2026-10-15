@@ -20,7 +20,6 @@ import seedu.address.logic.parser.client.ClientParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
@@ -31,16 +30,6 @@ import seedu.address.model.client.Phone;
  * are performed when the command executes, not while parsing.
  */
 public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand> {
-    private final AppointmentParticipantLookup participantLookup;
-
-    /**
-     * Creates a parser that passes the supplied lookup to each scheduling command.
-     */
-    public AddAppointmentCommandParser(AppointmentParticipantLookup participantLookup) {
-        // TODO: Remove this dependency when AddAppointmentCommand uses Model owner/pet lookup methods.
-        this.participantLookup = requireNonNull(participantLookup);
-    }
-
     @Override
     public AddAppointmentCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -62,7 +51,7 @@ public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand
                     new StartTime(arguments.getValue(PREFIX_START_TIME).get()),
                     new EndTime(arguments.getValue(PREFIX_END_TIME).get()),
                     Service.fromString(arguments.getValue(PREFIX_SERVICE).get()));
-            return new AddAppointmentCommand(appointment, participantLookup);
+            return new AddAppointmentCommand(appointment);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

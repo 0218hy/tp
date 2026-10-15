@@ -38,7 +38,7 @@ public class JsonAdaptedAppointment {
 
     /** Copies an appointment into its JSON representation. */
     public JsonAdaptedAppointment(Appointment source) {
-        this(source.getOwnerPhone().toString(), source.getPetName(), source.getDate().toString(),
+        this(source.getOwnerPhone().toString(), source.getPetName().toString(), source.getDate().toString(),
                 source.getStartTime().toString(), source.getEndTime().toString(), source.getService().toString());
     }
 
