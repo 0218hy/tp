@@ -83,8 +83,7 @@ ongoing and future appointments. The selected panel remains visible until anothe
 
 Index-based deletion commands use the corresponding displayed list. For example, run `list-pets` before
 `delete-pet 1` and run `list-appointments` before `delete-appointment 1`. If the wrong record type is currently
-displayed, the deletion is rejected rather than applying the index to another list. `edit INDEX` resolves against
-the filtered client list.
+displayed, the deletion is rejected rather than applying the index to another list.
 
 
 ### Adding a client: `add-client`
@@ -134,21 +133,10 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
-### Editing a person: `edit`
+### Editing records [planned]
 
-Edits an existing person in the address book.
-
-Format: `edit INDEX [n/NAME] [i/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
-
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
-
-Examples:
-*  `edit 1 i/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+Editing existing records is not supported in the MVP and is planned for a future release.
+The legacy `edit` command is disabled and returns `Unknown command.` without changing any records.
 
 ### Locating persons by name: `find`
 
@@ -382,7 +370,6 @@ Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
-**Edit Client** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`

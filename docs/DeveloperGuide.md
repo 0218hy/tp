@@ -168,7 +168,6 @@ How the parsing works:
 
 Index-based commands accept exactly one positive integer index:
 
-* `edit INDEX` resolves against the current filtered client list and is intended for the client view.
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
