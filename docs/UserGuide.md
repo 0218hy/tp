@@ -34,7 +34,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
 
    * `delete-client i/91234567` : Deletes the person with phone number `91234567`.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all clients, pets, and appointments.
 
    * `exit` : Exits the app.
 
@@ -319,7 +319,9 @@ rejected when the current displayed list is not the appointment list.
 
 ### Clearing all entries: `clear`
 
-Clears all clients and pets. Saved appointments are retained in the shared BubuBook.
+Clears all clients, pets, and appointments, including past and future bookings and records hidden by filters.
+The command takes effect immediately without confirmation and saves the empty BubuBook automatically.
+If saving fails, the previous records are restored and an error is displayed.
 
 Format: `clear`
 

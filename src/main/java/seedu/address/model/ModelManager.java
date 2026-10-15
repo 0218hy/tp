@@ -148,8 +148,8 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void clearClientsAndPets() {
-        bubuBook.clearClientsAndPets();
+    public void clearBubuBook() {
+        bubuBook.clear();
     }
 
     @Override

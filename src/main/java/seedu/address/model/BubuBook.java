@@ -102,8 +102,9 @@ public class BubuBook implements ReadOnlyBubuBook {
         pets.remove(pet);
     }
 
-    /** Clears client and pet records together, retaining the historical schedule. */
-    public void clearClientsAndPets() {
+    /** Clears all clients, pets, and appointments, preserving the observable lists. */
+    public void clear() {
+        appointments.setAppointments(List.of());
         pets.setPets(List.of());
         clients.setClients(List.of());
     }

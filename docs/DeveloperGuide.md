@@ -51,8 +51,8 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 appointment deletion also accepts a date/time pair.
 
 Replacing the BubuBook validates all collections before changing existing records and keeps
-observable list views connected to the model. Client edits update linked pet owners. Historical
-appointments remain available when `clear` removes clients and pets.
+observable list views connected to the model. Client edits update linked pet owners.
+The `clear` command removes all clients, pets, and appointments, including historical bookings.
 
 All clients, pets, and appointments are saved together in `data/bububook.json` through
 `JsonBubuBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
@@ -233,7 +233,8 @@ The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManage
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
 `BubuBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
 `LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
-an error. `clear` removes clients and pets while retaining the appointment history in the same file.
+an error. `clear` removes all clients, pets, and appointments, including historical and future bookings,
+and saves the empty BubuBook in the same file.
 
 At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
 schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.

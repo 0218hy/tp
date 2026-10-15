@@ -101,7 +101,7 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public void clearClientsAndPets() {
+        public void clearBubuBook() {
             throw new AssertionError("This method should not be called.");
         }
 

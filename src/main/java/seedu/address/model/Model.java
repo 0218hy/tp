@@ -44,8 +44,8 @@ public interface Model {
     /** Replaces the appointment schedule after validating all slots. */
     void setAppointments(List<Appointment> appointments);
 
-    /** Clears clients and pets together, retaining historical appointments. */
-    void clearClientsAndPets();
+    /** Clears all clients, pets, and appointments. */
+    void clearBubuBook();
 
     /**
      * Adds an appointment that does not overlap an existing appointment.
