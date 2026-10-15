@@ -254,6 +254,19 @@ Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
 Example:
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
 
+### Scheduling an appointment: `add-appointment`
+
+Schedules a grooming appointment for a pet registered under an existing client.
+
+Format: `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
+
+* Use the client's saved phone number and a pet registered under that client. Pet names ignore case and repeated spaces.
+* The appointment must start in the future, using Singapore time, and must not overlap another appointment.
+* Times use half-hour slots between 08:00 and 20:00, with a duration of at least 30 minutes.
+* Services are `Bath and brush`, `Full groom`, `Nail trim`, or `Other`.
+
+Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Full groom`
+
 ### Listing appointments: `list-appointments`
 
 Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
@@ -281,7 +294,7 @@ Format: `exit`
 
 Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Scheduling in the app is pending owner/pet lookup integration; once enabled, bookings use this same data file.
+Bookings use the same data file as their registered clients and pets.
 
 ### Editing the data file
 
@@ -327,4 +340,5 @@ Action | Format, Examples
 **List appointments** | `list-appointments`
 **Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Clear** | `clear`
+**Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **Help** | `help`

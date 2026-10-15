@@ -19,7 +19,6 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
@@ -27,7 +26,6 @@ import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
-import seedu.address.model.appointment.AppointmentParticipantLookup;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
@@ -76,6 +74,24 @@ public class AppointmentPersistenceTest {
     }
 
     @Test
+    public void createClientPetAndAppointment_throughCommands_preservesRecordsAfterRestart() throws Exception {
+        logic.execute("add-client n/Jane Tan i/81234567 e/jane@example.com a/123 Clementi Road");
+        logic.execute("add-pet p/Café 小白 i/81234567 s/Dog r/Calm with baths");
+        String booking = "add-appointment i/81234567 p/CAFÉ   小白 "
+                + "d/01-01-9999 st/10:00 et/11:00 s/Full groom";
+        logic.execute(booking);
+
+        Appointment expected = new Appointment(new Phone("81234567"),
+                "CAFÉ 小白", new AppointmentDate("01-01-9999"), new StartTime("10:00"),
+                new EndTime("11:00"), Service.FULL_GROOM);
+        assertEquals(List.of(expected), model.getGroomingBook().getAppointmentList());
+        Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
+        assertEquals(model.getGroomingBook(), restarted.getGroomingBook());
+        logicFor(restarted, storage).execute(booking.replace("01-01-9999", "02-01-9999"));
+        assertEquals(2, restarted.getGroomingBook().getAppointmentList().size());
+    }
+
+    @Test
     public void startup_missingGroomingBook_usesSampleDataWithoutCreatingFiles() throws Exception {
         Files.delete(storage.getGroomingBookFilePath());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
@@ -109,11 +125,11 @@ public class AppointmentPersistenceTest {
     }
 
     @Test
-    public void scheduleWithoutLookup_reportsPendingIntegrationAndDoesNotSave() throws Exception {
+    public void scheduleWithMissingPet_rejectsAndDoesNotSave() throws Exception {
         String before = Files.readString(storage.getGroomingBookFilePath());
-        LogicManager defaultLogic = new LogicManager(model, storage);
-        ParseException exception = assertThrows(ParseException.class, () -> defaultLogic.execute(COMMAND));
-        assertEquals(BuBuParser.MESSAGE_SCHEDULING_UNAVAILABLE, exception.getMessage());
+        model.deletePet(model.getGroomingBook().getPetList().getFirst());
+        CommandException exception = assertThrows(CommandException.class, () -> logic.execute(COMMAND));
+        assertEquals(AddAppointmentCommand.MESSAGE_PET_NOT_FOUND, exception.getMessage());
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
         assertEquals(before, Files.readString(storage.getGroomingBookFilePath()));
     }
@@ -173,19 +189,7 @@ public class AppointmentPersistenceTest {
     }
 
     private LogicManager logicFor(Model target, StorageManager targetStorage) {
-        // A test-only registry; production must supply the real owner/pet feature implementation.
-        AppointmentParticipantLookup lookup = new AppointmentParticipantLookup() {
-            @Override
-            public boolean hasOwner(Phone ownerPhone) {
-                return ownerPhone.equals(ALICE.getPhone());
-            }
-
-            @Override
-            public boolean hasPet(Phone ownerPhone, String petName) {
-                return hasOwner(ownerPhone) && petName.equals("BuBu");
-            }
-        };
-        return new LogicManager(target, targetStorage, new BuBuParser(lookup));
+        return new LogicManager(target, targetStorage);
     }
 
     private GroomingBook historicalBook() {
