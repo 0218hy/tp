@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.appointment.AddAppointmentCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -122,16 +123,52 @@ public class AppointmentPersistenceTest {
     }
 
     @Test
-    public void clearContacts_savesEmptyContactsAndRetainsScheduleInSameFile() throws Exception {
+    public void clearAllRecords_includingFilteredAndHistoricalRecords_persistsAfterRestart() throws Exception {
+        model.setAppointments(historicalBook().getAppointmentList());
         logic.execute(COMMAND);
-        logic.execute("clear");
-        assertTrue(model.getGroomingBook().getClientList().isEmpty());
-        assertTrue(model.getGroomingBook().getPetList().isEmpty());
-        assertEquals(1, model.getGroomingBook().getAppointmentList().size());
+        var clients = model.getFilteredClientList();
+        var pets = model.getFilteredPetList();
+        var appointments = model.getFilteredAppointmentList();
+        model.updateFilteredClientList(unused -> false);
+        model.updateFilteredPetList(unused -> false);
+        model.updateFilteredAppointmentList(unused -> false);
+
+        assertEquals(ClearCommand.MESSAGE_SUCCESS, logic.execute("clear").getFeedbackToUser());
+
+        assertEquals(new GroomingBook(), model.getGroomingBook());
+        model.updateFilteredClientList(Model.PREDICATE_SHOW_ALL_CLIENTS);
+        model.updateFilteredPetList(Model.PREDICATE_SHOW_ALL_PETS);
+        model.updateFilteredAppointmentList(Model.PREDICATE_SHOW_ALL_APPOINTMENTS);
+        assertTrue(clients.isEmpty());
+        assertTrue(pets.isEmpty());
+        assertTrue(appointments.isEmpty());
         assertEquals(model.getGroomingBook(), storage.readGroomingBook().orElseThrow());
+        Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
+        assertEquals(new GroomingBook(), restarted.getGroomingBook());
         try (var paths = Files.list(temporaryFolder)) {
             assertEquals(List.of(storage.getGroomingBookFilePath()), paths.toList());
         }
+    }
+
+    @Test
+    public void clearSaveFails_restoresAllRecordsAndPreservesSavedFile() throws Exception {
+        model.setAppointments(historicalBook().getAppointmentList());
+        logic.execute(COMMAND);
+        GroomingBook before = new GroomingBook(model.getGroomingBook());
+        String savedBefore = Files.readString(storage.getGroomingBookFilePath());
+        JsonGroomingBookStorage failingStorage = new JsonGroomingBookStorage(storage.getGroomingBookFilePath()) {
+            @Override
+            public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
+                throw new IOException("write failed");
+            }
+        };
+        LogicManager failingLogic = logicFor(model, storageWith(failingStorage));
+
+        CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute("clear"));
+
+        assertEquals(String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "write failed"), exception.getMessage());
+        assertEquals(before, model.getGroomingBook());
+        assertEquals(savedBefore, Files.readString(storage.getGroomingBookFilePath()));
     }
 
     @Test

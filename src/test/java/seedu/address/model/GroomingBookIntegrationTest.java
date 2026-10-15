@@ -53,8 +53,7 @@ public class GroomingBookIntegrationTest {
         GroomingBook replacement = populatedBook();
 
         book.resetData(replacement);
-        replacement.clearClientsAndPets();
-        replacement.setAppointments(List.of());
+        replacement.clear();
 
         assertEquals(List.of(ALICE), clients);
         assertEquals(List.of(new PetBuilder(ALICE).withBreed("Golden retriever").build()), pets);
