@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -95,6 +96,22 @@ public class DeleteClientCommandTest {
     }
 
     @Test
+    public void execute_unknownPhoneNumber_throwsCommandException() {
+        DeleteClientCommand deleteClientCommand = new DeleteClientCommand(new Phone("81111112"));
+
+        assertCommandFailure(deleteClientCommand, model, "No person with the given phone number exists.");
+    }
+
+    @Test
+    public void getRequiredDisplayType_dependsOnTarget() {
+        assertEquals(java.util.Optional.of(CommandResult.DisplayType.CLIENTS),
+                new DeleteClientCommand(INDEX_FIRST_CLIENT).getRequiredDisplayType());
+        assertEquals(java.util.Optional.empty(),
+                new DeleteClientCommand(model.getGroomingBook().getClientList().get(0).getPhone())
+                        .getRequiredDisplayType());
+    }
+
+    @Test
     public void equals() {
         DeleteClientCommand deleteFirstCommand = new DeleteClientCommand(INDEX_FIRST_CLIENT);
         DeleteClientCommand deleteSecondCommand = new DeleteClientCommand(INDEX_SECOND_CLIENT);
@@ -117,6 +134,7 @@ public class DeleteClientCommandTest {
 
         Phone phone = model.getGroomingBook().getClientList().get(0).getPhone();
         assertTrue(new DeleteClientCommand(phone).equals(new DeleteClientCommand(phone)));
+        assertFalse(new DeleteClientCommand(phone).equals(new DeleteClientCommand(new Phone("81111112"))));
     }
 
     @Test

@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
@@ -242,6 +244,19 @@ public class LogicManagerTest {
     @Test
     public void getFilteredClientList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredClientList().remove(0));
+    }
+
+    @Test
+    public void accessors_delegateToModel() {
+        assertSame(model.getFilteredClientList(), logic.getFilteredClientList());
+        assertSame(model.getFilteredPetList(), logic.getFilteredPetList());
+        assertSame(model.getFilteredAppointmentList(), logic.getFilteredAppointmentList());
+        assertSame(model.getGuiSettings(), logic.getGuiSettings());
+
+        GuiSettings guiSettings = new GuiSettings();
+        logic.setGuiSettings(guiSettings);
+        assertSame(guiSettings, model.getGuiSettings());
+        assertSame(guiSettings, logic.getGuiSettings());
     }
 
     /**

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.GroomingBook;
@@ -130,6 +131,14 @@ public class DeletePetCommandTest {
     }
 
     @Test
+    public void getRequiredDisplayType_dependsOnTarget() {
+        assertEquals(java.util.Optional.of(CommandResult.DisplayType.PETS),
+                new DeletePetCommand(Index.fromOneBased(1)).getRequiredDisplayType());
+        assertEquals(java.util.Optional.empty(),
+                new DeletePetCommand(milo.getName(), ALICE.getPhone()).getRequiredDisplayType());
+    }
+
+    @Test
     public void equals() {
         DeletePetCommand deleteMiloForAlice = new DeletePetCommand(milo.getName(), ALICE.getPhone());
         DeletePetCommand deleteMiloForBob = new DeletePetCommand(milo.getName(), BOB.getPhone());
@@ -138,6 +147,7 @@ public class DeletePetCommandTest {
         assertTrue(deleteMiloForAlice.equals(new DeletePetCommand(milo.getName(), ALICE.getPhone())));
         assertFalse(deleteMiloForAlice.equals(deleteMiloForBob));
         assertFalse(deleteMiloForAlice.equals(new DeletePetCommand(Index.fromOneBased(1))));
+        assertFalse(deleteMiloForAlice.equals(new DeletePetCommand(new PetName("Luna"), ALICE.getPhone())));
         assertFalse(deleteMiloForAlice.equals(null));
         assertFalse(deleteMiloForAlice.equals(
                 new DeleteClientCommand(seedu.address.commons.core.index.Index.fromOneBased(1))));

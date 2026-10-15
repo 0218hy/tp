@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.GroomingBook;
@@ -102,6 +103,14 @@ public class DeleteAppointmentCommandTest {
     }
 
     @Test
+    public void getRequiredDisplayType_dependsOnTarget() {
+        assertEquals(java.util.Optional.of(CommandResult.DisplayType.APPOINTMENTS),
+                new DeleteAppointmentCommand(Index.fromOneBased(1)).getRequiredDisplayType());
+        assertEquals(java.util.Optional.empty(),
+                new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)).getRequiredDisplayType());
+    }
+
+    @Test
     public void equals() {
         DeleteAppointmentCommand byIndex = new DeleteAppointmentCommand(Index.fromOneBased(1));
         DeleteAppointmentCommand byDateAndTime = new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30));
@@ -111,6 +120,8 @@ public class DeleteAppointmentCommandTest {
         assertFalse(byIndex.equals(new DeleteAppointmentCommand(Index.fromOneBased(2))));
         assertEquals(byDateAndTime, new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)));
         assertFalse(byDateAndTime.equals(new DeleteAppointmentCommand(DATE, LocalTime.of(11, 30))));
+        assertFalse(byDateAndTime.equals(new DeleteAppointmentCommand(new AppointmentDate("02-01-2020"),
+                LocalTime.of(10, 30))));
         assertFalse(byIndex.equals(null));
         assertFalse(byIndex.equals(new DeleteClientCommand(Index.fromOneBased(1))));
     }
