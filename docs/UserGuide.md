@@ -391,6 +391,6 @@ Action | Format, Examples
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DATE t/TIME` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/01-01-9999 t/10:30
 **Clear** | `clear`
 **Help** | `help`
