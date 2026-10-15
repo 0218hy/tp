@@ -55,11 +55,11 @@ public class ListClientsCommand extends Command {
         model.updateFilteredClientList(keyword == null ? PREDICATE_SHOW_ALL_CLIENTS : this::matchesKeyword);
         model.sortFilteredClientList();
         if (keyword == null) {
-            return new CommandResult(MESSAGE_SUCCESS);
+            return new CommandResult(MESSAGE_SUCCESS, CommandResult.DisplayType.CLIENTS);
         }
         int count = model.getFilteredClientList().size();
         return new CommandResult(count == 0 ? String.format(MESSAGE_NO_MATCH, keyword)
-                : String.format(MESSAGE_FOUND, count));
+                : String.format(MESSAGE_FOUND, count), CommandResult.DisplayType.CLIENTS);
     }
 
     /**

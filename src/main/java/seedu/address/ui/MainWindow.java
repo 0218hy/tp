@@ -9,16 +9,20 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.CommandResult.DisplayType;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.ui.appointment.AppointmentListPanel;
 import seedu.address.ui.client.ClientListPanel;
+import seedu.address.ui.pet.PetListPanel;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -38,6 +42,8 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private ClientListPanel clientListPanel;
+    private PetListPanel petListPanel;
+    private AppointmentListPanel appointmentListPanel;
     private ResultDisplay resultDisplay;
 
     @FXML
@@ -47,7 +53,7 @@ public class MainWindow extends UiPart<Stage> {
     private MenuItem helpMenuItem;
 
     @FXML
-    private StackPane clientListPanelPlaceholder;
+    private StackPane recordListPanelPlaceholder;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -117,7 +123,11 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         clientListPanel = new ClientListPanel(logic.getFilteredClientList());
-        clientListPanelPlaceholder.getChildren().add(clientListPanel.getRoot());
+        petListPanel = new PetListPanel(logic.getFilteredPetList());
+        appointmentListPanel = new AppointmentListPanel(logic.getFilteredAppointmentList());
+        recordListPanelPlaceholder.getChildren().addAll(clientListPanel.getRoot(), petListPanel.getRoot(),
+                appointmentListPanel.getRoot());
+        showList(DisplayType.CLIENTS);
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
@@ -173,6 +183,21 @@ public class MainWindow extends UiPart<Stage> {
         return clientListPanel;
     }
 
+    private void showList(DisplayType displayType) {
+        if (displayType == DisplayType.UNCHANGED) {
+            return;
+        }
+
+        setListVisibility(clientListPanel.getRoot(), displayType == DisplayType.CLIENTS);
+        setListVisibility(petListPanel.getRoot(), displayType == DisplayType.PETS);
+        setListVisibility(appointmentListPanel.getRoot(), displayType == DisplayType.APPOINTMENTS);
+    }
+
+    private static void setListVisibility(Region listRoot, boolean visible) {
+        listRoot.setVisible(visible);
+        listRoot.setManaged(visible);
+    }
+
     /**
      * Executes the command and returns the result.
      *
@@ -182,6 +207,7 @@ public class MainWindow extends UiPart<Stage> {
         try {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
+            showList(commandResult.getDisplayType());
             if (commandResult.isShowHelp()) {
                 resultDisplay.setHelpContent(commandResult.getFeedbackToUser());
             } else {

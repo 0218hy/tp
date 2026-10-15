@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+BuBu is a **desktop application for managing client contacts, pet profiles, and grooming appointments**, optimized for use through a Command Line Interface (CLI) while retaining the benefits of a Graphical User Interface (GUI).
 
 * Table of Contents
 {:toc}
@@ -73,6 +73,18 @@ Displays a scrollable list of available commands and their formats in the result
 You can display this reference by entering `help`, selecting **Help** from the menu, or pressing <kbd>F1</kbd>. The result display expands while the reference is shown and returns to its usual size after the next command.
 
 Format: `help`
+
+
+### Switching the displayed record list
+
+The GUI contains separate client, pet, and appointment list panels, but shows one panel at a time. A successful
+`list` or `list-clients` command displays clients, `list-pets` displays pets, and `list-appointments` displays
+ongoing and future appointments. The selected panel remains visible until another list command changes it.
+
+Index-based deletion commands use the corresponding displayed list. For example, run `list-pets` before
+`delete-pet 1` and run `list-appointments` before `delete-appointment 1`. If the wrong record type is currently
+displayed, the deletion is rejected rather than applying the index to another list. `edit INDEX` resolves against
+the filtered client list.
 
 
 ### Adding a client: `add-client`
@@ -210,8 +222,8 @@ list does not change.
 
 Format: `list-pets [i/OWNER_IDENTIFIER]`
 
-* Without `i/`, pets are grouped by owner, ordered alphabetically by owner name and then pet name. Owners with the same
-  name remain in separate groups.
+* Without `i/`, pets are grouped by owner and ordered by owner name, owner phone number, and then pet name. Owner and
+  pet names are compared without case differences; owners with the same name remain in separate groups.
 * `OWNER_IDENTIFIER`, if given, must be an existing eight-digit phone number starting with `8` or `9`, without spaces or
   hyphens. Only that client's pets are shown, ordered alphabetically by pet name.
 * Each entry shows the pet's name, species, optional breed, and care requirements. A missing breed is omitted.
@@ -244,15 +256,26 @@ Unknown fields or extra text report `Invalid command format. Check the command s
 
 ### Deleting a pet: `delete-pet`
 
-Deletes the specified pet from the address book.
+Deletes the specified pet from the saved pet profiles.
 
-Format: `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+Formats:
 
-* Both the pet name and its owner's phone number are required to identify the pet.
+```text
+delete-pet INDEX
+delete-pet p/PET_NAME i/OWNER_IDENTIFIER
+```
+
+* `INDEX` must be a positive integer and refers to the currently displayed pet list. Run `list-pets` first when needed.
+* Alternatively, both the pet name and its owner's phone number are required to identify the pet.
 * The owner phone number must contain at least three digits.
+* Provide either an index or the name/owner pair, but not both.
 
 Example:
+* `list-pets` followed by `delete-pet 1` deletes the first displayed pet.
 * `delete-pet p/Milo i/98765432` deletes the pet named `Milo` owned by the person with phone number `98765432`.
+
+If the current displayed list is not the pet list, an index-based deletion is rejected. Identifier-based deletion
+searches all saved pet profiles.
 
 ### Scheduling an appointment: `add-appointment`
 
@@ -280,7 +303,7 @@ This command currently takes no parameters; the optional `d/` date filter is not
 
 ### Deleting an appointment: `delete-appointment`
 
-Deletes a saved grooming appointment using either its appointment-list index or a date and time within the appointment.
+Deletes a saved grooming appointment using either its displayed appointment-list index or a date and time within the appointment.
 
 Formats:
 
@@ -289,7 +312,8 @@ delete-appointment INDEX
 delete-appointment d/DD-MM-YYYY t/HH:mm
 ```
 
-* `INDEX` must be a positive integer and refers to the appointment's one-based position in the appointment list.
+* `INDEX` must be a positive integer and refers to the appointment's one-based position in the currently displayed
+  ongoing/future appointment list. Run `list-appointments` first when needed.
 * The date must be a real date in `DD-MM-YYYY` format.
 * The time may be any valid `HH:mm` value. An appointment matches when the time is at or after its start time and
   before its end time.
@@ -298,15 +322,16 @@ delete-appointment d/DD-MM-YYYY t/HH:mm
 Examples:
 
 * `delete-appointment d/01-01-9999 t/10:30` deletes the appointment containing 10:30 on 1 January 9999.
-* `delete-appointment 1` deletes the first appointment in the appointment list.
+* `delete-appointment 1` deletes the first appointment in the currently displayed appointment list.
 
 If no appointment matches the supplied date and time, the app reports `No appointment was found for the specified date
 and time.` An invalid index reports `The appointment index provided is invalid.` Combining an index with date/time
-identifiers reports `An appointment index cannot be combined with date/time identifiers.`
+identifiers reports `An appointment index cannot be combined with date/time identifiers.` An index-based deletion is
+rejected when the current displayed list is not the appointment list.
 
 ### Clearing all entries: `clear`
 
-Clears all contacts from the address book. Any saved appointments are retained separately.
+Clears all clients and pets. Saved appointments are retained in the shared grooming book.
 
 Format: `clear`
 
@@ -363,7 +388,7 @@ Action | Format, Examples
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
-**Delete pet** | `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
+**Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
 **Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/01-01-9999 t/10:30

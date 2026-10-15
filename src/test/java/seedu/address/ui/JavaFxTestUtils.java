@@ -8,13 +8,14 @@ import javafx.application.Platform;
 /**
  * Utilities for executing assertions on the JavaFX application thread.
  */
-final class JavaFxTestUtils {
+public final class JavaFxTestUtils {
 
     private static boolean isToolkitStarted;
 
     private JavaFxTestUtils() {}
 
-    static synchronized void runAndWait(Runnable action) {
+    /** Executes the action on the JavaFX application thread and waits for it to finish. */
+    public static synchronized void runAndWait(Runnable action) {
         startToolkitIfNeeded();
 
         if (Platform.isFxApplicationThread()) {

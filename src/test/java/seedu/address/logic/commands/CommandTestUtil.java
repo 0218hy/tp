@@ -97,6 +97,15 @@ public class CommandTestUtil {
     }
 
     /**
+     * Convenience wrapper for commands that request a particular list to be displayed.
+     */
+    public static void assertCommandSuccess(Command command, Model actualModel, String expectedMessage,
+            Model expectedModel, CommandResult.DisplayType displayType) {
+        CommandResult expectedCommandResult = new CommandResult(expectedMessage, displayType);
+        assertCommandSuccess(command, actualModel, expectedCommandResult, expectedModel);
+    }
+
+    /**
      * Executes the given {@code command}, confirms that <br>
      * - a {@code CommandException} is thrown <br>
      * - the CommandException message matches {@code expectedMessage} <br>

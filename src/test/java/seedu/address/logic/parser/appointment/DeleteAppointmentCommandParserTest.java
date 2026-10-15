@@ -50,6 +50,12 @@ public class DeleteAppointmentCommandParserTest {
     }
 
     @Test
+    public void parse_indexAndTime_failure() {
+        assertParseFailure(parser, "1 t/10:30",
+                DeleteAppointmentCommandParser.MESSAGE_INDEX_AND_DATE_TIME);
+    }
+
+    @Test
     public void parse_invalidDateOrTime_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteAppointmentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "d/31-02-2020 t/10:30", usage);

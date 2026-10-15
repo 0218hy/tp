@@ -116,7 +116,7 @@ public class ModelManagerTest {
 
         assertEquals(List.of(cat), modelManager.getFilteredPetList());
         modelManager.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
-        assertEquals(List.of(dog, cat), modelManager.getFilteredPetList());
+        assertEquals(List.of(cat, dog), modelManager.getFilteredPetList());
     }
 
     @Test
@@ -141,6 +141,44 @@ public class ModelManagerTest {
         modelManager.deleteAppointment(appointment);
 
         assertTrue(modelManager.getGroomingBook().getAppointmentList().isEmpty());
+    }
+
+    @Test
+    public void updateFilteredAppointmentList_filtersAppointments() {
+        Appointment firstAppointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        Appointment secondAppointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("02-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        modelManager.setAppointments(List.of(firstAppointment, secondAppointment));
+
+        modelManager.updateFilteredAppointmentList(appointment -> appointment.equals(secondAppointment));
+
+        assertEquals(List.of(secondAppointment), modelManager.getFilteredAppointmentList());
+    }
+
+    @Test
+    public void addAndDeleteAppointment_updatesFilteredAppointmentList() {
+        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+
+        modelManager.addAppointment(appointment);
+        assertEquals(List.of(appointment), modelManager.getFilteredAppointmentList());
+
+        modelManager.deleteAppointment(appointment);
+        assertTrue(modelManager.getFilteredAppointmentList().isEmpty());
+    }
+
+    @Test
+    public void getFilteredAppointmentList_modifyList_throwsUnsupportedOperationException() {
+        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        modelManager.addAppointment(appointment);
+
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredAppointmentList().remove(0));
     }
 
     @Test

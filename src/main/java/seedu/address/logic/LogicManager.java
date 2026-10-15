@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -9,6 +10,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.CommandResult.DisplayType;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -19,7 +21,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.GroomingBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Pet;
 import seedu.address.storage.Storage;
 
 /**
@@ -34,6 +38,8 @@ public class LogicManager implements Logic {
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_INVALID_DISPLAY_TYPE =
+            "The current displayed list does not match the record type selected by the index.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -41,6 +47,7 @@ public class LogicManager implements Logic {
     private final Storage storage;
     private final BuBuParser buBuParser;
     private final boolean isGroomingBookCorrupted;
+    private DisplayType currentDisplayType = DisplayType.CLIENTS;
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
@@ -68,13 +75,36 @@ public class LogicManager implements Logic {
         if (isGroomingBookCorrupted) {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
+        ensureRequiredDisplayTypeIsCurrent(command);
         if (command instanceof ListPetsCommand || command instanceof ListAppointmentsCommand) {
-            return command.execute(model);
+            CommandResult commandResult = command.execute(model);
+            updateCurrentDisplayType(commandResult);
+            return commandResult;
         }
         ReadOnlyGroomingBook previousGroomingBook = new GroomingBook(model.getGroomingBook());
         CommandResult commandResult = command.execute(model);
         saveCommandResult(command, previousGroomingBook);
+        updateCurrentDisplayType(commandResult);
         return commandResult;
+    }
+
+    /**
+     * Rejects index-based commands when their required record list is not displayed.
+     */
+    private void ensureRequiredDisplayTypeIsCurrent(Command command) throws CommandException {
+        Optional<DisplayType> requiredDisplayType = command.getRequiredDisplayType();
+        if (requiredDisplayType.isPresent() && requiredDisplayType.get() != currentDisplayType) {
+            throw new CommandException(MESSAGE_INVALID_DISPLAY_TYPE);
+        }
+    }
+
+    /**
+     * Records the list selected by a successful command for subsequent index-based commands.
+     */
+    private void updateCurrentDisplayType(CommandResult commandResult) {
+        if (commandResult.getDisplayType() != DisplayType.UNCHANGED) {
+            currentDisplayType = commandResult.getDisplayType();
+        }
     }
 
     /**
@@ -102,6 +132,16 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Client> getFilteredClientList() {
         return model.getFilteredClientList();
+    }
+
+    @Override
+    public ObservableList<Pet> getFilteredPetList() {
+        return model.getFilteredPetList();
+    }
+
+    @Override
+    public ObservableList<Appointment> getFilteredAppointmentList() {
+        return model.getFilteredAppointmentList();
     }
 
     @Override

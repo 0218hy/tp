@@ -11,6 +11,14 @@ import seedu.address.commons.util.ToStringBuilder;
  */
 public class CommandResult {
 
+    /** Identifies which record list the UI should display after a command succeeds. */
+    public enum DisplayType {
+        UNCHANGED,
+        CLIENTS,
+        PETS,
+        APPOINTMENTS
+    }
+
     private final String feedbackToUser;
 
     /** Help information should be shown to the user. */
@@ -19,13 +27,24 @@ public class CommandResult {
     /** The application should exit. */
     private final boolean exit;
 
+    /** The record list that the UI should display. */
+    private final DisplayType displayType;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, DisplayType.UNCHANGED);
+    }
+
+    /**
+     * Constructs a {@code CommandResult} with the specified fields and display type.
+     */
+    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, DisplayType displayType) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.displayType = requireNonNull(displayType);
     }
 
     /**
@@ -34,6 +53,13 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Constructs a result that asks the UI to display the specified record list.
+     */
+    public CommandResult(String feedbackToUser, DisplayType displayType) {
+        this(feedbackToUser, false, false, displayType);
     }
 
     public String getFeedbackToUser() {
@@ -46,6 +72,10 @@ public class CommandResult {
 
     public boolean isExit() {
         return exit;
+    }
+
+    public DisplayType getDisplayType() {
+        return displayType;
     }
 
     @Override
@@ -61,12 +91,13 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && displayType == otherCommandResult.displayType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, displayType);
     }
 
     @Override
@@ -75,6 +106,7 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("displayType", displayType)
                 .toString();
     }
 

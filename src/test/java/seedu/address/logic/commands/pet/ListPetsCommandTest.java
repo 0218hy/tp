@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -35,18 +36,20 @@ public class ListPetsCommandTest {
     @Test
     public void execute_allPets_groupsAndSortsByOwnerThenPet() throws Exception {
         Model model = createModel();
-        addPet(model, BENSON, "Zoe", Species.CAT, null);
-        addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
-        addPet(model, ALICE, "BuBu", Species.CAT, null);
+        Pet zoe = addPet(model, BENSON, "Zoe", Species.CAT, null);
+        Pet mochi = addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
+        Pet bubu = addPet(model, ALICE, "BuBu", Species.CAT, null);
         List<Pet> savedOrder = List.copyOf(model.getGroomingBook().getPetList());
         model.updateFilteredPetList(pet -> false);
 
         String expected = "All pet profiles\n\nAlice Pauline\n"
                 + "BuBu Cat Daily walk\nmochi Dog Golden retriever Daily walk\n\n"
                 + "Benson Meier\nZoe Cat Daily walk";
-        assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
+        CommandResult result = new ListPetsCommand(null).execute(model);
+        assertEquals(expected, result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(savedOrder, model.getGroomingBook().getPetList());
-        assertEquals(savedOrder, model.getFilteredPetList());
+        assertEquals(List.of(bubu, mochi, zoe), model.getFilteredPetList());
     }
 
     @Test
@@ -73,7 +76,9 @@ public class ListPetsCommandTest {
 
         String expected = "Pets under Alice Pauline\nBuBu Cat Daily walk\n"
                 + "Mochi Dog Golden retriever Daily walk";
-        assertEquals(expected, new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
+        CommandResult result = new ListPetsCommand(ALICE_PREDICATE).execute(model);
+        assertEquals(expected, result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(2, model.getFilteredPetList().size());
         assertTrue(model.getFilteredPetList().stream().allMatch(ALICE_PREDICATE));
     }
@@ -144,12 +149,14 @@ public class ListPetsCommandTest {
      * @param species The pet's species.
      * @param breed The pet's breed, or {@code null} when it is not recorded.
      */
-    private void addPet(Model model, Client owner, String name,
+    private Pet addPet(Model model, Client owner, String name,
             Species species, String breed) {
         PetBuilder builder = new PetBuilder(owner).withName(name).withSpecies(species);
         if (breed != null) {
             builder.withBreed(breed);
         }
-        model.addPet(builder.build());
+        Pet pet = builder.build();
+        model.addPet(pet);
+        return pet;
     }
 }

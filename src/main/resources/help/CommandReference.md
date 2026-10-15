@@ -8,6 +8,7 @@ Add client
 
 List clients
   list
+  list-clients [q/KEYWORD]
 
 Edit client
   edit INDEX [n/NAME] [i/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
@@ -22,10 +23,24 @@ Delete client
 Add pet
   add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 
+List pets
+  list-pets [i/OWNER_IDENTIFIER]
+
 Delete pet
+  delete-pet INDEX
   delete-pet p/PET_NAME i/OWNER_IDENTIFIER
 
-Clear all entries
+Add appointment
+  add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE
+
+List appointments
+  list-appointments
+
+Delete appointment
+  delete-appointment INDEX
+  delete-appointment d/DD-MM-YYYY t/HH:mm
+
+Clear clients and pets
   clear
 
 Exit

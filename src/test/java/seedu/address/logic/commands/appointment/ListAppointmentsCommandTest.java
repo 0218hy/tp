@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -33,13 +34,16 @@ public class ListAppointmentsCommandTest {
         List<Appointment> saved = List.of(nextMonth, tomorrow, later, completed, ongoing);
         model.setAppointments(saved);
 
+        CommandResult result = new ListAppointmentsCommand(CLOCK).execute(model);
         assertEquals("Ongoing and future appointments\n"
                 + "07-10-2026 09:30-10:30; Pet: BuBu; Owner phone: 91234567; Service: Full groom\n"
                 + "07-10-2026 12:00-13:00; Pet: BuBu; Owner phone: 91234567; Service: Full groom\n"
                 + "08-10-2026 08:00-09:00; Pet: BuBu; Owner phone: 91234567; Service: Full groom\n"
                 + "01-11-2026 08:00-09:00; Pet: BuBu; Owner phone: 91234567; Service: Full groom",
-                new ListAppointmentsCommand(CLOCK).execute(model).getFeedbackToUser());
+                result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
         assertEquals(saved, model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(ongoing, later, tomorrow, nextMonth), model.getFilteredAppointmentList());
     }
 
     @Test
@@ -55,11 +59,16 @@ public class ListAppointmentsCommandTest {
     @Test
     public void execute_emptyOrCompletedSchedule_returnsEmptyMessage() {
         ListAppointmentsCommand command = new ListAppointmentsCommand(CLOCK);
-        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, command.execute(model).getFeedbackToUser());
+        CommandResult emptyResult = command.execute(model);
+        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, emptyResult.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS, emptyResult.getDisplayType());
         model.setAppointments(List.of(create("06-10-2026", "19:00", "20:00"),
                 create("07-10-2026", "08:00", "09:00")));
-        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, command.execute(model).getFeedbackToUser());
+        CommandResult completedResult = command.execute(model);
+        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, completedResult.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS, completedResult.getDisplayType());
         assertEquals(2, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 
     @Test

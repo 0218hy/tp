@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -51,6 +52,13 @@ public class DeleteClientCommand extends Command {
     public DeleteClientCommand(Phone phoneNumber) {
         this.phoneNumber = requireNonNull(phoneNumber);
         this.targetIndex = null;
+    }
+
+    @Override
+    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
+        return targetIndex == null
+                ? Optional.empty()
+                : Optional.of(CommandResult.DisplayType.CLIENTS);
     }
 
     @Override

@@ -31,7 +31,15 @@ public class HelpCommandTest {
         assertTrue(commandReference.contains("delete-client i/PHONE_NUMBER"));
         assertTrue(commandReference.contains(
                 "add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS"));
+        assertTrue(commandReference.contains("list-clients [q/KEYWORD]"));
+        assertTrue(commandReference.contains("list-pets [i/OWNER_IDENTIFIER]"));
+        assertTrue(commandReference.contains("delete-pet INDEX"));
         assertTrue(commandReference.contains("delete-pet p/PET_NAME i/OWNER_IDENTIFIER"));
+        assertTrue(commandReference.contains(
+                "add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE"));
+        assertTrue(commandReference.contains("list-appointments"));
+        assertTrue(commandReference.contains("delete-appointment INDEX"));
+        assertTrue(commandReference.contains("delete-appointment d/DD-MM-YYYY t/HH:mm"));
         assertTrue(commandReference.contains("clear"));
         assertTrue(commandReference.contains("exit"));
     }

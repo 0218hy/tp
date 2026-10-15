@@ -33,6 +33,13 @@ public class CommandResultTest {
 
         // different exit value -> returns false
         assertFalse(commandResult.equals(new CommandResult("feedback", false, true)));
+
+        // different display type -> returns false
+        assertFalse(commandResult.equals(new CommandResult("feedback", CommandResult.DisplayType.CLIENTS)));
+
+        // same display type -> returns true
+        assertTrue(new CommandResult("feedback", CommandResult.DisplayType.CLIENTS)
+                .equals(new CommandResult("feedback", CommandResult.DisplayType.CLIENTS)));
     }
 
     @Test
@@ -50,6 +57,10 @@ public class CommandResultTest {
 
         // different exit value -> returns different hashcode
         assertNotEquals(commandResult.hashCode(), new CommandResult("feedback", false, true).hashCode());
+
+        // different display type -> returns different hashcode
+        assertNotEquals(commandResult.hashCode(),
+                new CommandResult("feedback", CommandResult.DisplayType.CLIENTS).hashCode());
     }
 
     @Test
@@ -57,7 +68,14 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", displayType=" + commandResult.getDisplayType() + "}";
         assertEquals(expected, commandResult.toString());
+    }
+
+    @Test
+    public void displayType_defaultAndExplicitValues_areReturned() {
+        assertEquals(CommandResult.DisplayType.UNCHANGED, new CommandResult("feedback").getDisplayType());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS,
+                new CommandResult("feedback", CommandResult.DisplayType.APPOINTMENTS).getDisplayType());
     }
 }

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -54,6 +55,13 @@ public class DeleteAppointmentCommand extends Command {
     }
 
     @Override
+    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
+        return targetIndex == null
+                ? Optional.empty()
+                : Optional.of(CommandResult.DisplayType.APPOINTMENTS);
+    }
+
+    @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
@@ -71,7 +79,7 @@ public class DeleteAppointmentCommand extends Command {
             return appointments.get(targetIndex.getZeroBased());
         }
 
-        return appointments.stream()
+        return model.getGroomingBook().getAppointmentList().stream()
                 .filter(appointment -> appointment.matches(targetDate, targetTime))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_APPOINTMENT_NOT_FOUND));

@@ -15,8 +15,8 @@ import seedu.address.model.pet.Pet;
 public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Client> PREDICATE_SHOW_ALL_CLIENTS = unused -> true;
-    /** {@code Predicate} that always evaluates to true */
     Predicate<Pet> PREDICATE_SHOW_ALL_PETS = unused -> true;
+    Predicate<Appointment> PREDICATE_SHOW_ALL_APPOINTMENTS = unused -> true;
 
     /**
      * Returns the user prefs.

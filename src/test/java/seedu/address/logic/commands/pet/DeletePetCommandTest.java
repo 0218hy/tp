@@ -12,6 +12,8 @@ import static seedu.address.testutil.TypicalClients.BOB;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.GroomingBook;
@@ -53,6 +55,16 @@ public class DeletePetCommandTest {
     }
 
     @Test
+    public void execute_validIndex_deletesPetFromFilteredList() {
+        DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
+        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        expectedModel.deletePet(milo);
+
+        assertCommandSuccess(deletePetCommand, model,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
+    }
+
+    @Test
     public void execute_matchingNameWithDifferentOwner_deletesOnlyMatchingPet() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
 
@@ -85,6 +97,12 @@ public class DeletePetCommandTest {
     }
 
     @Test
+    public void execute_invalidIndex_throwsCommandException() {
+        assertCommandFailure(new DeletePetCommand(Index.fromOneBased(3)), model,
+                DeletePetCommand.MESSAGE_INVALID_PET_DISPLAYED_INDEX);
+    }
+
+    @Test
     public void execute_petHiddenByFilter_deletesPet() {
         model.updateFilteredPetList(pet -> false);
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
@@ -107,8 +125,17 @@ public class DeletePetCommandTest {
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new DeletePetCommand((Index) null));
         assertThrows(NullPointerException.class, () -> new DeletePetCommand(null, ALICE.getPhone()));
         assertThrows(NullPointerException.class, () -> new DeletePetCommand(milo.getName(), null));
+    }
+
+    @Test
+    public void getRequiredDisplayType_dependsOnTarget() {
+        assertEquals(java.util.Optional.of(CommandResult.DisplayType.PETS),
+                new DeletePetCommand(Index.fromOneBased(1)).getRequiredDisplayType());
+        assertEquals(java.util.Optional.empty(),
+                new DeletePetCommand(milo.getName(), ALICE.getPhone()).getRequiredDisplayType());
     }
 
     @Test
@@ -119,6 +146,8 @@ public class DeletePetCommandTest {
         assertTrue(deleteMiloForAlice.equals(deleteMiloForAlice));
         assertTrue(deleteMiloForAlice.equals(new DeletePetCommand(milo.getName(), ALICE.getPhone())));
         assertFalse(deleteMiloForAlice.equals(deleteMiloForBob));
+        assertFalse(deleteMiloForAlice.equals(new DeletePetCommand(Index.fromOneBased(1))));
+        assertFalse(deleteMiloForAlice.equals(new DeletePetCommand(new PetName("Luna"), ALICE.getPhone())));
         assertFalse(deleteMiloForAlice.equals(null));
         assertFalse(deleteMiloForAlice.equals(
                 new DeleteClientCommand(seedu.address.commons.core.index.Index.fromOneBased(1))));
@@ -127,8 +156,11 @@ public class DeletePetCommandTest {
     @Test
     public void toStringMethod() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(new PetName("Milo"), new Phone("98765432"));
+        Index index = Index.fromOneBased(1);
 
         assertEquals(DeletePetCommand.class.getCanonicalName() + "{petName=Milo, ownerPhone=98765432}",
                 deletePetCommand.toString());
+        assertEquals(DeletePetCommand.class.getCanonicalName() + "{targetIndex=" + index + "}",
+                new DeletePetCommand(index).toString());
     }
 }
