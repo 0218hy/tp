@@ -16,7 +16,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -37,15 +37,15 @@ public class DeleteAppointmentCommandTest {
 
     @BeforeEach
     public void setUp() {
-        GroomingBook groomingBook = new GroomingBook();
-        groomingBook.addAppointment(APPOINTMENT);
-        groomingBook.addAppointment(ADJACENT_APPOINTMENT);
-        model = new ModelManager(groomingBook, new UserPrefs());
+        BubuBook bubuBook = new BubuBook();
+        bubuBook.addAppointment(APPOINTMENT);
+        bubuBook.addAppointment(ADJACENT_APPOINTMENT);
+        model = new ModelManager(bubuBook, new UserPrefs());
     }
 
     @Test
     public void execute_validIndex_deletesAppointment() {
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteAppointment(APPOINTMENT);
 
         assertCommandSuccess(new DeleteAppointmentCommand(Index.fromOneBased(1)), model,
@@ -54,7 +54,7 @@ public class DeleteAppointmentCommandTest {
 
     @Test
     public void execute_validDateAndTime_deletesContainingAppointment() {
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteAppointment(APPOINTMENT);
 
         assertCommandSuccess(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)), model,
@@ -65,7 +65,7 @@ public class DeleteAppointmentCommandTest {
     public void execute_startTime_deletesAppointment() throws CommandException {
         new DeleteAppointmentCommand(DATE, LocalTime.of(10, 0)).execute(model);
 
-        assertEquals(List.of(ADJACENT_APPOINTMENT), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(ADJACENT_APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
 
     @Test

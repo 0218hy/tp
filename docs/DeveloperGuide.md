@@ -28,8 +28,8 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Current code organization
 
-`ModelManager` owns one `GroomingBook`, which contains clients, pets, and the appointment schedule.
-Consumers read it through `ReadOnlyGroomingBook` and `Model.getGroomingBook()`.
+`ModelManager` owns one `BubuBook`, which contains clients, pets, and the appointment schedule.
+Consumers read it through `ReadOnlyBubuBook` and `Model.getBubuBook()`.
 `Client` replaces the inherited `Person` type. `UniqueClientList`, `UniquePetList`, and
 `AppointmentList` enforce the rules for each collection inside the shared book.
 
@@ -50,14 +50,17 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 `DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
 appointment deletion also accepts a date/time pair.
 
-Replacing the grooming book validates all collections before changing existing records and keeps
+Replacing the BubuBook validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners.
 The `clear` command removes all clients, pets, and appointments, including historical bookings.
 
-All clients, pets, and appointments are saved together in `data/groombook.json` through
-`JsonGroomingBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
+All clients, pets, and appointments are saved together in `data/bububook.json` through
+`JsonBubuBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
 `preferences.json` remains separate for window settings. The former `addressbook.json` and
 `appointments.json` files are no longer read or written; there is no automatic migration.
+
+When upgrading from a version using `data/groombook.json`, close the app and copy that file to
+`data/bububook.json` before starting the new version. Keep the original file as a backup.
 
 `list-pets` and `list-appointments` read records without saving; record-changing commands save the shared book. Saving writes a temporary file before replacing
 the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
@@ -172,7 +175,7 @@ Index-based commands accept exactly one positive integer index:
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
 * Identifier forms such as `delete-client i/PHONE_NUMBER` and `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
-  search the saved grooming book instead of relying on the displayed list.
+  search the saved BubuBook instead of relying on the displayed list.
 
 `LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
 list is not displayed. This prevents a deletion index from being interpreted against a different record type.
@@ -186,7 +189,7 @@ list is not displayed. This prevents a deletion index from being interpreted aga
 The `Model` component,
 
 * stores clients in `UniqueClientList`, pets in `UniquePetList`, and appointments in `AppointmentList` inside one
-  `GroomingBook`.
+  `BubuBook`.
 * represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
   to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
 * rejects duplicate clients and duplicate pet names for the same owner. `AppointmentList` rejects any appointment that
@@ -194,11 +197,11 @@ The `Model` component,
 * maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
   observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
 * orders pets by owner name (case-insensitive), owner phone number, and normalized pet name. It orders appointments by
-  date and start time. The saved list order in `GroomingBook` is not changed by these display orderings.
+  date and start time. The saved list order in `BubuBook` is not changed by these display orderings.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `BubuBook`, and each `Person` references tags from that list. This lets `BubuBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
@@ -213,25 +216,25 @@ The `Model` component,
 
 The `Storage` component:
 
-* saves the complete grooming book in `data/groombook.json`, with user preferences in `preferences.json`.
-* is implemented by `StorageManager`, which delegates to `JsonGroomingBookStorage` and `JsonUserPrefsStorage`.
-* uses `JsonSerializableGroomingBook` to load and save the three record lists together.
+* saves the complete BubuBook in `data/bububook.json`, with user preferences in `preferences.json`.
+* is implemented by `StorageManager`, which delegates to `JsonBubuBookStorage` and `JsonUserPrefsStorage`.
+* uses `JsonSerializableBubuBook` to load and save the three record lists together.
 * uses `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` in their respective feature packages.
   A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone
   when available, or by name for records without a phone.
 
 #### Appointment persistence
 
-Appointments belong to the shared `GroomingBook` and are saved in the same file as clients and pets.
+Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
 `JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
 Loading accepts historical appointments and rejects invalid or overlapping records.
 
-The scheduling flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/groombook.json`.
+The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
-`GroomingBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
+`BubuBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
 `LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
 an error. `clear` removes all clients, pets, and appointments, including historical and future bookings,
-and saves the empty grooming book in the same file.
+and saves the empty BubuBook in the same file.
 
 At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
 schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.
@@ -257,37 +260,37 @@ This section describes some noteworthy details on how certain features are imple
 
 #### Proposed Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The proposed undo/redo mechanism is facilitated by `VersionedBubuBook`. It extends `BubuBook` with an undo/redo history, stored internally as a `bubuBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+* `VersionedBubuBook#commit()` — Saves the current BubuBook state in its history.
+* `VersionedBubuBook#undo()` — Restores the previous BubuBook state from its history.
+* `VersionedBubuBook#redo()` — Restores a previously undone BubuBook state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitBubuBook()`, `Model#undoBubuBook()` and `Model#redoBubuBook()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+Step 1. The user launches the application for the first time. The `VersionedBubuBook` will be initialized with the initial BubuBook state, and the `currentStatePointer` pointing to that single BubuBook state.
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete-client 5` command to delete the 5th person in the address book. The `delete-client` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete-client 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete-client 5` command to delete the 5th person in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitBubuBook()`, so the BubuBook state will not be saved into the `bubuBookStateList`.
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial BubuBook state, then there are no previous BubuBook states to restore. The `undo` command uses `Model#canUndoBubuBook()` to check if this is the case. If so, it will return an error to the user rather
 than attempting to perform the undo.
 
 </div>
@@ -304,17 +307,17 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoBubuBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the BubuBook to that state.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `bubuBookStateList.size() - 1`, pointing to the latest BubuBook state, then there are no undone BubuBook states to restore. The `redo` command uses `Model#canRedoBubuBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. Commands that do not modify the BubuBook, such as `list`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, which calls `Model#commitBubuBook()`. Since the `currentStatePointer` is not pointing at the end of the `bubuBookStateList`, all BubuBook states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
 
 ![UndoRedoState5](images/UndoRedoState5.png)
 
@@ -326,7 +329,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 **Aspect: How undo & redo execute:**
 
-* **Alternative 1 (current choice):** Saves the entire address book.
+* **Alternative 1 (current choice):** Saves the entire BubuBook.
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
@@ -391,7 +394,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | user                                       | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
 | `*`      | mobile pet groomer                         | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
 | `*`      | mobile pet groomer                         | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
-| `*`      | user with many persons in the address book | sort persons by name                                            | locate a person easily                                                         |
+| `*`      | user with many persons in the BubuBook | sort persons by name                                            | locate a person easily                                                         |
 
 *{More to be added}*
 
@@ -653,8 +656,8 @@ Use case ends.
 **MSS**
 
 1.  User requests to delete a pet by providing the pet's name and its owner's phone number.
-2.  AddressBook finds the pet matching both values.
-3.  AddressBook deletes the pet.
+2.  BubuBook finds the pet matching both values.
+3.  BubuBook deletes the pet.
 
     Use case ends.
 
@@ -662,13 +665,13 @@ Use case ends.
 
 * 1a. The command format, pet name, or owner phone number is invalid.
 
-    * 1a1. AddressBook shows an error message.
+    * 1a1. BubuBook shows an error message.
 
       Use case ends.
 
 * 2a. No pet matches the given name and owner phone number.
 
-    * 2a1. AddressBook shows an error message.
+    * 2a1. BubuBook shows an error message.
 
       Use case ends.
 
@@ -889,7 +892,7 @@ testers are expected to do more *exploratory* testing.
 
 2. Deleting a pet using its name and owner's phone number
 
-   1. Prerequisites: The address book contains a pet named `Milo` whose owner's phone number is `98765432`.
+   1. Prerequisites: The BubuBook contains a pet named `Milo` whose owner's phone number is `98765432`.
 
    1. Test case: `delete-pet p/Milo i/98765432`<br>
       Expected: `Milo` is deleted. The status message is `Deleted pet: Milo`.

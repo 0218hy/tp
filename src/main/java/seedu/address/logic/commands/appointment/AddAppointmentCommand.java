@@ -57,13 +57,13 @@ public class AddAppointmentCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        long matchingOwners = model.getGroomingBook().getClientList().stream()
+        long matchingOwners = model.getBubuBook().getClientList().stream()
                 .filter(client -> client.getPhone().equals(toSchedule.getOwnerPhone()))
                 .count();
         if (matchingOwners != 1) {
             throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
         }
-        boolean hasPet = model.getGroomingBook().getPetList().stream()
+        boolean hasPet = model.getBubuBook().getPetList().stream()
                 .anyMatch(pet -> pet.getOwner().getPhone().equals(toSchedule.getOwnerPhone())
                         && pet.getName().getNormalizedName().equals(toSchedule.getPetName().getNormalizedName()));
         if (!hasPet) {

@@ -3,9 +3,9 @@ layout: page
 title: John Doe's Project Portfolio Page
 ---
 
-### Project: AddressBook Level 3
+### Project: BuBu
 
-AddressBook - Level 3 is a desktop address book application used for teaching Software Engineering principles. The user interacts with it using a CLI, and it has a GUI created with JavaFX. It is written in Java, and has about 10 kLoC.
+BuBu is a desktop application for freelance pet groomers to manage clients, pet profiles, and grooming appointments. The user interacts with it using a CLI, and it has a GUI created with JavaFX. It is written in Java.
 
 Given below are my contributions to the project.
 

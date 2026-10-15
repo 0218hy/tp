@@ -29,7 +29,7 @@ public class ListClientsCommandTest {
         assertEquals("Listed all clients.", result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
         assertEquals(List.of(amelia, zoe), displayed);
-        assertEquals(List.of(zoe, amelia), model.getGroomingBook().getClientList());
+        assertEquals(List.of(zoe, amelia), model.getBubuBook().getClientList());
         model.deleteClient(displayed.getFirst());
         assertEquals(List.of(zoe), displayed);
     }
@@ -55,7 +55,7 @@ public class ListClientsCommandTest {
     }
 
     @Test
-    public void execute_emptyAddressBook_success() {
+    public void execute_emptyBubu_success() {
         assertEquals("Listed all clients.", new ListClientsCommand().execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }

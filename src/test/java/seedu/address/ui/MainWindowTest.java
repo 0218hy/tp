@@ -39,7 +39,7 @@ public class MainWindowTest {
     public void executeCommand_helpAndRegularCommand_updatesResultDisplay() {
         JavaFxTestUtils.runAndWait(() -> {
             StubLogic logic = new StubLogic();
-            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("addressbook.json"));
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("bubu.json"));
             mainWindow.fillInnerParts();
 
             logic.nextResult = new CommandResult("AVAILABLE COMMANDS\n\nHelp\n  help", true, false);
@@ -64,7 +64,7 @@ public class MainWindowTest {
     public void executeCommand_displayTypeSwitchesVisibleListPanel() {
         JavaFxTestUtils.runAndWait(() -> {
             StubLogic logic = new StubLogic();
-            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("addressbook.json"));
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("bubu.json"));
             mainWindow.fillInnerParts();
 
             ClientListPanel clientListPanel = getField(mainWindow, "clientListPanel", ClientListPanel.class);

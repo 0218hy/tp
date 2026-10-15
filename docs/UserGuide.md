@@ -15,11 +15,11 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-2. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+2. Download the latest `.jar` file from [here](https://github.com/AY2627S1-CS2103T-W08-2/tp/releases).
 
-3. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+3. Copy the file to the folder you want to use as the _home folder_ for your BuBu.
 
-4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+4. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar bubu.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -28,7 +28,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
 
    * `list` : Lists all contacts.
 
-   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the BuBu.
 
    * `delete-client 3` : Deletes the 3rd contact shown in the current list.
 
@@ -129,7 +129,7 @@ No matches is a successful search with an empty list. This command does not chan
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows a list of all persons in the BuBu.
 
 Format: `list`
 
@@ -157,7 +157,7 @@ Examples:
 
 ### Deleting a person: `delete-client`
 
-Deletes a person from the address book using either their displayed index or phone number.
+Deletes a person from the BuBu using either their displayed index or phone number.
 
 Formats:
 
@@ -320,7 +320,7 @@ rejected when the current displayed list is not the appointment list.
 ### Clearing all entries: `clear`
 
 Clears all clients, pets, and appointments, including past and future bookings and records hidden by filters.
-The command takes effect immediately without confirmation and saves the empty grooming book automatically.
+The command takes effect immediately without confirmation and saves the empty BubuBook automatically.
 If saving fails, the previous records are restored and an error is displayed.
 
 Format: `clear`
@@ -333,13 +333,16 @@ Format: `exit`
 
 ### Saving the data
 
-Clients, pets, and appointments are saved together in `data/groombook.json` after successful commands.
+Clients, pets, and appointments are saved together in `data/bububook.json` after successful commands.
+
+If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
+`data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
 Bookings use the same data file as their registered clients and pets.
 
 ### Editing the data file
 
-Grooming records are saved in `[JAR file location]/data/groombook.json`, with `clients`, `pets`, and
+Grooming records are saved in `[JAR file location]/data/bububook.json`, with `clients`, `pets`, and
 `appointments` lists. Advanced users can edit this file while the app is closed.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
@@ -357,7 +360,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous BuBu home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 

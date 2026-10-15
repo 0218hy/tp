@@ -10,7 +10,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 
 /**
- * Finds and lists all clients in the address book whose name contains any of the argument keywords.
+ * Finds and lists all clients in the BuBu whose name contains any of the argument keywords.
  * Keyword matching is case insensitive.
  */
 public class FindClientsCommand extends Command {

@@ -13,16 +13,16 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 import seedu.address.model.client.Phone;
 
-public class GroomingBookAppointmentTest {
+public class BubuBookAppointmentTest {
     private static final Appointment APPOINTMENT = create("10:00", "11:00");
     private static final Appointment ADJACENT = create("11:00", "11:30");
 
-    private final GroomingBook book = new GroomingBook();
+    private final BubuBook book = new BubuBook();
 
     @Test
     public void constructor_emptyBook_hasNoAppointments() {
@@ -33,7 +33,7 @@ public class GroomingBookAppointmentTest {
     @Test
     public void constructor_copy_doesNotShareMutableList() {
         book.addAppointment(APPOINTMENT);
-        GroomingBook copy = new GroomingBook(book);
+        BubuBook copy = new BubuBook(book);
         book.addAppointment(ADJACENT);
         assertEquals(List.of(APPOINTMENT), copy.getAppointmentList());
         copy.setAppointments(List.of());
@@ -99,7 +99,7 @@ public class GroomingBookAppointmentTest {
     @Test
     public void nullArguments_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
-        assertThrows(NullPointerException.class, () -> new GroomingBook(null));
+        assertThrows(NullPointerException.class, () -> new BubuBook(null));
         assertThrows(NullPointerException.class, () -> book.addAppointment(null));
         assertThrows(NullPointerException.class, () -> book.hasOverlappingAppointment(null));
         assertThrows(NullPointerException.class, () -> book.setAppointments(null));
@@ -130,7 +130,7 @@ public class GroomingBookAppointmentTest {
 
     @Test
     public void resetData_validBookAndSelf_preservesData() {
-        GroomingBook source = new GroomingBook();
+        BubuBook source = new BubuBook();
         source.addAppointment(APPOINTMENT);
         book.addAppointment(ADJACENT);
         book.resetData(source);
@@ -158,13 +158,13 @@ public class GroomingBookAppointmentTest {
     @Test
     public void equalsAndHashCode_compareAppointmentsAndTheirOrder() {
         book.setAppointments(List.of(APPOINTMENT, ADJACENT));
-        GroomingBook copy = new GroomingBook(book);
+        BubuBook copy = new BubuBook(book);
         assertEquals(book, book);
         assertEquals(book, copy);
         assertEquals(book.hashCode(), copy.hashCode());
         assertNotEquals(book, null);
         assertNotEquals(book, "appointment book");
-        assertNotEquals(book, new GroomingBook());
+        assertNotEquals(book, new BubuBook());
         copy.setAppointments(List.of(ADJACENT, APPOINTMENT));
         assertNotEquals(book, copy);
     }

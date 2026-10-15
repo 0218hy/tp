@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
 /**
- * Represents a pet's care requirement in the address book.
+ * Represents a pet's care requirement in the BuBu.
  * Guarantees: immutable; is valid as declared in {@link #isValidRequirement(String)}.
  */
 public class Requirement {

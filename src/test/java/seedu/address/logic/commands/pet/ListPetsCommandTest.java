@@ -39,7 +39,7 @@ public class ListPetsCommandTest {
         Pet zoe = addPet(model, BENSON, "Zoe", Species.CAT, null);
         Pet mochi = addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
         Pet bubu = addPet(model, ALICE, "BuBu", Species.CAT, null);
-        List<Pet> savedOrder = List.copyOf(model.getGroomingBook().getPetList());
+        List<Pet> savedOrder = List.copyOf(model.getBubuBook().getPetList());
         model.updateFilteredPetList(pet -> false);
 
         String expected = "All pet profiles\n\nAlice Pauline\n"
@@ -48,7 +48,7 @@ public class ListPetsCommandTest {
         CommandResult result = new ListPetsCommand(null).execute(model);
         assertEquals(expected, result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
-        assertEquals(savedOrder, model.getGroomingBook().getPetList());
+        assertEquals(savedOrder, model.getBubuBook().getPetList());
         assertEquals(List.of(bubu, mochi, zoe), model.getFilteredPetList());
     }
 
@@ -115,7 +115,7 @@ public class ListPetsCommandTest {
         String message = ListPetsCommand.MESSAGE_OWNER_NOT_FOUND;
         assertThrows(CommandException.class, message, () ->
                 new ListPetsCommand(UNKNOWN_OWNER_PREDICATE).execute(model));
-        assertEquals(1, model.getGroomingBook().getPetList().size());
+        assertEquals(1, model.getBubuBook().getPetList().size());
         assertEquals(List.of(), model.getFilteredPetList());
     }
 
@@ -137,7 +137,7 @@ public class ListPetsCommandTest {
      * Returns a model containing the typical registered clients and no pets.
      */
     private Model createModel() {
-        return new ModelManager(TypicalClients.getTypicalGroomingBook(), new UserPrefs());
+        return new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs());
     }
 
     /**

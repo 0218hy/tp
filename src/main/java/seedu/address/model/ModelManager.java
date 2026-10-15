@@ -19,12 +19,12 @@ import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 
 /**
- * Represents the in-memory model of the grooming book data.
+ * Represents the in-memory model of the BubuBook data.
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
 
-    private final GroomingBook groomingBook;
+    private final BubuBook bubuBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
     private final SortedList<Client> sortedClients;
@@ -34,30 +34,30 @@ public class ModelManager implements Model {
     private final SortedList<Appointment> sortedAppointments;
 
     /**
-     * Initializes a ModelManager with the given groomingBook and userPrefs.
+     * Initializes a ModelManager with the given bubuBook and userPrefs.
      */
-    public ModelManager(ReadOnlyGroomingBook groomingBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(groomingBook, userPrefs);
+    public ModelManager(ReadOnlyBubuBook bubuBook, ReadOnlyUserPrefs userPrefs) {
+        requireAllNonNull(bubuBook, userPrefs);
 
-        logger.fine("Initializing with grooming book: " + groomingBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing with BubuBook: " + bubuBook + " and user prefs " + userPrefs);
 
-        this.groomingBook = new GroomingBook(groomingBook);
+        this.bubuBook = new BubuBook(bubuBook);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredClients = new FilteredList<>(this.groomingBook.getClientList());
+        filteredClients = new FilteredList<>(this.bubuBook.getClientList());
         sortedClients = new SortedList<>(filteredClients);
-        filteredPets = new FilteredList<>(this.groomingBook.getPetList());
+        filteredPets = new FilteredList<>(this.bubuBook.getPetList());
         sortedPets = new SortedList<>(filteredPets, Comparator
                 .comparing((Pet pet) -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT))
                 .thenComparing(pet -> pet.getOwner().getPhone().value)
                 .thenComparing(pet -> pet.getName().getNormalizedName()));
-        filteredAppointments = new FilteredList<>(this.groomingBook.getAppointmentList());
+        filteredAppointments = new FilteredList<>(this.bubuBook.getAppointmentList());
         sortedAppointments = new SortedList<>(filteredAppointments,
                 Comparator.comparing((Appointment appointment) -> appointment.getDate().value)
                         .thenComparing(appointment -> appointment.getStartTime().value));
     }
 
     public ModelManager() {
-        this(new GroomingBook(), new UserPrefs());
+        this(new BubuBook(), new UserPrefs());
     }
 
     //=========== UserPrefs ==================================================================================
@@ -78,33 +78,33 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
-    //=========== GroomingBook ================================================================================
+    //=========== BubuBook ================================================================================
 
     @Override
-    public void setGroomingBook(ReadOnlyGroomingBook groomingBook) {
-        this.groomingBook.resetData(groomingBook);
+    public void setBubuBook(ReadOnlyBubuBook bubuBook) {
+        this.bubuBook.resetData(bubuBook);
     }
 
     @Override
-    public ReadOnlyGroomingBook getGroomingBook() {
-        return groomingBook;
+    public ReadOnlyBubuBook getBubuBook() {
+        return bubuBook;
     }
 
     //=========== Client ======================================================================================
     @Override
     public boolean hasClient(Client client) {
         requireNonNull(client);
-        return groomingBook.hasClient(client);
+        return bubuBook.hasClient(client);
     }
 
     @Override
     public void deleteClient(Client target) {
-        groomingBook.removeClient(target);
+        bubuBook.removeClient(target);
     }
 
     @Override
     public void addClient(Client client) {
-        groomingBook.addClient(client);
+        bubuBook.addClient(client);
         updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
@@ -112,7 +112,7 @@ public class ModelManager implements Model {
     public void setClient(Client target, Client editedClient) {
         requireAllNonNull(target, editedClient);
 
-        groomingBook.setClient(target, editedClient);
+        bubuBook.setClient(target, editedClient);
     }
 
     //=========== Pet ======================================================================================
@@ -120,53 +120,53 @@ public class ModelManager implements Model {
     @Override
     public boolean hasPet(Pet pet) {
         requireNonNull(pet);
-        return groomingBook.hasPet(pet);
+        return bubuBook.hasPet(pet);
     }
 
     @Override
     public void deletePet(Pet pet) {
-        groomingBook.removePet(pet);
+        bubuBook.removePet(pet);
     }
 
     @Override
     public void addPet(Pet pet) {
-        groomingBook.addPet(pet);
+        bubuBook.addPet(pet);
         updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
     }
 
     @Override
     public void setPet(Pet target, Pet editedPet) {
         requireAllNonNull(target, editedPet);
-        groomingBook.setPet(target, editedPet);
+        bubuBook.setPet(target, editedPet);
     }
 
     //=========== Appointments ==============================================================================
 
     @Override
     public void setAppointments(List<Appointment> appointments) {
-        groomingBook.setAppointments(appointments);
+        bubuBook.setAppointments(appointments);
     }
 
     @Override
-    public void clearGroomingBook() {
-        groomingBook.clear();
+    public void clearBubuBook() {
+        bubuBook.clear();
     }
 
     @Override
     public void addAppointment(Appointment appointment) {
-        groomingBook.addAppointment(appointment);
+        bubuBook.addAppointment(appointment);
     }
 
     @Override
     public void deleteAppointment(Appointment appointment) {
-        groomingBook.removeAppointment(appointment);
+        bubuBook.removeAppointment(appointment);
     }
 
     //=========== Filtered Client List Accessors =============================================================
 
     /**
      * Returns an unmodifiable view of the list of {@code Client} backed by the internal list of
-     * {@code groomingBook}
+     * {@code bubuBook}
      */
     @Override
     public ObservableList<Client> getFilteredClientList() {
@@ -226,7 +226,7 @@ public class ModelManager implements Model {
             return false;
         }
 
-        return groomingBook.equals(otherModelManager.groomingBook)
+        return bubuBook.equals(otherModelManager.bubuBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredClients.equals(otherModelManager.filteredClients)
                 && filteredPets.equals(otherModelManager.filteredPets);

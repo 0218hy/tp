@@ -17,7 +17,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 
 /**
- * Deletes a client identified using its displayed index or phone number from the address book.
+ * Deletes a client identified using its displayed index or phone number from the BuBu.
  */
 public class DeleteClientCommand extends Command {
 
@@ -75,7 +75,7 @@ public class DeleteClientCommand extends Command {
             clientToDelete = lastShownList.get(targetIndex.getZeroBased());
         } else {
             //TODO: use SLAP
-            clientToDelete = model.getGroomingBook().getClientList().stream()
+            clientToDelete = model.getBubuBook().getClientList().stream()
                     .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
                     .orElseThrow(() -> new CommandException(

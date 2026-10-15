@@ -20,7 +20,7 @@ import seedu.address.model.pet.Species;
 public class JsonAdaptedPet {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Pet's %s field is missing!";
-    public static final String MESSAGE_OWNER_NOT_FOUND = "Pet owner does not exist in the address book.";
+    public static final String MESSAGE_OWNER_NOT_FOUND = "Pet owner does not exist in the BuBu.";
     public static final String MESSAGE_AMBIGUOUS_OWNER = "Pet owner name matches multiple clients.";
     public static final String MESSAGE_OWNER_DETAILS_MISMATCH = "Pet owner name and phone do not match.";
     private static final String OWNER_NAME_FIELD = "OwnerName";

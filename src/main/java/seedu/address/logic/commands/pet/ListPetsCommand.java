@@ -17,7 +17,7 @@ import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
- * Updates the filtered pet list without changing the saved grooming book or displayed client list.
+ * Updates the filtered pet list without changing the saved BubuBook or displayed client list.
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
@@ -70,7 +70,7 @@ public class ListPetsCommand extends Command {
      * @param model The model whose registered owners are searched.
      */
     private Client findOwner(Model model) throws CommandException {
-        return model.getGroomingBook().getClientList().stream()
+        return model.getBubuBook().getClientList().stream()
                 .filter(client -> client.getPhone().equals(predicate.getOwnerPhone()))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));

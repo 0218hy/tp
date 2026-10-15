@@ -2,7 +2,7 @@ package seedu.address.logic.commands.client;
 
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showClientAtIndex;
-import static seedu.address.testutil.TypicalClients.getTypicalGroomingBook;
+import static seedu.address.testutil.TypicalClients.getTypicalBubuBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,8 +23,8 @@ public class ListCommandTest {
 
     @BeforeEach
     public void setUp() {
-        model = new ModelManager(getTypicalGroomingBook(), new UserPrefs());
-        expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        model = new ModelManager(getTypicalBubuBook(), new UserPrefs());
+        expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
     }
 
     @Test

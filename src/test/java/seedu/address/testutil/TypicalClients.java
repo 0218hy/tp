@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.client.Client;
 
 /**
@@ -60,10 +60,10 @@ public class TypicalClients {
     private TypicalClients() {} // prevents instantiation
 
     /**
-     * Returns an {@code GroomingBook} with all the typical clients.
+     * Returns an {@code BubuBook} with all the typical clients.
      */
-    public static GroomingBook getTypicalGroomingBook() {
-        GroomingBook ab = new GroomingBook();
+    public static BubuBook getTypicalBubuBook() {
+        BubuBook ab = new BubuBook();
         for (Client client : getTypicalClients()) {
             ab.addClient(client);
         }
