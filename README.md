@@ -47,7 +47,7 @@ BuBu is built with Java and JavaFX. With JDK 25 installed, run the current devel
 ./gradlew run
 ```
 
-The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/groombook.json`. Pet and appointment display order is maintained by the model without changing the saved record order.
+The shared `GroomingBook` contains clients, pets, and appointments, saved together in `data/bububook.json`. Pet and appointment display order is maintained by the model without changing the saved record order.
 Feature-specific code lives in
 `client`, `pet`, and `appointment` packages; see the [current code organization](docs/DeveloperGuide.md#current-code-organization)
 for the package layout and storage format.

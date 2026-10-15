@@ -117,7 +117,7 @@ public class EditClientCommandTest {
     public void execute_duplicateClientFilteredList_failure() {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
-        // edit client in filtered list into a duplicate in address book
+        // edit client in filtered list into a duplicate in BuBu
         Client clientInList = model.getGroomingBook().getClientList().get(INDEX_SECOND_CLIENT.getZeroBased());
         EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT,
                 new EditClientDescriptorBuilder(clientInList).build());
@@ -136,13 +136,13 @@ public class EditClientCommandTest {
 
     /**
      * Edit filtered list where index is larger than size of filtered list,
-     * but smaller than size of address book
+     * but smaller than size of BuBu
      */
     @Test
     public void execute_invalidClientIndexFilteredList_failure() {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
         Index outOfBoundIndex = INDEX_SECOND_CLIENT;
-        // ensures that outOfBoundIndex is still in bounds of address book list
+        // ensures that outOfBoundIndex is still in bounds of BuBu list
         assertTrue(outOfBoundIndex.getZeroBased() < model.getGroomingBook().getClientList().size());
 
         EditClientCommand editCommand = new EditClientCommand(outOfBoundIndex,

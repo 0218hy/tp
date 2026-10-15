@@ -48,7 +48,7 @@ public class AppointmentPersistenceTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        storage = storageWith(new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json")));
+        storage = storageWith(new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json")));
         GroomingBook owners = new GroomingBook();
         owners.addClient(ALICE);
         owners.addPet(new PetBuilder(ALICE).withName("BuBu").withBreed("Golden retriever").build());
@@ -160,8 +160,8 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleSaveDenied_restoresModelAndReportsPermissionError() throws Exception {
-        assertSaveFailure(new AccessDeniedException("groombook.json"),
-                String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, "groombook.json"));
+        assertSaveFailure(new AccessDeniedException("bububook.json"),
+                String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, "bububook.json"));
     }
 
     private void assertSaveFailure(IOException failure, String expectedMessage) throws Exception {

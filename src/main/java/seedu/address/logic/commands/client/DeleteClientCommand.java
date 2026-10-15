@@ -17,7 +17,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 
 /**
- * Deletes a client identified using its displayed index or phone number from the address book.
+ * Deletes a client identified using its displayed index or phone number from the BuBu.
  */
 public class DeleteClientCommand extends Command {
 

@@ -54,10 +54,13 @@ Replacing the grooming book validates all collections before changing existing r
 observable list views connected to the model. Client edits update linked pet owners. Historical
 appointments remain available when `clear` removes clients and pets.
 
-All clients, pets, and appointments are saved together in `data/groombook.json` through
+All clients, pets, and appointments are saved together in `data/bububook.json` through
 `JsonGroomingBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
 `preferences.json` remains separate for window settings. The former `addressbook.json` and
 `appointments.json` files are no longer read or written; there is no automatic migration.
+
+When upgrading from a version using `data/groombook.json`, close the app and copy that file to
+`data/bububook.json` before starting the new version. Keep the original file as a backup.
 
 `list-pets` and `list-appointments` read records without saving; record-changing commands save the shared book. Saving writes a temporary file before replacing
 the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
@@ -199,7 +202,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `GroomingBook`, and each `Person` references tags from that list. This lets `GroomingBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
@@ -214,7 +217,7 @@ The `Model` component,
 
 The `Storage` component:
 
-* saves the complete grooming book in `data/groombook.json`, with user preferences in `preferences.json`.
+* saves the complete grooming book in `data/bububook.json`, with user preferences in `preferences.json`.
 * is implemented by `StorageManager`, which delegates to `JsonGroomingBookStorage` and `JsonUserPrefsStorage`.
 * uses `JsonSerializableGroomingBook` to load and save the three record lists together.
 * uses `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` in their respective feature packages.
@@ -227,7 +230,7 @@ Appointments belong to the shared `GroomingBook` and are saved in the same file 
 `JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
 Loading accepts historical appointments and rejects invalid or overlapping records.
 
-The scheduling flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/groombook.json`.
+The scheduling flow is `AddAppointmentCommand` → `GroomingBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
 `GroomingBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
 `LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
@@ -257,37 +260,37 @@ This section describes some noteworthy details on how certain features are imple
 
 #### Proposed Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The proposed undo/redo mechanism is facilitated by `VersionedGroomingBook`. It extends `GroomingBook` with an undo/redo history, stored internally as an `groomingBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+* `VersionedGroomingBook#commit()` — Saves the current grooming book state in its history.
+* `VersionedGroomingBook#undo()` — Restores the previous grooming book state from its history.
+* `VersionedGroomingBook#redo()` — Restores a previously undone grooming book state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitGroomingBook()`, `Model#undoGroomingBook()` and `Model#redoGroomingBook()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+Step 1. The user launches the application for the first time. The `VersionedGroomingBook` will be initialized with the initial grooming book state, and the `currentStatePointer` pointing to that single grooming book state.
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete-client 5` command to delete the 5th person in the address book. The `delete-client` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete-client 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete-client 5` command to delete the 5th person in the grooming book. The `delete-client` command calls `Model#commitGroomingBook()`, causing the modified state of the grooming book after the `delete-client 5` command executes to be saved in the `groomingBookStateList`, and the `currentStatePointer` is shifted to the newly inserted grooming book state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitGroomingBook()`, causing another modified grooming book state to be saved into the `groomingBookStateList`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitGroomingBook()`, so the grooming book state will not be saved into the `groomingBookStateList`.
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoGroomingBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous grooming book state, and restores the grooming book to that state.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial GroomingBook state, then there are no previous GroomingBook states to restore. The `undo` command uses `Model#canUndoGroomingBook()` to check if this is the case. If so, it will return an error to the user rather
 than attempting to perform the undo.
 
 </div>
@@ -304,17 +307,17 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 ![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoGroomingBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the grooming book to that state.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `groomingBookStateList.size() - 1`, pointing to the latest grooming book state, then there are no undone GroomingBook states to restore. The `redo` command uses `Model#canRedoGroomingBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. Commands that do not modify the grooming book, such as `list`, will usually not call `Model#commitGroomingBook()`, `Model#undoGroomingBook()` or `Model#redoGroomingBook()`. Thus, the `groomingBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, which calls `Model#commitGroomingBook()`. Since the `currentStatePointer` is not pointing at the end of the `groomingBookStateList`, all grooming book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
 
 ![UndoRedoState5](images/UndoRedoState5.png)
 
@@ -326,7 +329,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 **Aspect: How undo & redo execute:**
 
-* **Alternative 1 (current choice):** Saves the entire address book.
+* **Alternative 1 (current choice):** Saves the entire grooming book.
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
@@ -391,7 +394,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | user                                       | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
 | `*`      | mobile pet groomer                         | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
 | `*`      | mobile pet groomer                         | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
-| `*`      | user with many persons in the address book | sort persons by name                                            | locate a person easily                                                         |
+| `*`      | user with many persons in the grooming book | sort persons by name                                            | locate a person easily                                                         |
 
 *{More to be added}*
 
@@ -653,8 +656,8 @@ Use case ends.
 **MSS**
 
 1.  User requests to delete a pet by providing the pet's name and its owner's phone number.
-2.  AddressBook finds the pet matching both values.
-3.  AddressBook deletes the pet.
+2.  GroomingBook finds the pet matching both values.
+3.  GroomingBook deletes the pet.
 
     Use case ends.
 
@@ -662,13 +665,13 @@ Use case ends.
 
 * 1a. The command format, pet name, or owner phone number is invalid.
 
-    * 1a1. AddressBook shows an error message.
+    * 1a1. GroomingBook shows an error message.
 
       Use case ends.
 
 * 2a. No pet matches the given name and owner phone number.
 
-    * 2a1. AddressBook shows an error message.
+    * 2a1. GroomingBook shows an error message.
 
       Use case ends.
 
@@ -889,7 +892,7 @@ testers are expected to do more *exploratory* testing.
 
 2. Deleting a pet using its name and owner's phone number
 
-   1. Prerequisites: The address book contains a pet named `Milo` whose owner's phone number is `98765432`.
+   1. Prerequisites: The grooming book contains a pet named `Milo` whose owner's phone number is `98765432`.
 
    1. Test case: `delete-pet p/Milo i/98765432`<br>
       Expected: `Milo` is deleted. The status message is `Deleted pet: Milo`.

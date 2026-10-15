@@ -55,7 +55,7 @@ public class ListClientsCommandTest {
     }
 
     @Test
-    public void execute_emptyAddressBook_success() {
+    public void execute_emptyBubu_success() {
         assertEquals("Listed all clients.", new ListClientsCommand().execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }

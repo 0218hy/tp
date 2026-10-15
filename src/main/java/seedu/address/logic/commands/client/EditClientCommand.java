@@ -31,7 +31,7 @@ import seedu.address.model.client.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Edits the details of an existing client in the address book.
+ * Edits the details of an existing client in the BuBu.
  */
 public class EditClientCommand extends Command {
 

@@ -32,7 +32,7 @@ public class JsonGroomingBookAppointmentTest {
 
     @Test
     public void saveAndRead_historicalAppointments_preservesAllFieldsAndOrder() throws Exception {
-        JsonGroomingBookStorage storage = storage("nested/groombook.json");
+        JsonGroomingBookStorage storage = storage("nested/bububook.json");
         GroomingBook book = new GroomingBook();
         book.addAppointment(create("10:00", "11:00"));
         book.addAppointment(create("11:00", "11:30"));
@@ -46,7 +46,7 @@ public class JsonGroomingBookAppointmentTest {
 
     @Test
     public void saveGroomingBook_replacesPreviousScheduleAndCleansTemporaryFiles() throws Exception {
-        JsonGroomingBookStorage storage = storage("groombook.json");
+        JsonGroomingBookStorage storage = storage("bububook.json");
         GroomingBook book = new GroomingBook();
         book.addAppointment(create("10:00", "11:00"));
         storage.saveGroomingBook(book);
@@ -102,7 +102,7 @@ public class JsonGroomingBookAppointmentTest {
 
     @Test
     public void saveGroomingBook_targetIsDirectory_reportsFailureAndCleansTemporaryFile() throws Exception {
-        JsonGroomingBookStorage storage = storage("groombook.json");
+        JsonGroomingBookStorage storage = storage("bububook.json");
         Files.createDirectory(storage.getGroomingBookFilePath());
         Path marker = storage.getGroomingBookFilePath().resolve("keep.txt");
         Files.writeString(marker, "keep");
@@ -116,7 +116,7 @@ public class JsonGroomingBookAppointmentTest {
     @Test
     public void constructorAndSave_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> new JsonGroomingBookStorage(null));
-        assertThrows(NullPointerException.class, () -> storage("groombook.json").saveGroomingBook(null));
+        assertThrows(NullPointerException.class, () -> storage("bububook.json").saveGroomingBook(null));
     }
 
     private JsonGroomingBookStorage storage(String filename) {

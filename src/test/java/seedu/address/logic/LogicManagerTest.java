@@ -59,7 +59,7 @@ public class LogicManagerTest {
     @BeforeEach
     public void setUp() {
         JsonGroomingBookStorage groomingBookStorage =
-                new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json"));
+                new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(groomingBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
@@ -92,7 +92,7 @@ public class LogicManagerTest {
 
         assertEquals("Pet added: Mochi (Cat) under Alice Pauline.", result.getFeedbackToUser());
         assertEquals("Mochi", model.getGroomingBook().getPetList().getFirst().getName().value);
-        assertEquals(model.getGroomingBook(), new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json"))
+        assertEquals(model.getGroomingBook(), new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"))
                 .readGroomingBook().orElseThrow());
     }
 
@@ -105,7 +105,7 @@ public class LogicManagerTest {
 
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
         assertEquals(1, model.getGroomingBook().getAppointmentList().size());
-        assertFalse(temporaryFolder.resolve("groombook.json").toFile().exists());
+        assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
     @Test
@@ -117,7 +117,7 @@ public class LogicManagerTest {
 
         assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
         assertEquals(1, model.getGroomingBook().getPetList().size());
-        assertFalse(temporaryFolder.resolve("groombook.json").toFile().exists());
+        assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
     @Test
@@ -189,7 +189,7 @@ public class LogicManagerTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, pet.getName()), expectedModel);
 
         ReadOnlyGroomingBook savedGroomingBook = new JsonGroomingBookStorage(
-                temporaryFolder.resolve("groombook.json")).readGroomingBook().get();
+                temporaryFolder.resolve("bububook.json")).readGroomingBook().get();
         assertEquals(expectedModel.getGroomingBook(), savedGroomingBook);
     }
 
@@ -217,7 +217,7 @@ public class LogicManagerTest {
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
         JsonGroomingBookStorage groomingBookStorage = new JsonGroomingBookStorage(
-                temporaryFolder.resolve("groombook.json")) {
+                temporaryFolder.resolve("bububook.json")) {
             @Override
             public void saveGroomingBook(ReadOnlyGroomingBook groomingBook) throws IOException {
                 throw DUMMY_IO_EXCEPTION;
@@ -235,7 +235,7 @@ public class LogicManagerTest {
     @Test
     public void execute_addPetCorruptedRecords_reportsError() {
         logic = new LogicManager(model, new StorageManager(
-                new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json")),
+                new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))), true);
         assertCommandException("add-pet p/Mochi i/91234567 s/Dog r/Calm with baths",
                 LogicManager.MESSAGE_CORRUPTED_RECORDS);
@@ -349,7 +349,7 @@ public class LogicManagerTest {
                 + "e/amelia@example.com a/12 Punggol Drive t/regular");
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
         assertEquals(1, model.getFilteredClientList().size());
-        JsonGroomingBookStorage saved = new JsonGroomingBookStorage(temporaryFolder.resolve("groombook.json"));
+        JsonGroomingBookStorage saved = new JsonGroomingBookStorage(temporaryFolder.resolve("bububook.json"));
         assertEquals(model.getGroomingBook(), saved.readGroomingBook().orElseThrow());
     }
 

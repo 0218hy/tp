@@ -21,7 +21,7 @@ import seedu.address.model.ReadOnlyGroomingBook;
 import seedu.address.testutil.PetBuilder;
 
 public class JsonGroomingBookStorageTest {
-    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
+    private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonBubuStorageTest");
 
     @TempDir
     public Path testFolder;
@@ -48,22 +48,22 @@ public class JsonGroomingBookStorageTest {
 
     @Test
     public void read_notJsonFormat_exceptionThrown() {
-        assertThrows(DataLoadingException.class, () -> readGroomingBook("notJsonFormatAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("notJsonFormatBubu.json"));
     }
 
     @Test
     public void readGroomingBook_invalidClientGroomingBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidPersonAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidPersonBubu.json"));
     }
 
     @Test
     public void readGroomingBook_invalidAndValidClientGroomingBook_throwDataLoadingException() {
-        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidAndValidPersonAddressBook.json"));
+        assertThrows(DataLoadingException.class, () -> readGroomingBook("invalidAndValidPersonBubu.json"));
     }
 
     @Test
     public void readAndSaveGroomingBook_allInOrder_success() throws Exception {
-        Path filePath = testFolder.resolve("TempAddressBook.json");
+        Path filePath = testFolder.resolve("TempBubu.json");
         GroomingBook original = getTypicalGroomingBook();
         JsonGroomingBookStorage jsonGroomingBookStorage = new JsonGroomingBookStorage(filePath);
 
@@ -89,7 +89,7 @@ public class JsonGroomingBookStorageTest {
 
     @Test
     public void readAndSaveGroomingBook_petBreedAndOwnerPhone_roundTrip() throws Exception {
-        Path filePath = testFolder.resolve("PetsAddressBook.json");
+        Path filePath = testFolder.resolve("PetsBubu.json");
         GroomingBook original = getTypicalGroomingBook();
         original.addPet(new PetBuilder(ALICE).withName("Mochi").withBreed("Golden retriever").build());
         JsonGroomingBookStorage storage = new JsonGroomingBookStorage(filePath);

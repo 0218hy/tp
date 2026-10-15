@@ -73,7 +73,7 @@ public class DeleteClientCommandTest {
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
 
         Index outOfBoundIndex = INDEX_SECOND_CLIENT;
-        // ensures that outOfBoundIndex is still in bounds of address book list
+        // ensures that outOfBoundIndex is still in bounds of BuBu list
         assertTrue(outOfBoundIndex.getZeroBased() < model.getGroomingBook().getClientList().size());
 
         DeleteClientCommand deleteCommand = new DeleteClientCommand(outOfBoundIndex);
