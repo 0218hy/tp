@@ -6,7 +6,7 @@ import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 
 /**
@@ -15,9 +15,9 @@ import seedu.address.model.appointment.exceptions.OverlappingAppointmentExceptio
  * the scheduling command is responsible for checking owners, pets and future start times.
  */
 public class AppointmentList {
-    private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
+    private final ObservableList<Appointment> internalList = FXCollections.observableArrayList();
     private final ObservableList<Appointment> unmodifiableAppointments =
-            FXCollections.unmodifiableObservableList(appointments);
+            FXCollections.unmodifiableObservableList(internalList);
 
     /**
      * Replaces the appointments, preserving their order.
@@ -30,7 +30,7 @@ public class AppointmentList {
         requireNonNull(replacement);
         AppointmentList validated = new AppointmentList();
         replacement.forEach(validated::addAppointment);
-        appointments.setAll(validated.getAppointmentList());
+        internalList.setAll(validated.getAppointmentList());
     }
 
     /**
@@ -38,7 +38,7 @@ public class AppointmentList {
      */
     public boolean hasOverlappingAppointment(Appointment appointment) {
         requireNonNull(appointment);
-        return appointments.stream().anyMatch(appointment::overlaps);
+        return internalList.stream().anyMatch(appointment::overlaps);
     }
 
     /**
@@ -52,7 +52,18 @@ public class AppointmentList {
         if (hasOverlappingAppointment(appointment)) {
             throw new OverlappingAppointmentException();
         }
-        appointments.add(appointment);
+        internalList.add(appointment);
+    }
+
+    /**
+     * Removes the equivalent appointment from the list.
+     * The appointment must exist in the list.
+     */
+    public void removeAppointment(Appointment toRemove) {
+        requireNonNull(toRemove);
+        if (!internalList.remove(toRemove)) {
+            throw new AppointmentNotFoundException();
+        }
     }
 
     public ObservableList<Appointment> getAppointmentList() {
@@ -62,16 +73,16 @@ public class AppointmentList {
     @Override
     public boolean equals(Object other) {
         return other == this || (other instanceof AppointmentList otherList
-                && appointments.equals(otherList.appointments));
+                && internalList.equals(otherList.internalList));
     }
 
     @Override
     public int hashCode() {
-        return appointments.hashCode();
+        return internalList.hashCode();
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("appointments", appointments).toString();
+        return internalList.toString();
     }
 }

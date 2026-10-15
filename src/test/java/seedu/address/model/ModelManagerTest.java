@@ -14,7 +14,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
+import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.Species;
 import seedu.address.testutil.GroomingBookBuilder;
@@ -123,6 +129,18 @@ public class ModelManagerTest {
 
         assertFalse(modelManager.hasPet(pet));
         assertEquals(List.of(), modelManager.getFilteredPetList());
+    }
+
+    @Test
+    public void deleteAppointment_appointmentInGroomingBook_removesAppointment() {
+        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+                new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        modelManager.addAppointment(appointment);
+
+        modelManager.deleteAppointment(appointment);
+
+        assertTrue(modelManager.getGroomingBook().getAppointmentList().isEmpty());
     }
 
     @Test

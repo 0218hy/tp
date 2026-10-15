@@ -28,6 +28,7 @@ public class ModelManager implements Model {
     private final FilteredList<Client> filteredClients;
     private final SortedList<Client> sortedClients;
     private final FilteredList<Pet> filteredPets;
+    private final FilteredList<Appointment> filteredAppointments;
 
     /**
      * Initializes a ModelManager with the given groomingBook and userPrefs.
@@ -42,6 +43,7 @@ public class ModelManager implements Model {
         filteredClients = new FilteredList<>(this.groomingBook.getClientList());
         sortedClients = new SortedList<>(filteredClients);
         filteredPets = new FilteredList<>(this.groomingBook.getPetList());
+        filteredAppointments = new FilteredList<>(this.groomingBook.getAppointmentList());
     }
 
     public ModelManager() {
@@ -78,6 +80,7 @@ public class ModelManager implements Model {
         return groomingBook;
     }
 
+    //=========== Client ======================================================================================
     @Override
     public boolean hasClient(Client client) {
         requireNonNull(client);
@@ -102,7 +105,7 @@ public class ModelManager implements Model {
         groomingBook.setClient(target, editedClient);
     }
 
-    //=========== Pet ================================================================================
+    //=========== Pet ======================================================================================
 
     @Override
     public boolean hasPet(Pet pet) {
@@ -144,6 +147,11 @@ public class ModelManager implements Model {
         groomingBook.addAppointment(appointment);
     }
 
+    @Override
+    public void deleteAppointment(Appointment appointment) {
+        groomingBook.removeAppointment(appointment);
+    }
+
     //=========== Filtered Client List Accessors =============================================================
 
     /**
@@ -182,6 +190,19 @@ public class ModelManager implements Model {
     public void updateFilteredPetList(Predicate<Pet> predicate) {
         requireNonNull(predicate);
         filteredPets.setPredicate(predicate);
+    }
+
+    //=========== Filtered Appointment List Accessors ========================================================
+
+    @Override
+    public ObservableList<Appointment> getFilteredAppointmentList() {
+        return filteredAppointments;
+    }
+
+    @Override
+    public void updateFilteredAppointmentList(Predicate<Appointment> predicate) {
+        requireNonNull(predicate);
+        filteredAppointments.setPredicate(predicate);
     }
 
     @Override

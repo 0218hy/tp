@@ -92,6 +92,16 @@ public class AppointmentPersistenceTest {
     }
 
     @Test
+    public void deleteAppointment_savesUpdatedSchedule() throws Exception {
+        logic.execute(COMMAND);
+
+        logic.execute("delete-appointment d/01-01-9999 t/10:30");
+
+        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(storage.readGroomingBook().orElseThrow().getAppointmentList().isEmpty());
+    }
+
+    @Test
     public void startup_missingGroomingBook_usesSampleDataWithoutCreatingFiles() throws Exception {
         Files.delete(storage.getGroomingBookFilePath());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
