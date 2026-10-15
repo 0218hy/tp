@@ -148,8 +148,8 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void clearClientsAndPets() {
-        groomingBook.clearClientsAndPets();
+    public void clearGroomingBook() {
+        groomingBook.clear();
     }
 
     @Override

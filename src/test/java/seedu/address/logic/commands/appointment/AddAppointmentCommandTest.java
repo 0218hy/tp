@@ -58,7 +58,7 @@ public class AddAppointmentCommandTest {
 
     @Test
     public void execute_missingOwner_noMutation() {
-        model.clearClientsAndPets();
+        model.clearGroomingBook();
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
     }
 
@@ -71,7 +71,7 @@ public class AddAppointmentCommandTest {
     @Test
     public void execute_ownerRemovedBeforeExecution_rejectsAppointment() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
-        model.clearClientsAndPets();
+        model.clearGroomingBook();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());

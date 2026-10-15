@@ -37,7 +37,7 @@ Delete appointment
   delete-appointment INDEX
   delete-appointment d/DD-MM-YYYY t/HH:mm
 
-Clear clients and pets
+Clear all clients, pets, and appointments
   clear
 
 Exit
