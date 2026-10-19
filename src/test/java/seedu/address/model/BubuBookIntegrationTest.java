@@ -86,7 +86,7 @@ public class BubuBookIntegrationTest {
 
     @Test
     public void removePet_removesRelatedAppointmentsAndRetainsOtherRecords() {
-        GroomingBook book = populatedBook();
+        BubuBook book = populatedBook();
         book.addClient(BENSON);
         Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
         book.addPet(bensonPet);
@@ -105,7 +105,7 @@ public class BubuBookIntegrationTest {
 
     @Test
     public void removeClient_removesOwnedPetsAndAppointments() {
-        GroomingBook book = populatedBook();
+        BubuBook book = populatedBook();
         book.addClient(BENSON);
         Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
         book.addPet(bensonPet);
