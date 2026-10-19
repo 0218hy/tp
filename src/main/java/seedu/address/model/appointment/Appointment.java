@@ -1,5 +1,6 @@
 package seedu.address.model.appointment;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
@@ -8,6 +9,7 @@ import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 
 /**
@@ -66,6 +68,16 @@ public class Appointment {
 
     public Service getService() {
         return service;
+    }
+
+    /**
+     * Returns whether this appointment belongs to the given pet.
+     * Pet names are compared using the same normalized form used when scheduling appointments.
+     */
+    public boolean isForPet(Pet pet) {
+        requireNonNull(pet);
+        return ownerPhone.equals(pet.getOwner().getPhone())
+                && petName.getNormalizedName().equals(pet.getName().getNormalizedName());
     }
 
     /**
