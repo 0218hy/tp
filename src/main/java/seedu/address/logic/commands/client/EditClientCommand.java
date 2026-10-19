@@ -31,7 +31,7 @@ import seedu.address.model.client.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Edits the details of an existing client in the address book.
+ * Edits the details of an existing client in the BuBu.
  */
 public class EditClientCommand extends Command {
 
@@ -82,7 +82,7 @@ public class EditClientCommand extends Command {
         Client clientToEdit = lastShownList.get(index.getZeroBased());
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
-        for (Client client : model.getGroomingBook().getClientList()) {
+        for (Client client : model.getBubuBook().getClientList()) {
             if (!client.equals(clientToEdit) && client.isSameClient(editedClient)) {
                 throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
             }

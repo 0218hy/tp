@@ -22,22 +22,22 @@ import seedu.address.model.pet.UniquePetList;
  * Pet owners are resolved to the stored client records. Removing a client or pet also removes
  * its related appointments; scheduling commands validate new participants.
  */
-public class GroomingBook implements ReadOnlyGroomingBook {
+public class BubuBook implements ReadOnlyBubuBook {
     private final UniqueClientList clients = new UniqueClientList();
     private final UniquePetList pets = new UniquePetList();
     private final AppointmentList appointments = new AppointmentList();
 
-    public GroomingBook() {}
+    public BubuBook() {}
 
     /** Creates an independent copy of all records. */
-    public GroomingBook(ReadOnlyGroomingBook source) {
+    public BubuBook(ReadOnlyBubuBook source) {
         resetData(source);
     }
 
     /** Validates the entire replacement before changing any existing list. */
-    public void resetData(ReadOnlyGroomingBook source) {
+    public void resetData(ReadOnlyBubuBook source) {
         requireNonNull(source);
-        GroomingBook validated = new GroomingBook();
+        BubuBook validated = new BubuBook();
         validated.setClients(source.getClientList());
         validated.setPets(source.getPetList());
         validated.setAppointments(source.getAppointmentList());
@@ -109,8 +109,9 @@ public class GroomingBook implements ReadOnlyGroomingBook {
         appointments.removeAppointmentsForPet(pet);
     }
 
-    /** Clears client and pet records together, retaining the historical schedule. */
-    public void clearClientsAndPets() {
+    /** Clears all clients, pets, and appointments, preserving the observable lists. */
+    public void clear() {
+        appointments.setAppointments(List.of());
         pets.setPets(List.of());
         clients.setClients(List.of());
     }
@@ -154,7 +155,7 @@ public class GroomingBook implements ReadOnlyGroomingBook {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof GroomingBook otherBook
+        return other == this || other instanceof BubuBook otherBook
                 && clients.equals(otherBook.clients) && pets.equals(otherBook.pets)
                 && appointments.equals(otherBook.appointments);
     }

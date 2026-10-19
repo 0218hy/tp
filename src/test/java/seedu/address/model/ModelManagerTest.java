@@ -23,7 +23,7 @@ import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.Species;
-import seedu.address.testutil.GroomingBookBuilder;
+import seedu.address.testutil.BubuBookBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class ModelManagerTest {
@@ -34,14 +34,14 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
-        assertEquals(new GroomingBook(), new GroomingBook(modelManager.getGroomingBook()));
+        assertEquals(new BubuBook(), new BubuBook(modelManager.getBubuBook()));
     }
 
     @Test
     public void constructor_validUserPrefs_copiesUserPrefs() {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
-        modelManager = new ModelManager(new GroomingBook(), userPrefs);
+        modelManager = new ModelManager(new BubuBook(), userPrefs);
         assertEquals(userPrefs, modelManager.getUserPrefs());
 
         // Modifying userPrefs should not modify modelManager's userPrefs
@@ -68,12 +68,12 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasClient_clientNotInGroomingBook_returnsFalse() {
+    public void hasClient_clientNotInBubuBook_returnsFalse() {
         assertFalse(modelManager.hasClient(ALICE));
     }
 
     @Test
-    public void hasClient_clientInGroomingBook_returnsTrue() {
+    public void hasClient_clientInBubuBook_returnsTrue() {
         modelManager.addClient(ALICE);
         assertTrue(modelManager.hasClient(ALICE));
     }
@@ -89,7 +89,7 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void hasPet_petNotInGroomingBook_returnsFalse() {
+    public void hasPet_petNotInBubuBook_returnsFalse() {
         assertFalse(modelManager.hasPet(new PetBuilder(ALICE).build()));
     }
 
@@ -120,7 +120,7 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void deletePet_petInGroomingBook_removesPet() {
+    public void deletePet_petInBubuBook_removesPet() {
         Pet pet = new PetBuilder(ALICE).build();
         modelManager.addClient(ALICE);
         modelManager.addPet(pet);
@@ -132,7 +132,7 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void deleteAppointment_appointmentInGroomingBook_removesAppointment() {
+    public void deleteAppointment_appointmentInBubuBook_removesAppointment() {
         Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
@@ -140,7 +140,7 @@ public class ModelManagerTest {
 
         modelManager.deleteAppointment(appointment);
 
-        assertTrue(modelManager.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(modelManager.getBubuBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -188,13 +188,13 @@ public class ModelManagerTest {
 
     @Test
     public void equals() {
-        GroomingBook groomingBook = new GroomingBookBuilder().withClient(ALICE).withClient(BENSON).build();
-        GroomingBook differentGroomingBook = new GroomingBook();
+        BubuBook bubuBook = new BubuBookBuilder().withClient(ALICE).withClient(BENSON).build();
+        BubuBook differentBubuBook = new BubuBook();
         UserPrefs userPrefs = new UserPrefs();
 
         // same values -> returns true
-        modelManager = new ModelManager(groomingBook, userPrefs);
-        ModelManager modelManagerCopy = new ModelManager(groomingBook, userPrefs);
+        modelManager = new ModelManager(bubuBook, userPrefs);
+        ModelManager modelManagerCopy = new ModelManager(bubuBook, userPrefs);
         assertTrue(modelManager.equals(modelManagerCopy));
 
         // same object -> returns true
@@ -206,13 +206,13 @@ public class ModelManagerTest {
         // different types -> returns false
         assertFalse(modelManager.equals(5));
 
-        // different groomingBook -> returns false
-        assertFalse(modelManager.equals(new ModelManager(differentGroomingBook, userPrefs)));
+        // different bubuBook -> returns false
+        assertFalse(modelManager.equals(new ModelManager(differentBubuBook, userPrefs)));
 
         // different filteredList -> returns false
         String[] keywords = ALICE.getName().fullName.split("\\s+");
         modelManager.updateFilteredClientList(new ClientNameContainsKeywordsPredicate(List.of(keywords)));
-        assertFalse(modelManager.equals(new ModelManager(groomingBook, userPrefs)));
+        assertFalse(modelManager.equals(new ModelManager(bubuBook, userPrefs)));
 
         // resets modelManager to initial state for upcoming tests
         modelManager.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
@@ -220,6 +220,6 @@ public class ModelManagerTest {
         // different userPrefs -> returns false
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
-        assertFalse(modelManager.equals(new ModelManager(groomingBook, differentUserPrefs)));
+        assertFalse(modelManager.equals(new ModelManager(bubuBook, differentUserPrefs)));
     }
 }

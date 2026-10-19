@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
@@ -49,7 +49,7 @@ public class AddAppointmentCommandTest {
     @Test
     public void execute_validAppointment_addsToModelAndReturnsDetails() throws Exception {
         CommandResult result = command(VALID_APPOINTMENT).execute(model);
-        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
         assertEquals("Appointment scheduled: BuBu; Owner phone: 91234567; Date: 07-10-2026; "
                 + "Time: 10:30-11:00; Service: Full groom", result.getFeedbackToUser());
         assertFalse(result.isExit());
@@ -58,7 +58,7 @@ public class AddAppointmentCommandTest {
 
     @Test
     public void execute_missingOwner_noMutation() {
-        model.clearClientsAndPets();
+        model.clearBubuBook();
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
     }
 
@@ -71,10 +71,10 @@ public class AddAppointmentCommandTest {
     @Test
     public void execute_ownerRemovedBeforeExecution_rejectsAppointment() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
-        model.clearClientsAndPets();
+        model.clearBubuBook();
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -91,7 +91,7 @@ public class AddAppointmentCommandTest {
         model.updateFilteredClientList(client -> false);
         model.updateFilteredPetList(savedPet -> false);
         command(VALID_APPOINTMENT).execute(model);
-        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
         assertTrue(model.getFilteredClientList().isEmpty());
         assertTrue(model.getFilteredPetList().isEmpty());
     }
@@ -102,7 +102,7 @@ public class AddAppointmentCommandTest {
         model.deletePet(pet);
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
         assertEquals(AddAppointmentCommand.MESSAGE_PET_NOT_FOUND, exception.getMessage());
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -113,7 +113,7 @@ public class AddAppointmentCommandTest {
         Appointment appointment = new Appointment(editedOwner.getPhone(), "BuBu", VALID_APPOINTMENT.getDate(),
                 VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         command(appointment).execute(model);
-        assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
 
     @Test
@@ -128,7 +128,7 @@ public class AddAppointmentCommandTest {
     public void execute_futureDateWithEarlierTimeOfDay_success() throws Exception {
         Appointment tomorrow = create("08-10-2026", "08:00", "08:30");
         command(tomorrow).execute(model);
-        assertEquals(List.of(tomorrow), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(tomorrow), model.getBubuBook().getAppointmentList());
     }
 
     @Test
@@ -157,7 +157,7 @@ public class AddAppointmentCommandTest {
                 create("07-10-2026", "12:00", "12:30"), create("08-10-2026", "11:00", "12:00"))) {
             command(appointment).execute(model);
         }
-        assertEquals(4, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(4, model.getBubuBook().getAppointmentList().size());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class AddAppointmentCommandTest {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
         command.execute(model);
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
-        assertEquals(List.of(VALID_APPOINTMENT), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
 
     @Test
@@ -174,7 +174,7 @@ public class AddAppointmentCommandTest {
         Appointment appointment = new Appointment(OWNER_PHONE, "  BuBu   Junior  ", VALID_APPOINTMENT.getDate(),
                 VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         command(appointment).execute(model);
-        assertEquals(List.of(appointment), model.getGroomingBook().getAppointmentList());
+        assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
 
     @Test
@@ -182,7 +182,7 @@ public class AddAppointmentCommandTest {
         assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null));
         assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, null));
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
-        assertTrue(model.getGroomingBook().getAppointmentList().isEmpty());
+        assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
 
     @Test
@@ -206,11 +206,11 @@ public class AddAppointmentCommandTest {
     }
 
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
-        GroomingBook before = new GroomingBook(model.getGroomingBook());
+        BubuBook before = new BubuBook(model.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 new AddAppointmentCommand(appointment, clock).execute(model));
         assertEquals(message, exception.getMessage());
-        assertEquals(before, model.getGroomingBook());
+        assertEquals(before, model.getBubuBook());
         return exception;
     }
 

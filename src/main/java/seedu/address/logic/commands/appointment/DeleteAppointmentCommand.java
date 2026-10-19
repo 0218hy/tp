@@ -79,7 +79,7 @@ public class DeleteAppointmentCommand extends Command {
             return appointments.get(targetIndex.getZeroBased());
         }
 
-        return model.getGroomingBook().getAppointmentList().stream()
+        return model.getBubuBook().getAppointmentList().stream()
                 .filter(appointment -> appointment.matches(targetDate, targetTime))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_APPOINTMENT_NOT_FOUND));

@@ -21,8 +21,6 @@ import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
-import seedu.address.logic.commands.client.EditClientCommand;
-import seedu.address.logic.commands.client.EditClientCommand.EditClientDescriptor;
 import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
@@ -36,7 +34,6 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.ClientUtil;
-import seedu.address.testutil.EditClientDescriptorBuilder;
 
 public class BuBuParserTest {
 
@@ -115,12 +112,10 @@ public class BuBuParserTest {
     }
 
     @Test
-    public void parseCommand_edit() throws Exception {
-        Client client = new ClientBuilder().build();
-        EditClientDescriptor descriptor = new EditClientDescriptorBuilder(client).build();
-        EditClientCommand command = (EditClientCommand) parser.parseCommand(EditClientCommand.COMMAND_WORD + " "
-                + INDEX_FIRST_CLIENT.getOneBased() + " " + ClientUtil.getEditClientDescriptorDetails(descriptor));
-        assertEquals(new EditClientCommand(INDEX_FIRST_CLIENT, descriptor), command);
+    public void parseCommand_edit_throwsUnknownCommand() {
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("edit"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () ->
+                parser.parseCommand("edit 1 n/Updated Client i/91234567"));
     }
 
     @Test

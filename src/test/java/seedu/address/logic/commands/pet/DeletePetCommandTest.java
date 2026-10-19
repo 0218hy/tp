@@ -16,7 +16,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -36,18 +36,18 @@ public class DeletePetCommandTest {
 
     @BeforeEach
     public void setUp() {
-        GroomingBook groomingBook = new GroomingBook();
-        groomingBook.addClient(ALICE);
-        groomingBook.addClient(BOB);
-        groomingBook.addPet(milo);
-        groomingBook.addPet(miloWithDifferentOwner);
-        model = new ModelManager(groomingBook, new UserPrefs());
+        BubuBook bubuBook = new BubuBook();
+        bubuBook.addClient(ALICE);
+        bubuBook.addClient(BOB);
+        bubuBook.addPet(milo);
+        bubuBook.addPet(miloWithDifferentOwner);
+        model = new ModelManager(bubuBook, new UserPrefs());
     }
 
     @Test
     public void execute_matchingNameAndOwnerPhone_deletesPet() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deletePet(milo);
 
         assertCommandSuccess(deletePetCommand, model,
@@ -57,7 +57,7 @@ public class DeletePetCommandTest {
     @Test
     public void execute_validIndex_deletesPetFromFilteredList() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deletePet(milo);
 
         assertCommandSuccess(deletePetCommand, model,
@@ -106,7 +106,7 @@ public class DeletePetCommandTest {
     public void execute_petHiddenByFilter_deletesPet() {
         model.updateFilteredPetList(pet -> false);
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
-        Model expectedModel = new ModelManager(model.getGroomingBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.updateFilteredPetList(pet -> false);
         expectedModel.deletePet(milo);
 

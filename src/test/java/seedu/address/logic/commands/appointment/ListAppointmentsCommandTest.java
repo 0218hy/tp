@@ -42,7 +42,7 @@ public class ListAppointmentsCommandTest {
                 + "01-11-2026 08:00-09:00; Pet: BuBu; Owner phone: 91234567; Service: Full groom",
                 result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
-        assertEquals(saved, model.getGroomingBook().getAppointmentList());
+        assertEquals(saved, model.getBubuBook().getAppointmentList());
         assertEquals(List.of(ongoing, later, tomorrow, nextMonth), model.getFilteredAppointmentList());
     }
 
@@ -67,7 +67,7 @@ public class ListAppointmentsCommandTest {
         CommandResult completedResult = command.execute(model);
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, completedResult.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS, completedResult.getDisplayType());
-        assertEquals(2, model.getGroomingBook().getAppointmentList().size());
+        assertEquals(2, model.getBubuBook().getAppointmentList().size());
         assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 

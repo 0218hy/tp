@@ -6,7 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.util.Locale;
 
 /**
- * Represents a pet's name in the address book.
+ * Represents a pet's name in the BuBu.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}.
  */
 public class PetName {

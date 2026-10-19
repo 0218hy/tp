@@ -15,7 +15,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.Client;
 
 /**
- * Adds a client to the address book.
+ * Adds a client to the BuBu.
  */
 public class AddClientCommand extends Command {
 

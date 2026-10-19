@@ -17,9 +17,9 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.model.GroomingBook;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
-import seedu.address.model.ReadOnlyGroomingBook;
+import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
@@ -101,7 +101,7 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public void clearClientsAndPets() {
+        public void clearBubuBook() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -136,12 +136,12 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public void setGroomingBook(ReadOnlyGroomingBook newData) {
+        public void setBubuBook(ReadOnlyBubuBook newData) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public ReadOnlyGroomingBook getGroomingBook() {
+        public ReadOnlyBubuBook getBubuBook() {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -248,8 +248,8 @@ public class AddClientCommandTest {
         }
 
         @Override
-        public ReadOnlyGroomingBook getGroomingBook() {
-            return new GroomingBook();
+        public ReadOnlyBubuBook getBubuBook() {
+            return new BubuBook();
         }
     }
 

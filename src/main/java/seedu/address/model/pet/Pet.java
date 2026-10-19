@@ -8,7 +8,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Client;
 
 /**
- * Represents a pet in the address book.
+ * Represents a pet in the BuBu.
  * Its required details are non-null, while breed may be absent.
  * The profile is immutable.
  */

@@ -24,15 +24,15 @@ import seedu.address.model.pet.Pet;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
-public class GroomingBookIntegrationTest {
+public class BubuBookIntegrationTest {
     private final Appointment appointment = new Appointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
     @Test
     public void resetData_invalidAppointments_preservesClientsPetsAndSchedule() {
-        GroomingBook book = populatedBook();
-        GroomingBook before = new GroomingBook(book);
-        GroomingBook invalid = new GroomingBook() {
+        BubuBook book = populatedBook();
+        BubuBook before = new BubuBook(book);
+        BubuBook invalid = new BubuBook() {
             @Override
             public ObservableList<Appointment> getAppointmentList() {
                 return FXCollections.observableArrayList(appointment, appointment);
@@ -46,15 +46,14 @@ public class GroomingBookIntegrationTest {
 
     @Test
     public void resetData_validReplacement_preservesAllObservableViews() {
-        GroomingBook book = new GroomingBook();
+        BubuBook book = new BubuBook();
         ObservableList<Client> clients = book.getClientList();
         ObservableList<Pet> pets = book.getPetList();
         ObservableList<Appointment> appointments = book.getAppointmentList();
-        GroomingBook replacement = populatedBook();
+        BubuBook replacement = populatedBook();
 
         book.resetData(replacement);
-        replacement.clearClientsAndPets();
-        replacement.setAppointments(List.of());
+        replacement.clear();
 
         assertEquals(List.of(ALICE), clients);
         assertEquals(List.of(new PetBuilder(ALICE).withBreed("Golden retriever").build()), pets);
@@ -67,8 +66,8 @@ public class GroomingBookIntegrationTest {
 
     @Test
     public void setClients_missingOwner_rejectsWithoutChangingAnyRecords() {
-        GroomingBook book = populatedBook();
-        GroomingBook before = new GroomingBook(book);
+        BubuBook book = populatedBook();
+        BubuBook before = new BubuBook(book);
 
         assertThrows(ClientNotFoundException.class, () -> book.setClients(List.of(BENSON)));
         assertEquals(before, book);
@@ -76,7 +75,7 @@ public class GroomingBookIntegrationTest {
 
     @Test
     public void setClients_updatedOwner_refreshesPetsAndPreservesSchedule() {
-        GroomingBook book = populatedBook();
+        BubuBook book = populatedBook();
         Client editedAlice = new ClientBuilder(ALICE).withAddress("123 New Street").build();
 
         book.setClients(List.of(editedAlice));
@@ -124,9 +123,9 @@ public class GroomingBookIntegrationTest {
 
     @Test
     public void resetData_missingOwner_preservesAllCollections() {
-        GroomingBook book = populatedBook();
-        GroomingBook before = new GroomingBook(book);
-        GroomingBook invalid = new GroomingBook() {
+        BubuBook book = populatedBook();
+        BubuBook before = new BubuBook(book);
+        BubuBook invalid = new BubuBook() {
             @Override
             public ObservableList<Pet> getPetList() {
                 return FXCollections.observableArrayList(new PetBuilder(BENSON).build());
@@ -138,8 +137,8 @@ public class GroomingBookIntegrationTest {
         assertEquals(before, book);
     }
 
-    private GroomingBook populatedBook() {
-        GroomingBook book = new GroomingBook();
+    private BubuBook populatedBook() {
+        BubuBook book = new BubuBook();
         book.addClient(ALICE);
         book.addPet(new PetBuilder(ALICE).withBreed("Golden retriever").build());
         book.addAppointment(appointment);
