@@ -174,7 +174,8 @@ Index-based commands accept exactly one positive integer index:
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
-* Identifier forms such as `delete-client i/PHONE_NUMBER` and `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+* Identifier forms such as `delete-client i/PHONE_NUMBER`, `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
+  `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
 `LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
@@ -877,6 +878,33 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: `list-pets x/extra`<br>
       Expected: The status message is `Invalid command format. Check the command syntax and try again.`
+
+### Editing a pet
+
+1. Editing one or more pet fields
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh (phone number `87438807`).
+
+   2. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean s/Cat r/Prefers quiet drying`<br>
+      Expected: The pet is updated while remaining under Alex Yeoh. The status message is `Edited pet: Mochi Bean`.
+
+2. Clearing an optional breed
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh and has a saved breed.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 b/`<br>
+      Expected: The pet's breed is removed. The status message is `Edited pet: Mochi`.
+
+3. Invalid edits
+
+   1. Test case: `edit-pet p/Mochi i/87438807`<br>
+      Expected: No pet is changed. The status message is `At least one field to edit must be provided.`
+
+   2. Test case: `edit-pet p/Mochi i/87438807 n/BuBu` when Alex Yeoh already has a pet named `BuBu`<br>
+      Expected: No pet is changed. The status message states that the client already has a pet named BuBu.
+
+   3. Test case: `edit-pet p/Unknown i/87438807 r/Needs calm handling`<br>
+      Expected: No pet is changed. The status message states that no pet matches the specified name and owner phone number.
 
 ### Deleting a pet
 

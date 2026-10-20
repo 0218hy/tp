@@ -23,6 +23,9 @@ Add pet
 List pets
   list-pets [i/OWNER_IDENTIFIER]
 
+Edit pet
+  edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
+
 Delete pet
   delete-pet INDEX
   delete-pet p/PET_NAME i/OWNER_IDENTIFIER

@@ -22,7 +22,7 @@ BuBu provides one command-driven workflow for client records, pet profiles, and 
 | Task | Commands |
 | --- | --- |
 | Manage client records | `add-client`, `list-clients`, `delete-client` |
-| Manage pet profiles | `add-pet`, `list-pets`, `delete-pet` |
+| Manage pet profiles | `add-pet`, `list-pets`, `edit-pet`, `delete-pet` |
 | Manage grooming appointments | `add-appointment`, `list-appointments`, `delete-appointment` |
 
 For example, `list-clients q/amelia` searches client records, `list-pets i/87438807` shows the pets owned by the client with that phone number, and `list-appointments` displays upcoming appointments in chronological order.

@@ -1,0 +1,86 @@
+package seedu.address.logic.parser.pet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.commands.pet.EditPetCommand;
+import seedu.address.logic.commands.pet.EditPetCommand.EditPetDescriptor;
+import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Breed;
+import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Requirement;
+import seedu.address.model.pet.Species;
+
+/** Tests input validation for {@code edit-pet}. */
+public class EditPetCommandParserTest {
+    private final EditPetCommandParser parser = new EditPetCommandParser();
+
+    @Test
+    public void parse_optionalFields_createsCommand() throws Exception {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setName(new PetName("Mochi Bean"));
+        descriptor.setSpecies(Species.CAT);
+        descriptor.setBreed(new Breed("British Shorthair"));
+        descriptor.setRequirement(new Requirement("Prefers quiet drying"));
+
+        EditPetCommand expected = new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor);
+        assertEquals(expected, parser.parse("p/Mochi i/91234567 n/Mochi Bean s/Cat "
+                + "b/British Shorthair r/Prefers quiet drying"));
+    }
+
+    @Test
+    public void parse_emptyBreed_clearsBreed() throws Exception {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setBreed(null);
+
+        EditPetCommand expected = new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor);
+        assertEquals(expected, parser.parse("p/Mochi i/91234567 b/"));
+    }
+
+    @Test
+    public void parse_reorderedFields_createsSameCommand() throws Exception {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setSpecies(Species.GUINEA_PIG);
+        descriptor.setRequirement(new Requirement("Needs calm handling"));
+        EditPetCommand expected = new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor);
+
+        assertEquals(expected, parser.parse(" r/Needs calm handling s/Guinea Pig i/91234567 p/Mochi "));
+    }
+
+    @Test
+    public void parse_missingRequiredIdentifier_throwsParseException() {
+        assertThrows(ParseException.class, "Missing required field: PET_NAME.", () ->
+                parser.parse("i/91234567 n/Mochi Bean"));
+        assertThrows(ParseException.class, "Missing required field: OWNER_IDENTIFIER.", () ->
+                parser.parse("p/Mochi n/Mochi Bean"));
+    }
+
+    @Test
+    public void parse_noUpdatedFields_throwsParseException() {
+        assertThrows(ParseException.class, EditPetCommand.MESSAGE_NOT_EDITED, () ->
+                parser.parse("p/Mochi i/91234567"));
+    }
+
+    @Test
+    public void parse_repeatedOrUnknownField_throwsParseException() {
+        assertThrows(ParseException.class, EditPetCommandParser.MESSAGE_DUPLICATE_FIELD, () ->
+                parser.parse("p/Mochi i/91234567 n/Mochi Bean n/Mochi Junior"));
+        assertThrows(ParseException.class, EditPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
+                parser.parse("p/Mochi i/91234567 x/value n/Mochi Bean"));
+    }
+
+    @Test
+    public void parse_invalidUpdatedValue_throwsParseException() {
+        assertThrows(ParseException.class, PetName.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Mochi i/91234567 n/Bad@Name"));
+        assertThrows(ParseException.class, EditPetCommandParser.MESSAGE_INVALID_SPECIES, () ->
+                parser.parse("p/Mochi i/91234567 s/Horse"));
+        assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Mochi i/91234567 b/X"));
+        assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Mochi i/91234567 r/Bad/care"));
+    }
+}

@@ -8,6 +8,7 @@ import seedu.address.logic.parser.Prefix;
 public class PetCliSyntax {
     public static final Prefix PREFIX_PET_NAME = new Prefix("p/");
     public static final Prefix PREFIX_OWNER_IDENTIFIER = new Prefix("i/");
+    public static final Prefix PREFIX_NEW_PET_NAME = new Prefix("n/");
     public static final Prefix PREFIX_SPECIES = new Prefix("s/");
     public static final Prefix PREFIX_BREED = new Prefix("b/");
     public static final Prefix PREFIX_REQUIREMENTS = new Prefix("r/");

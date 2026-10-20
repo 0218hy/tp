@@ -32,6 +32,8 @@ public class HelpCommandTest {
                 "add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS"));
         assertTrue(commandReference.contains("list-clients [q/KEYWORD]"));
         assertTrue(commandReference.contains("list-pets [i/OWNER_IDENTIFIER]"));
+        assertTrue(commandReference.contains(
+                "edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]"));
         assertTrue(commandReference.contains("delete-pet INDEX"));
         assertTrue(commandReference.contains("delete-pet p/PET_NAME i/OWNER_IDENTIFIER"));
         assertTrue(commandReference.contains(

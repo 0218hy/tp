@@ -242,6 +242,29 @@ With no pets saved, `list-pets` displays `No saved pet profiles.` For a client w
 An invalid phone number reports `Owner identifier must be a valid phone number belonging to the specified client.`
 Unknown fields or extra text report `Invalid command format. Check the command syntax and try again.`
 
+### Editing a pet: `edit-pet`
+
+Edits one or more details of a saved pet. The pet is identified by its current name and its owner's phone number, so
+this command does not depend on the currently displayed pet list. The owner cannot be changed.
+
+Format: `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
+
+* `PET_NAME` and `OWNER_IDENTIFIER` identify the existing pet. The owner phone number must be an existing eight-digit
+  phone number starting with `8` or `9`.
+* Provide at least one optional field to change. Omitted optional fields keep their saved values.
+* `NEW_PET_NAME`, `SPECIES`, `BREED`, and `REQUIREMENTS` use the same constraints as the corresponding `add-pet`
+  fields.
+* Use `b/` with no value to remove a saved breed.
+* A client cannot have two pets with the same name after ignoring case and extra whitespace.
+
+Examples:
+
+* `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` changes Mochi's name and requirements.
+* `edit-pet p/Mochi Bean i/87438807 b/` removes Mochi Bean's breed.
+
+If no pet matches the supplied name and owner, the command reports `No pet with the specified name and owner phone
+number was found.` If no optional field is supplied, it reports `At least one field to edit must be provided.`
+
 ### Deleting a pet: `delete-pet`
 
 Deletes the specified pet from the saved pet profiles.
@@ -380,6 +403,7 @@ Action | Format, Examples
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
+**Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
