@@ -70,6 +70,12 @@ public class Appointment {
         return service;
     }
 
+    /** Returns a copy of this appointment with the given owner phone number. */
+    Appointment withOwnerPhone(Phone newOwnerPhone) {
+        requireNonNull(newOwnerPhone);
+        return new Appointment(newOwnerPhone, petName.toString(), date, startTime, endTime, service);
+    }
+
     /**
      * Returns whether this appointment belongs to the given pet.
      * Pet names are compared using the same normalized form used when scheduling appointments.

@@ -85,6 +85,19 @@ public class BubuBookIntegrationTest {
     }
 
     @Test
+    public void setClient_changedPhoneThenRemoveClient_removesAppointments() {
+        BubuBook book = populatedBook();
+        Client editedAlice = new ClientBuilder(ALICE).withPhone("81234567").build();
+
+        book.setClient(ALICE, editedAlice);
+        book.removeClient(editedAlice);
+
+        assertEquals(List.of(), book.getClientList());
+        assertEquals(List.of(), book.getPetList());
+        assertEquals(List.of(), book.getAppointmentList());
+    }
+
+    @Test
     public void removePet_removesRelatedAppointmentsAndRetainsOtherRecords() {
         BubuBook book = populatedBook();
         book.addClient(BENSON);
@@ -101,6 +114,37 @@ public class BubuBookIntegrationTest {
         assertEquals(List.of(ALICE, BENSON), book.getClientList());
         assertEquals(List.of(bensonPet), book.getPetList());
         assertEquals(List.of(bensonAppointment), book.getAppointmentList());
+    }
+
+    @Test
+    public void removePet_matchesBothOwnerAndNameWhenRemovingAppointments() {
+        BubuBook book = new BubuBook();
+        book.addClient(ALICE);
+        book.addClient(BENSON);
+        Pet aliceMilo = new PetBuilder(ALICE).build();
+        Pet bensonMilo = new PetBuilder(BENSON).build();
+        Pet aliceCoco = new PetBuilder(ALICE).withName("Coco").build();
+        book.addPet(aliceMilo);
+        book.addPet(bensonMilo);
+        book.addPet(aliceCoco);
+
+        Appointment aliceMiloAppointment = new Appointment(ALICE.getPhone(), "Milo",
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        Appointment bensonMiloAppointment = new Appointment(BENSON.getPhone(), "Milo",
+                new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
+                Service.NAIL_TRIM);
+        Appointment aliceCocoAppointment = new Appointment(ALICE.getPhone(), "Coco",
+                new AppointmentDate("01-01-2000"), new StartTime("12:00"), new EndTime("13:00"),
+                Service.BATH_AND_BRUSH);
+        book.addAppointment(aliceMiloAppointment);
+        book.addAppointment(bensonMiloAppointment);
+        book.addAppointment(aliceCocoAppointment);
+
+        book.removePet(aliceMilo);
+
+        assertEquals(List.of(bensonMilo, aliceCoco), book.getPetList());
+        assertEquals(List.of(bensonMiloAppointment, aliceCocoAppointment), book.getAppointmentList());
     }
 
     @Test

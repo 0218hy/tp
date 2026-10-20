@@ -70,6 +70,7 @@ public class BubuBook implements ReadOnlyBubuBook {
         requireAllNonNull(target, editedClient);
         clients.setClient(target, editedClient);
         pets.updateOwner(target, editedClient);
+        appointments.updateOwner(target, editedClient);
     }
 
     /** Removes a client and all pets and appointments belonging to that client. */
