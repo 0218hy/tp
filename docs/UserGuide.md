@@ -244,26 +244,49 @@ Unknown fields or extra text report `Invalid command format. Check the command s
 
 ### Editing a pet: `edit-pet`
 
-Edits one or more details of a saved pet. The pet is identified by its current name and its owner's phone number, so
-this command does not depend on the currently displayed pet list. The owner cannot be changed.
+Edits one or more details of a saved pet. The pet is identified by its **current** name and its owner's phone number,
+so this command does not depend on the currently displayed pet list. Editing never transfers a pet to another owner.
 
 Format: `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
 
-* `PET_NAME` and `OWNER_IDENTIFIER` identify the existing pet. The owner phone number must be an existing eight-digit
-  phone number starting with `8` or `9`.
-* Provide at least one optional field to change. Omitted optional fields keep their saved values.
-* `NEW_PET_NAME`, `SPECIES`, `BREED`, and `REQUIREMENTS` use the same constraints as the corresponding `add-pet`
-  fields.
-* Use `b/` with no value to remove a saved breed.
-* A client cannot have two pets with the same name after ignoring case and extra whitespace.
+* `PET_NAME` is the pet's currently saved name. It must be 1–40 letters, digits, spaces, apostrophes, hyphens, or
+  full stops. To select a profile, it must match the saved current name after leading and trailing whitespace is
+  removed; letter case and internal whitespace are significant for this lookup.
+* `OWNER_IDENTIFIER` is the current owner's eight-digit phone number, starting with `8` or `9`, without spaces or
+  hyphens. Together, `PET_NAME` and `OWNER_IDENTIFIER` identify one saved pet.
+* Supply at least one optional update. Omitting an optional prefix keeps that field unchanged. Every prefix may appear
+  at most once.
+* `NEW_PET_NAME` uses the same rules as `PET_NAME`.
+* `SPECIES` is `Dog`, `Cat`, `Rabbit`, `Guinea Pig`, or `Other`, ignoring case. `Guinea_Pig` is also accepted.
+* A non-empty `BREED` must be 2–50 letters, digits, spaces, apostrophes, hyphens, or full stops. Use `b/` with no
+  value to remove a saved breed; omitting `b/` leaves the breed unchanged.
+* `REQUIREMENTS` must be 5–240 characters and cannot contain `/`.
+* A client cannot have two pets with the same name after ignoring case and extra whitespace. Different clients may
+  have pets with the same name.
 
 Examples:
 
 * `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` changes Mochi's name and requirements.
 * `edit-pet p/Mochi Bean i/87438807 b/` removes Mochi Bean's breed.
+* `edit-pet p/Mochi Bean i/87438807 s/Cat b/British Shorthair` changes the species and records a breed.
 
-If no pet matches the supplied name and owner, the command reports `No pet with the specified name and owner phone
-number was found.` If no optional field is supplied, it reports `At least one field to edit must be provided.`
+On success, BuBu displays `Edited pet: PET_NAME`. It also refreshes the saved pet view so that all pet profiles are
+available to later pet-list operations.
+
+The profile remains unchanged when the command cannot be completed. Relevant error messages include:
+
+* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` when either selector is absent
+  or empty.
+* `At least one field to edit must be provided.` when no optional update is supplied.
+* `Each pet field may be specified only once.` when any prefix is repeated.
+* `Invalid command format. Check the command syntax and try again.` for unsupported prefixes or text outside a field.
+* A field-specific validation message for an invalid name, phone number, species, breed, or requirement.
+* `No pet with the specified name and owner phone number was found.` when the name-and-owner pair does not identify a
+  saved pet.
+* `This client already has a pet named PET_NAME.` when a new name conflicts with another pet under that owner.
+
+Edits are saved together with the rest of the BubuBook. If saving fails, BuBu restores the previous records and
+reports the storage error instead of leaving a partially applied edit.
 
 ### Deleting a pet: `delete-pet`
 
