@@ -100,6 +100,33 @@ public class EditPetCommandTest {
     }
 
     @Test
+    public void execute_nameWithDifferentCaseAndWhitespace_updatesMatchingPet() {
+        Pet petWithRepeatedWhitespace = new PetBuilder(ALICE).withName("Milo  Bean").build();
+        model.addPet(petWithRepeatedWhitespace);
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        Pet editedPet = new PetBuilder(petWithRepeatedWhitespace).withRequirement("Needs a short walk").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(petWithRepeatedWhitespace, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(new PetName("mIlO bEaN"), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_normalizedName_updatesOnlyPetForSpecifiedOwner() {
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        Pet editedPet = new PetBuilder(milo).withRequirement("Needs a short walk").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(new PetName("mIlO"), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+        assertTrue(model.hasPet(miloWithDifferentOwner));
+    }
+
+    @Test
     public void execute_petHiddenByFilter_updatesPetAndResetsFilter() {
         model.updateFilteredPetList(pet -> false);
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();

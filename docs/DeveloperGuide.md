@@ -195,8 +195,9 @@ The execution flow is:
 2. The parser tokenizes the target prefixes (`p/` and `i/`) and the optional update prefixes (`n/`, `s/`, `b/`, and
    `r/`). It rejects a preamble, unknown prefix, duplicate prefix, missing target selector, invalid value, or a command
    with no updates. It constructs an `EditPetDescriptor` containing only the requested changes.
-3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the exact current `PetName` and owner-phone pair.
-   The target lookup uses `PetName.equals`, while the later duplicate check uses the normalized-name identity rule.
+3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the normalized current pet name and exact
+   owner-phone pair. Both target lookup and the later duplicate check use `PetName.getNormalizedName()`, which ignores
+   letter case and leading, trailing, or repeated whitespace.
    It intentionally does not use `getFilteredPetList()`, so the command works regardless of the currently displayed
    record panel or a pet filter.
 4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
@@ -989,7 +990,7 @@ testers are expected to do more *exploratory* testing.
 
    1. Prerequisites: Alex Yeoh (`87438807`) and Bernice Yu (`99272758`) each have a pet named `Milo`.
 
-   2. Test case: `edit-pet p/Milo i/87438807 r/Needs calm handling`<br>
+   2. Test case: `edit-pet p/mIlO i/87438807 r/Needs calm handling`<br>
       Expected: Only Alex Yeoh's Milo is updated. Bernice Yu's Milo is unchanged.
 
    3. Test case: `edit-pet p/Milo i/91234567 r/Needs calm handling` when no pet has that owner phone number<br>

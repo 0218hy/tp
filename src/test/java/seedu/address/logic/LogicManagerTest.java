@@ -209,7 +209,7 @@ public class LogicManagerTest {
         Pet editedPet = new PetBuilder(pet).withName("Milo Bean").withRequirement("Prefers quiet drying").build();
         expectedModel.setPet(pet, editedPet);
 
-        assertCommandSuccess("edit-pet p/Milo i/" + ALICE.getPhone().value
+        assertCommandSuccess("edit-pet p/mIlO i/" + ALICE.getPhone().value
                         + " n/Milo Bean r/Prefers quiet drying",
                 String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
 

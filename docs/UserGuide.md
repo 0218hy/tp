@@ -251,7 +251,7 @@ Format: `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/
 
 * `PET_NAME` is the pet's currently saved name. It must be 1–40 letters, digits, spaces, apostrophes, hyphens, or
   full stops. To select a profile, it must match the saved current name after leading and trailing whitespace is
-  removed; letter case and internal whitespace are significant for this lookup.
+  removed; letter case and repeated internal whitespace are ignored for this lookup.
 * `OWNER_IDENTIFIER` is the current owner's eight-digit phone number, starting with `8` or `9`, without spaces or
   hyphens. Together, `PET_NAME` and `OWNER_IDENTIFIER` identify one saved pet.
 * Supply at least one optional update. Omitting an optional prefix keeps that field unchanged. Every prefix may appear
@@ -267,6 +267,8 @@ Format: `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/
 Examples:
 
 * `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` changes Mochi's name and requirements.
+* `edit-pet p/mochi i/87438807 s/Cat` also finds `Mochi`, because pet-name lookup ignores letter case and repeated
+  whitespace.
 * `edit-pet p/Mochi Bean i/87438807 b/` removes Mochi Bean's breed.
 * `edit-pet p/Mochi Bean i/87438807 s/Cat b/British Shorthair` changes the species and records a breed.
 

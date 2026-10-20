@@ -70,7 +70,8 @@ public class EditPetCommand extends Command {
 
     private Pet findPet(Model model) throws CommandException {
         return model.getBubuBook().getPetList().stream()
-                .filter(pet -> pet.getName().equals(petName) && pet.getOwner().getPhone().equals(ownerPhone))
+                .filter(pet -> pet.getName().getNormalizedName().equals(petName.getNormalizedName())
+                        && pet.getOwner().getPhone().equals(ownerPhone))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_PET_NOT_FOUND));
     }
