@@ -219,6 +219,25 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editPetSaveFails_restoresModel() {
+        Pet pet = new PetBuilder(ALICE).build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(bubuBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+
+        assertCommandException("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs a short walk",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
     }

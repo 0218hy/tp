@@ -82,7 +82,7 @@ public class EditPetCommandTest {
     @Test
     public void execute_duplicateUpdatedName_throwsCommandException() {
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
-        descriptor.setName(mochi.getName());
+        descriptor.setName(new PetName("  mOcHi  "));
 
         assertCommandFailure(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
                 String.format(EditPetCommand.MESSAGE_DUPLICATE_PET, mochi.getName()));
@@ -112,6 +112,30 @@ public class EditPetCommandTest {
 
         assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
                 String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+
+        assertThrows(NullPointerException.class, () ->
+                new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor).execute(null));
+    }
+
+    @Test
+    public void constructor_descriptorIsDefensivelyCopied() {
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        EditPetCommand command = new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor);
+        descriptor.setName(new PetName("Milo Changed"));
+
+        Pet expectedPet = new PetBuilder(milo).withRequirement("Needs a short walk").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, expectedPet);
+
+        assertCommandSuccess(command, model, String.format(EditPetCommand.MESSAGE_SUCCESS, expectedPet.getName()),
+                expectedModel);
     }
 
     @Test
