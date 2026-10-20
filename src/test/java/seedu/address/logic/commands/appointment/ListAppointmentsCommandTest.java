@@ -2,6 +2,7 @@ package seedu.address.logic.commands.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -89,7 +90,7 @@ public class ListAppointmentsCommandTest {
     }
 
     private static Appointment create(String date, String start, String end) {
-        return new Appointment(new Phone("91234567"), "BuBu", new AppointmentDate(date),
+        return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
 }

@@ -226,8 +226,15 @@ The `Storage` component:
 #### Appointment persistence
 
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
-`JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
-Loading accepts historical appointments and rejects invalid or overlapping records.
+`Appointment` holds immutable `Client` and `Pet` objects. `AddAppointmentCommandParser` parses participant
+identifiers; `AddAppointmentCommand` resolves them against the full registered lists when executed.
+Appointments retain the participant details from booking time when a client or pet is later edited or deleted.
+`JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
+Loading reuses equal registered objects when available and accepts historical snapshots independently of the
+registered lists. Invalid, mismatched, or overlapping records are rejected.
+Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
+and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
+format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
 
 The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →

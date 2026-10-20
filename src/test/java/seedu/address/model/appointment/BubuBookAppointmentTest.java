@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +65,7 @@ public class BubuBookAppointmentTest {
     @Test
     public void addAppointment_differentOwnerAndPet_stillRejectsOverlap() {
         book.addAppointment(APPOINTMENT);
-        Appointment otherPet = new Appointment(new Phone("81234567"), "Mochi", APPOINTMENT.getDate(),
+        Appointment otherPet = createAppointment(new Phone("81234567"), "Mochi", APPOINTMENT.getDate(),
                 new StartTime("10:30"), new EndTime("11:30"), Service.NAIL_TRIM);
         assertThrows(OverlappingAppointmentException.class, () -> book.addAppointment(otherPet));
         assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
@@ -73,7 +74,7 @@ public class BubuBookAppointmentTest {
     @Test
     public void addAppointment_sameTimeDifferentDay_allowed() {
         book.addAppointment(APPOINTMENT);
-        Appointment nextDay = new Appointment(APPOINTMENT.getOwnerPhone(), "BuBu", new AppointmentDate("02-01-2020"),
+        Appointment nextDay = createAppointment(APPOINTMENT.getOwnerPhone(), "BuBu", new AppointmentDate("02-01-2020"),
                 APPOINTMENT.getStartTime(), APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         assertFalse(book.hasOverlappingAppointment(nextDay));
         assertFalse(book.hasOverlappingAppointment(ADJACENT));
@@ -170,7 +171,7 @@ public class BubuBookAppointmentTest {
     }
 
     private static Appointment create(String start, String end) {
-        return new Appointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2020"),
+        return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2020"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
 }

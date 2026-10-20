@@ -338,7 +338,13 @@ Clients, pets, and appointments are saved together in `data/bububook.json` after
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets.
+Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
+details recorded when it was made, even if those records are later edited or deleted. The pet's registered name
+is used for display, including its original capitalization.
+
+Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
+registered. If either is missing, restore the missing participant from a backup before upgrading; those older
+bookings do not contain a full participant profile.
 
 ### Editing the data file
 

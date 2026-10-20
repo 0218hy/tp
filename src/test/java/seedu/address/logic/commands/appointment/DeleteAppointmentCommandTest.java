@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -144,7 +145,7 @@ public class DeleteAppointmentCommandTest {
     }
 
     private static Appointment create(String start, String end) {
-        return new Appointment(new Phone("91234567"), "BuBu", DATE, new StartTime(start),
+        return createAppointment(new Phone("91234567"), "BuBu", DATE, new StartTime(start),
                 new EndTime(end), Service.FULL_GROOM);
     }
 }

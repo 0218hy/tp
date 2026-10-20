@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
 import java.io.IOException;
@@ -30,7 +31,6 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.client.Phone;
 import seedu.address.storage.JsonBubuBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -82,8 +82,11 @@ public class AppointmentPersistenceTest {
                 + "d/01-01-9999 st/10:00 et/11:00 s/Full groom";
         logic.execute(booking);
 
-        Appointment expected = new Appointment(new Phone("81234567"),
-                "CAFÉ 小白", new AppointmentDate("01-01-9999"), new StartTime("10:00"),
+        var owner = model.getBubuBook().getClientList().stream()
+                .filter(client -> client.getPhone().value.equals("81234567")).findFirst().orElseThrow();
+        var pet = model.getBubuBook().getPetList().stream()
+                .filter(candidate -> candidate.getOwner().equals(owner)).findFirst().orElseThrow();
+        Appointment expected = new Appointment(owner, pet, new AppointmentDate("01-01-9999"), new StartTime("10:00"),
                 new EndTime("11:00"), Service.FULL_GROOM);
         assertEquals(List.of(expected), model.getBubuBook().getAppointmentList());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
@@ -241,7 +244,7 @@ public class AppointmentPersistenceTest {
 
     private BubuBook historicalBook() {
         BubuBook book = new BubuBook();
-        book.addAppointment(new Appointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
+        book.addAppointment(createAppointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;
     }

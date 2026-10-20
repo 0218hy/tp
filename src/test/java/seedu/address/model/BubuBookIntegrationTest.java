@@ -3,6 +3,7 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
@@ -25,7 +26,7 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class BubuBookIntegrationTest {
-    private final Appointment appointment = new Appointment(ALICE.getPhone(), "Milo",
+    private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
     @Test
