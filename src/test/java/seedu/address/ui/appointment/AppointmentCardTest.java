@@ -2,7 +2,7 @@ package seedu.address.ui.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
 import java.lang.reflect.Field;
@@ -11,12 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
+import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
 @EnabledOnOs(OS.LINUX)
@@ -25,7 +28,7 @@ public class AppointmentCardTest {
     @Test
     public void constructor_displaysAppointmentDetails() {
         JavaFxTestUtils.runAndWait(() -> {
-            Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
+            Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).withName("Milo").build(),
                     new AppointmentDate("01-01-2027"), new StartTime("10:00"),
                     new EndTime("11:00"), Service.FULL_GROOM);
             AppointmentCard card = new AppointmentCard(appointment, 3);
@@ -34,9 +37,35 @@ public class AppointmentCardTest {
             assertEquals("3. ", getLabel(card, "id").getText());
             assertEquals("01-01-2027 10:00-11:00", getLabel(card, "dateTime").getText());
             assertEquals("Pet: Milo", getLabel(card, "pet").getText());
-            assertEquals("Owner phone: 94351253", getLabel(card, "owner").getText());
+            assertEquals("Owner: Alice Pauline", getLabel(card, "owner").getText());
+            assertEquals("Owner phone: 94351253", getLabel(card, "phone").getText());
+            assertEquals("Address: " + ALICE.getAddress(), getLabel(card, "address").getText());
+            assertEquals("Care notes: Daily walk", getLabel(card, "careNotes").getText());
             assertEquals("Service: Full groom", getLabel(card, "service").getText());
             assertNotNull(card.getRoot());
+        });
+    }
+
+    @Test
+    public void constructor_longCareNotes_wrapWithoutTruncation() {
+        JavaFxTestUtils.runAndWait(() -> {
+            String notes = "Use fragrance-free shampoo for sensitive skin. Avoid the ears and take breaks "
+                    + "during brushing. Handle paws gently and contact the owner if the pet becomes distressed.";
+            Appointment appointment = new Appointment(ALICE,
+                    new PetBuilder(ALICE).withRequirement(notes).build(), new AppointmentDate("01-01-2027"),
+                    new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+            AppointmentCard card = new AppointmentCard(appointment, 1);
+            StackPane root = new StackPane(card.getRoot());
+            new Scene(root, 300, 500);
+            root.applyCss();
+            root.layout();
+
+            Label careNotes = getLabel(card, "careNotes");
+            assertEquals("Care notes: " + notes, careNotes.getText());
+            assertTrue(careNotes.isWrapText());
+            assertTrue(getLabel(card, "address").isWrapText());
+            assertTrue(careNotes.getHeight() > getLabel(card, "phone").getHeight());
+            assertTrue(careNotes.getHeight() >= careNotes.prefHeight(careNotes.getWidth()));
         });
     }
 

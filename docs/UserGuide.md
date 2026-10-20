@@ -280,8 +280,10 @@ Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Ful
 
 ### Listing appointments: `list-appointments`
 
-Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
-Each entry shows its date, start and end times, pet name, owner phone number, and service.
+Displays ongoing and future grooming appointments in the appointment panel and command result area,
+ordered by date and start time. Each entry shows its date, start and end times, pet name, owner name,
+owner phone number, address, pet care notes, and service. These are the participant details saved with
+the booking. Long addresses and care notes wrap across lines in the appointment cards.
 
 Format: `list-appointments`
 

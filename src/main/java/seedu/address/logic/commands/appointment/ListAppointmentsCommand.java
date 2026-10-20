@@ -57,7 +57,10 @@ public class ListAppointmentsCommand extends Command {
             result.append("\n").append(appointment.getDate())
                     .append(" ").append(appointment.getStartTime()).append("-").append(appointment.getEndTime())
                     .append("; Pet: ").append(appointment.getPetName())
+                    .append("; Owner: ").append(appointment.getOwner().getName())
                     .append("; Owner phone: ").append(appointment.getOwnerPhone())
+                    .append("; Address: ").append(appointment.getOwner().getAddress())
+                    .append("; Care notes: ").append(appointment.getPet().getRequirement())
                     .append("; Service: ").append(appointment.getService());
         }
         return new CommandResult(result.toString(), CommandResult.DisplayType.APPOINTMENTS);

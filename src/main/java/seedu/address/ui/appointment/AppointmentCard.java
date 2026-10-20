@@ -24,6 +24,12 @@ public class AppointmentCard extends UiPart<Region> {
     @FXML
     private Label owner;
     @FXML
+    private Label phone;
+    @FXML
+    private Label address;
+    @FXML
+    private Label careNotes;
+    @FXML
     private Label service;
 
     /** Creates an {@code AppointmentCard} with the given appointment and displayed index. */
@@ -34,7 +40,10 @@ public class AppointmentCard extends UiPart<Region> {
         dateTime.setText(appointment.getDate() + " " + appointment.getStartTime()
                 + "-" + appointment.getEndTime());
         pet.setText("Pet: " + appointment.getPetName());
-        owner.setText("Owner phone: " + appointment.getOwnerPhone());
+        owner.setText("Owner: " + appointment.getOwner().getName());
+        phone.setText("Owner phone: " + appointment.getOwnerPhone());
+        address.setText("Address: " + appointment.getOwner().getAddress());
+        careNotes.setText("Care notes: " + appointment.getPet().getRequirement());
         service.setText("Service: " + appointment.getService());
     }
 }
