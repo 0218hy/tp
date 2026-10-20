@@ -1,5 +1,6 @@
 package seedu.address.logic.commands.pet;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -179,12 +180,65 @@ public class EditPetCommandTest {
         descriptor.setSpecies(Species.CAT);
         EditPetCommand editMilo = new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor);
         EditPetCommand editMiloForBob = new EditPetCommand(milo.getName(), BOB.getPhone(), descriptor);
+        EditPetCommand editMochi = new EditPetCommand(mochi.getName(), ALICE.getPhone(), descriptor);
+        EditPetCommand.EditPetDescriptor differentDescriptor = new EditPetCommand.EditPetDescriptor();
+        differentDescriptor.setSpecies(Species.RABBIT);
+        EditPetCommand editMiloWithDifferentChanges = new EditPetCommand(milo.getName(), ALICE.getPhone(),
+                differentDescriptor);
 
         assertTrue(editMilo.equals(editMilo));
         assertTrue(editMilo.equals(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor)));
         assertFalse(editMilo.equals(editMiloForBob));
+        assertFalse(editMilo.equals(editMochi));
+        assertFalse(editMilo.equals(editMiloWithDifferentChanges));
         assertFalse(editMilo.equals(new DeleteClientCommand(
                 seedu.address.commons.core.index.Index.fromOneBased(1))));
         assertFalse(editMilo.equals(null));
+    }
+
+    @Test
+    public void editPetDescriptor_valueContract() {
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("Milo Bean"));
+        descriptor.setSpecies(Species.CAT);
+        descriptor.setBreed(new Breed("British Shorthair"));
+        descriptor.setRequirement(new Requirement("Needs gentle drying"));
+        EditPetCommand.EditPetDescriptor copy = new EditPetCommand.EditPetDescriptor(descriptor);
+
+        EditPetCommand.EditPetDescriptor differentName = new EditPetCommand.EditPetDescriptor(copy);
+        differentName.setName(new PetName("Mochi"));
+        EditPetCommand.EditPetDescriptor differentSpecies = new EditPetCommand.EditPetDescriptor(copy);
+        differentSpecies.setSpecies(Species.RABBIT);
+        EditPetCommand.EditPetDescriptor differentBreed = new EditPetCommand.EditPetDescriptor(copy);
+        differentBreed.setBreed(new Breed("Beagle"));
+        EditPetCommand.EditPetDescriptor differentRequirement = new EditPetCommand.EditPetDescriptor(copy);
+        differentRequirement.setRequirement(new Requirement("Needs a short walk"));
+
+        assertTrue(descriptor.equals(descriptor));
+        assertTrue(descriptor.equals(copy));
+        assertEquals(descriptor.hashCode(), copy.hashCode());
+        assertFalse(descriptor.equals(differentName));
+        assertFalse(descriptor.equals(differentSpecies));
+        assertFalse(descriptor.equals(differentBreed));
+        assertFalse(descriptor.equals(differentRequirement));
+        assertFalse(descriptor.equals(null));
+        assertFalse(descriptor.equals(new Object()));
+        assertEquals(EditPetCommand.EditPetDescriptor.class.getCanonicalName()
+                        + "{name=Milo Bean, species=CAT, breed=British Shorthair, isBreedEdited=true, "
+                        + "requirement=Needs gentle drying}",
+                descriptor.toString());
+    }
+
+    @Test
+    public void toStringMethod() {
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs gentle drying"));
+        EditPetCommand command = new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor);
+
+        assertEquals(EditPetCommand.class.getCanonicalName() + "{petName=Milo, ownerPhone=" + ALICE.getPhone()
+                        + ", editPetDescriptor=" + EditPetCommand.EditPetDescriptor.class.getCanonicalName()
+                        + "{name=null, species=null, breed=null, isBreedEdited=false, "
+                        + "requirement=Needs gentle drying}}",
+                command.toString());
     }
 }
