@@ -115,12 +115,29 @@ public class AppointmentTest {
 
     @Test
     public void isForPet_matchesOwnerAndNormalizedName() {
-        Appointment appointment = new Appointment(ALICE.getPhone(), "milo", DATE,
+        Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).withName("milo").build(), DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
 
         assertTrue(appointment.isForPet(new PetBuilder(ALICE).withName("  MiLo  ").build()));
         assertFalse(appointment.isForPet(new PetBuilder(BENSON).withName("Milo").build()));
         assertFalse(appointment.isForPet(new PetBuilder(ALICE).withName("Luna").build()));
+        assertThrows(NullPointerException.class, () -> appointment.isForPet(null));
+    }
+
+    @Test
+    public void withOwnerPhone_preservesSnapshotsAndUpdatesBothParticipants() {
+        Appointment original = create("10:30", "12:00");
+        Phone newPhone = new Phone("81234567");
+        Client expectedOwner = new ClientBuilder(OWNER).withPhone(newPhone.value).build();
+
+        Appointment updated = original.withOwnerPhone(newPhone);
+
+        assertEquals(new Appointment(expectedOwner, PET.withOwner(expectedOwner), DATE,
+                original.getStartTime(), original.getEndTime(), original.getService()), updated);
+        assertSame(updated.getOwner(), updated.getPet().getOwner());
+        assertSame(OWNER, original.getOwner());
+        assertSame(PET, original.getPet());
+        assertThrows(NullPointerException.class, () -> original.withOwnerPhone(null));
     }
 
     @Test

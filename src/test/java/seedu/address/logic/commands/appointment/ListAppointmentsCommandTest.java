@@ -90,7 +90,7 @@ public class ListAppointmentsCommandTest {
     }
 
     @Test
-    public void execute_participantsRemoved_displaysSavedGroomingDetails() {
+    public void execute_participantsRemoved_excludesRelatedAppointments() {
         Client owner = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
                 .withAddress("123 Clementi Road, #04-56").build();
         Pet pet = new PetBuilder(owner).withName("Mochi")
@@ -105,11 +105,8 @@ public class ListAppointmentsCommandTest {
 
         CommandResult result = new ListAppointmentsCommand(CLOCK).execute(model);
 
-        assertEquals("Ongoing and future appointments\n08-10-2026 10:00-11:00; Pet: Mochi; Owner: Jane Tan; "
-                + "Owner phone: 81234567; Address: 123 Clementi Road, #04-56; "
-                + "Care notes: Sensitive skin; use fragrance-free shampoo and avoid the ears; Service: Nail trim",
-                result.getFeedbackToUser());
-        assertEquals(List.of(appointment), model.getFilteredAppointmentList());
+        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 
     @Test
