@@ -49,6 +49,8 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 `ListPetsCommand` and `ListAppointmentsCommand` prepare the corresponding filtered views.
 `DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
 appointment deletion also accepts a date/time pair.
+`EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
+index-based client-edit flow.
 
 Replacing the BubuBook validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners.
@@ -187,11 +189,40 @@ Index-based commands accept exactly one positive integer index:
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
-* Identifier forms such as `delete-client i/PHONE_NUMBER` and `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+* Identifier forms such as `delete-client i/PHONE_NUMBER`, `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
+  `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
 `LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
 list is not displayed. This prevents a deletion index from being interpreted against a different record type.
+
+#### Identifier-based pet editing
+
+`edit-pet` is deliberately identifier-based rather than index-based. A displayed index is transient: it depends on the
+currently selected panel and any active pet filter. A pet's current name together with its owner's phone number is a
+stable, domain-level identifier because pet names only need to be unique within an owner.
+
+The execution flow is:
+
+1. `BuBuParser` routes `edit-pet` to `EditPetCommandParser`.
+2. The parser tokenizes the target prefixes (`p/` and `i/`) and the optional update prefixes (`n/`, `s/`, `b/`, and
+   `r/`). It rejects a preamble, unknown prefix, duplicate prefix, missing target selector, invalid value, or a command
+   with no updates. It constructs an `EditPetDescriptor` containing only the requested changes.
+3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the normalized current pet name and exact
+   owner-phone pair. Both target lookup and the later duplicate check use `PetName.getNormalizedName()`, which ignores
+   letter case and leading, trailing, or repeated whitespace.
+   It intentionally does not use `getFilteredPetList()`, so the command works regardless of the currently displayed
+   record panel or a pet filter.
+4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
+   Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
+5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. The command then
+   resets the pet filter to show all pets and returns a success `CommandResult`.
+6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
+   failed write does not leave an in-memory edit that was not persisted.
+
+The descriptor uses an explicit `isBreedEdited` flag. This distinguishes an omitted `b/` prefix (keep the existing
+breed) from an empty `b/` value (set the optional breed to `null`, thereby clearing it). The owner has no descriptor
+field, which makes transferring a pet impossible through this command by design.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -205,7 +236,9 @@ The `Model` component,
   `BubuBook`.
 * represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
   to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
-* rejects duplicate clients and duplicate pet names for the same owner. `AppointmentList` rejects any appointment that
+  `BubuBook.setPet` also resolves the edited pet's owner against the saved client list before replacing the record.
+* rejects duplicate clients and duplicate pet names for the same owner, using the owner's phone number and a normalized
+  pet name (case-insensitive with leading, trailing, and repeated whitespace ignored). `AppointmentList` rejects any appointment that
   overlaps an existing appointment, while allowing back-to-back appointments and retaining historical appointments.
 * maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
   observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
@@ -235,6 +268,18 @@ The `Storage` component:
 * uses `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` in their respective feature packages.
   A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone
   when available, or by name for records without a phone.
+
+#### Pet-profile persistence
+
+Pet edits are persisted through the same shared-book path as other record-changing commands:
+`EditPetCommand` → `ModelManager.setPet()` → `BubuBook.setPet()` → `UniquePetList.setPet()` →
+`StorageManager` → `data/bububook.json`.
+
+`Pet` is immutable, so an edit replaces one complete profile rather than mutating individual fields. The optional
+breed is serialized only when present; clearing a breed with `b/` therefore removes the stored breed value for that
+pet on the next successful save. `LogicManager` takes a copy of the complete BubuBook before executing the command.
+If storage throws an `IOException`, it restores that copy before reporting the failure. This applies equally to an
+edit that changes a pet's name, species, breed, or requirements.
 
 #### Appointment persistence
 
@@ -671,6 +716,46 @@ Use case ends.
     - 3b2. Groomer enters a different search keyword.
     - Steps 3b1-3b2 are repeated until the intended client is found.
     - Use case resumes from step 4.
+
+**Use case: Edit a pet**
+
+**MSS**
+
+1. Groomer enters `edit-pet` with a pet's current name, the owner's phone number, and one or more updated fields.
+2. BuBu validates the selectors and requested field values.
+3. BuBu finds the pet matching both the current name and owner phone number in the saved BubuBook.
+4. BuBu creates a replacement pet profile, preserving the owner and any fields that were not supplied.
+5. BuBu verifies that the replacement name does not duplicate another pet belonging to the same owner.
+6. BuBu replaces the saved pet profile, saves the BubuBook, and confirms the edit.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. A required selector is missing, a prefix is repeated or unsupported, no updated field is supplied, or a value is invalid.
+
+    * 2a1. BuBu reports the validation error and leaves the profile unchanged.
+
+      Use case ends.
+
+* 3a. No pet matches the supplied current name and owner phone number.
+
+    * 3a1. BuBu reports that no matching pet was found and leaves all records unchanged.
+
+      Use case ends.
+
+* 5a. The requested new name duplicates another pet under the same owner.
+
+    * 5a1. BuBu reports the duplicate-name error and leaves the profile unchanged.
+
+      Use case ends.
+
+* 6a. The updated BubuBook cannot be saved.
+
+    * 6a1. BuBu restores the pre-edit records and reports the storage error.
+
+      Use case ends.
+
 **Use case: Delete a pet**
 
 **MSS**
@@ -897,6 +982,73 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: `list-pets x/extra`<br>
       Expected: The status message is `Invalid command format. Check the command syntax and try again.`
+
+### Editing a pet
+
+1. Editing multiple fields without relying on a displayed index
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh (phone number `87438807`), and the pet has a known breed.
+
+   2. Test case: Run `list-clients`, then enter
+      `edit-pet p/Mochi i/87438807 n/Mochi Bean s/Cat r/Prefers quiet drying`.<br>
+      Expected: The command succeeds even though the client list is displayed. The status message is
+      `Edited pet: Mochi Bean`. Running `list-pets i/87438807` shows `Mochi Bean`, species `Cat`, the original breed,
+      and the updated requirement. The pet remains owned by Alex Yeoh.
+
+2. Updating or clearing an optional breed
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh and has a saved breed.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 b/British Shorthair`<br>
+      Expected: The pet's breed changes to `British Shorthair`; all omitted fields are unchanged.
+
+   3. Test case: `edit-pet p/Mochi i/87438807 b/`<br>
+      Expected: The pet's breed is removed. The status message is `Edited pet: Mochi`. `list-pets i/87438807` no
+      longer displays a breed for that pet.
+
+3. Matching pets by both name and owner
+
+   1. Prerequisites: Alex Yeoh (`87438807`) and Bernice Yu (`99272758`) each have a pet named `Milo`.
+
+   2. Test case: `edit-pet p/mIlO i/87438807 r/Needs calm handling`<br>
+      Expected: Only Alex Yeoh's Milo is updated. Bernice Yu's Milo is unchanged.
+
+   3. Test case: `edit-pet p/Milo i/91234567 r/Needs calm handling` when no pet has that owner phone number<br>
+      Expected: No pet is changed. The status message is
+      `No pet with the specified name and owner phone number was found.`
+
+4. Rejecting a duplicate name under one owner
+
+   1. Prerequisites: Alex Yeoh owns pets named `Mochi` and `BuBu`.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 n/  bUbU  `<br>
+      Expected: No pet is changed. The status message is `This client already has a pet named BuBu.` The comparison
+      ignores letter case and surrounding whitespace.
+
+5. Rejecting incomplete or malformed edits
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh.
+
+   2. Test case: `edit-pet p/Mochi i/87438807`<br>
+      Expected: No pet is changed. The status message is `At least one field to edit must be provided.`
+
+   3. Test case: `edit-pet i/87438807 n/Mochi Bean` or `edit-pet p/Mochi n/Mochi Bean`<br>
+      Expected: No pet is changed. The status message identifies the missing required selector.
+
+   4. Test case: `edit-pet p/Mochi i/87438807 s/Horse`, `edit-pet p/Mochi i/71234567 n/Mochi Bean`, or
+      `edit-pet p/Mochi i/87438807 r/Bad/care`<br>
+      Expected: No pet is changed. The status message identifies the invalid species, phone number, or requirement.
+
+   5. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean n/Mochi Junior` or
+      `edit-pet p/Mochi i/87438807 x/value n/Mochi Bean`<br>
+      Expected: No pet is changed. The status message reports a repeated field or invalid command format.
+
+6. Saving the edited profile
+
+   1. Prerequisites: A successful `edit-pet` command has changed a pet profile.
+
+   2. Test case: Exit and relaunch BuBu, then run `list-pets i/OWNER_IDENTIFIER` for that pet.<br>
+      Expected: The edited values persist after restart.
 
 ### Deleting a pet
 

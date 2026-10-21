@@ -22,6 +22,7 @@ import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.client.ListCommand;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
+import seedu.address.logic.commands.pet.EditPetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.appointment.AddAppointmentCommandParser;
 import seedu.address.logic.parser.appointment.DeleteAppointmentCommandParser;
@@ -33,6 +34,7 @@ import seedu.address.logic.parser.client.ListClientsCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.logic.parser.pet.AddPetCommandParser;
 import seedu.address.logic.parser.pet.DeletePetCommandParser;
+import seedu.address.logic.parser.pet.EditPetCommandParser;
 import seedu.address.logic.parser.pet.ListPetsCommandParser;
 
 /**
@@ -74,6 +76,7 @@ public class BuBuParser {
             case AddPetCommand.COMMAND_WORD -> new AddPetCommandParser().parse(arguments);
             case DeleteClientCommand.COMMAND_WORD -> new DeleteClientCommandParser().parse(arguments);
             case DeletePetCommand.COMMAND_WORD -> new DeletePetCommandParser().parse(arguments);
+            case EditPetCommand.COMMAND_WORD -> new EditPetCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindClientsCommand.COMMAND_WORD -> new FindClientsCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();

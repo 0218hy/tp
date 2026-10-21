@@ -31,6 +31,7 @@ import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.DeletePetCommand;
+import seedu.address.logic.commands.pet.EditPetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -198,6 +199,43 @@ public class LogicManagerTest {
     public void execute_deletePetWithNoMatch_throwsCommandException() {
         assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
                 DeletePetCommand.MESSAGE_PET_NOT_FOUND);
+    }
+
+    @Test
+    public void execute_editPet_updatesAndSavesProfile() throws Exception {
+        Pet pet = new PetBuilder(ALICE).withBreed("Golden retriever").build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        Pet editedPet = new PetBuilder(pet).withName("Milo Bean").withRequirement("Prefers quiet drying").build();
+        expectedModel.setPet(pet, editedPet);
+
+        assertCommandSuccess("edit-pet p/mIlO i/" + ALICE.getPhone().value
+                        + " n/Milo Bean r/Prefers quiet drying",
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+
+        ReadOnlyBubuBook savedBubuBook = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")).readBubuBook().orElseThrow();
+        assertEquals(expectedModel.getBubuBook(), savedBubuBook);
+    }
+
+    @Test
+    public void execute_editPetSaveFails_restoresModel() {
+        Pet pet = new PetBuilder(ALICE).build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(bubuBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+
+        assertCommandException("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs a short walk",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
 
     @Test
