@@ -82,7 +82,7 @@ public class ListAppointmentsCommandTest {
     }
 
     @Test
-    public void execute_participantsRemoved_keepsSavedAppointmentAvailable() {
+    public void execute_participantsRemoved_excludesRelatedAppointments() {
         Client owner = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
                 .withAddress("123 Clementi Road, #04-56").build();
         Pet pet = new PetBuilder(owner).withName("Mochi")
@@ -97,9 +97,8 @@ public class ListAppointmentsCommandTest {
 
         CommandResult result = new ListAppointmentsCommand(CLOCK).execute(model);
 
-        assertEquals("Ongoing or future appointments found: 1.",
-                result.getFeedbackToUser());
-        assertEquals(List.of(appointment), model.getFilteredAppointmentList());
+        assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
+        assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 
     @Test

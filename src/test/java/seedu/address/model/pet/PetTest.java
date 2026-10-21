@@ -35,7 +35,7 @@ public class PetTest {
         assertFalse(pet.isSamePet(null, pet.getName()));
         assertFalse(pet.isSamePet(ALICE, null));
     }
-  
+
     @Test
     public void isIdentifiedBy_matchesOwnerAndNormalizedName() {
         Pet pet = new PetBuilder(ALICE).build();

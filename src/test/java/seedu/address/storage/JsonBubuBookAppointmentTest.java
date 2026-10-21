@@ -53,7 +53,7 @@ public class JsonBubuBookAppointmentTest {
     }
 
     @Test
-    public void saveAndRead_participantSnapshots_preserveProfilesAfterEditsAndDeletion() throws Exception {
+    public void saveAndRead_participantSnapshots_preserveProfilesAndFollowOwnerIdentityChanges() throws Exception {
         JsonBubuBookStorage storage = storage("snapshots.json");
         Client owner = new ClientBuilder().withPhone("91234567").withTags("friend").build();
         Pet pet = new PetBuilder(owner).withName("BuBu").withBreed("Poodle")
@@ -76,14 +76,17 @@ public class JsonBubuBookAppointmentTest {
                 .withName("New name").withRequirement("New care instructions").build());
         storage.saveBubuBook(book);
         assertEquals(book, storage.readBubuBook().orElseThrow());
-        assertEquals(appointment, book.getAppointmentList().get(0));
+        Client updatedSnapshotOwner = new ClientBuilder(owner).withPhone("81234567").build();
+        Appointment updatedAppointment = new Appointment(updatedSnapshotOwner, pet.withOwner(updatedSnapshotOwner),
+                appointment.getDate(), appointment.getStartTime(), appointment.getEndTime(), appointment.getService());
+        assertEquals(updatedAppointment, book.getAppointmentList().get(0));
+        var updated = storage.readBubuBook().orElseThrow().getAppointmentList().get(0);
+        assertSame(updated.getOwner(), updated.getPet().getOwner());
 
         book.removePet(book.getPetList().get(0));
         book.removeClient(editedOwner);
         storage.saveBubuBook(book);
-        var historical = storage.readBubuBook().orElseThrow().getAppointmentList().get(0);
-        assertEquals(appointment, historical);
-        assertSame(historical.getOwner(), historical.getPet().getOwner());
+        assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
 
     @Test
