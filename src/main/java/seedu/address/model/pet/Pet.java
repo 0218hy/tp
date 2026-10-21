@@ -82,6 +82,14 @@ public class Pet {
         return new Pet(name, newOwner, species, breed, requirement);
     }
 
+    /**
+     * Returns a copy of this pet with the given name.
+     * The owner and all remaining pet details are preserved.
+     */
+    public Pet withName(PetName newName) {
+        return new Pet(newName, owner, species, breed, requirement);
+    }
+
     /** Returns whether this pet has the given owner phone and normalized name. */
     public boolean isIdentifiedBy(Phone ownerPhone, PetName petName) {
         requireAllNonNull(ownerPhone, petName);
