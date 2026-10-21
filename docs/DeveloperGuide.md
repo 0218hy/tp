@@ -875,6 +875,126 @@ testers are expected to do more *exploratory* testing.
    5. Test case: `delete-appointment 1`<br>
       Expected: The first displayed appointment is deleted.
 
+### Adding a client
+
+1. Adding clients with and without tags
+
+   1. Prerequisites: No saved client uses phone numbers `91234567` or `82345678`, or email addresses
+      `zoe@example.com` or `amelia@example.com`. Run the following cases in order.
+
+   2. Test case: `add-client n/Zoe Tan i/91234567 e/zoe@example.com a/10 Clementi Road`<br>
+      Expected: `Client added: Zoe Tan (91234567).` Running `list-clients` shows Zoe with the supplied details and no tags.
+
+   3. Test case: `add-client n/Amelia Lim i/82345678 e/amelia@example.com a/20 Tampines Road t/friends t/regular`<br>
+      Expected: `Client added: Amelia Lim (82345678).` Running `list-clients` shows Amelia with both tags.
+
+2. Rejecting duplicate phone numbers or email addresses
+
+   1. Prerequisites: Zoe Tan from the successful addition above exists. No client uses `93456789` or `other@example.com`.
+
+   2. Test case: `add-client n/Other Client i/91234567 e/other@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `A client with this phone number or email already exists.`
+
+   3. Test case: `add-client n/Other Client i/93456789 e/zoe@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The same duplicate-client message is shown even though the phone number differs.
+
+3. Rejecting missing or repeated required fields
+
+   1. Test case: `add-client n/Test Client i/93456789 a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `Missing required field: e/.`.
+
+   2. Test case: `add-client n/Test Client i/93456789 e/ a/30 Bedok Road`<br>
+      Expected: No client is added. The same missing-email message is shown for an empty email field.
+
+   3. Test case: `add-client n/Test Client n/Another Client i/93456789 e/test@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `Repeated field: Each client field may be specified only once`.
+
+   4. Other cases to try: Omit or leave blank each of `n/`, `i/`, and `a/` in an otherwise complete command;
+      repeat each of `i/`, `e/`, and `a/`.<br>
+      Expected: No client is added. The status message identifies the missing field or reports a repeated field.
+
+4. Rejecting invalid client details
+
+   1. Prerequisites: Use `add-client n/Test Client i/93456789 e/test@example.com a/30 Bedok Road` as the base command.
+      Replace only the specified field for each case below.
+
+   2. Test case: Replace `n/Test Client` with `n/A` or `n/Test123`.<br>
+      Expected: No client is added. The status message is `Client names must be 2-60 characters and use valid name characters.`
+
+   3. Test case: Replace `i/93456789` with `i/73456789`, `i/9345678`, or `i/9345678a`.<br>
+      Expected: No client is added. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
+
+   4. Test case: Replace `e/test@example.com` with `e/testexample.com` or `e/test@example`.<br>
+      Expected: No client is added. The status message is `Email must contain one @, no spaces, and a domain with a full stop.`
+
+   5. Test case: Replace `a/30 Bedok Road` with `a/1234` or `a/30 Bedok Road!`.<br>
+      Expected: No client is added. The status message is `Addresses must be 5-120 characters and use valid address characters.`
+
+5. Saving added clients
+
+   1. Prerequisites: Zoe Tan and Amelia Lim were successfully added above.
+
+   2. Test case: Close and relaunch BuBu, then run `list-clients`.<br>
+      Expected: Both clients remain saved with their contact details and tags.
+
+### Listing clients
+
+1. Listing all clients alphabetically
+
+   1. Prerequisites: Zoe Tan and Amelia Lim from the adding-client tests exist. Run `list-pets` first.
+
+   2. Test case: `list-clients`<br>
+      Expected: The client list replaces the pet list. The status message is `Listed all clients.` All saved clients
+      are displayed in alphabetical order by name, ignoring case, with Amelia Lim before Zoe Tan.
+
+2. Searching across client contact details
+
+   1. Prerequisites: Zoe Tan from the adding-client tests exists. For the exact counts below, ensure no other client's
+      name, phone, email, or address contains `zoe`, `91234567`, `zoe@example.com`, or `10 Clementi Road`.
+
+   2. Test case: `list-clients q/zOe`<br>
+      Expected: Only Zoe Tan is displayed. The status message is `Found 1 client(s).` Matching ignores letter case.
+
+   3. Test case: Run `list-clients q/91234567`, `list-clients q/zoe@example.com`, and
+      `list-clients q/10 Clementi Road` separately.<br>
+      Expected: Each command displays Zoe Tan and reports `Found 1 client(s).`, matching the phone, email, and address respectively.
+
+   4. Test case: `list-clients q/  zOe  `<br>
+      Expected: Surrounding spaces are ignored. Zoe Tan is displayed and the status message is `Found 1 client(s).`.
+
+   5. Test case: `list-clients q/Road`<br>
+      Expected: All clients with `Road` anywhere in their name, phone, email, or address are displayed alphabetically.
+      The status message reports the number of matches. This includes Amelia Lim and Zoe Tan from the adding-client tests.
+
+3. Handling no matches and restoring the full list
+
+   1. Prerequisites: No client's contact details contain `zzzznomatch`.
+
+   2. Test case: `list-clients q/zzzznomatch`<br>
+      Expected: The client list is empty. The status message is `No clients match "zzzznomatch".`.
+
+   3. Test case: `list-clients`<br>
+      Expected: All saved clients are displayed again, alphabetically. The status message is `Listed all clients.`.
+      Searching has not deleted any clients.
+
+   4. Test case: Run `list-clients` when no clients are saved, using a separate test data set.<br>
+      Expected: The client list is empty and the status message is `Listed all clients.`.
+
+4. Rejecting invalid search input
+
+   1. Test case: `list-clients q/`, `list-clients q/   `, or `list-clients q/zoe!`<br>
+      Expected: The command is rejected with `Search keyword must be 1-60 characters and use valid text characters.`
+
+   2. Test case: Enter `list-clients q/` followed by 60 consecutive `a` characters, then repeat with 61.<br>
+      Expected: The 60-character keyword is accepted and reports matching clients or no matches. The 61-character
+      keyword is rejected with the invalid-keyword message above.
+
+   3. Test case: `list-clients q/zoe q/amelia`<br>
+      Expected: The command is rejected with `Each search field may be specified only once.`
+
+   4. Test case: `list-clients zoe` or `list-clients n/Zoe`<br>
+      Expected: The command is rejected with an invalid-command-format message and the command usage.
+
 ### Deleting a person
 
 1. Deleting by displayed index
