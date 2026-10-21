@@ -19,6 +19,15 @@ import seedu.address.testutil.ClientBuilder;
 public class ClientTest {
 
     @Test
+    public void hasPhone_matchesExactStoredNumber() {
+        String phone = ALICE.getPhone().value;
+        assertTrue(ALICE.hasPhone(phone));
+        assertFalse(ALICE.hasPhone(" " + phone));
+        assertFalse(ALICE.hasPhone(""));
+        assertFalse(ALICE.hasPhone(null));
+    }
+
+    @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Client client = new ClientBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> client.getTags().remove(0));

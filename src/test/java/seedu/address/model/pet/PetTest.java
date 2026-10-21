@@ -10,9 +10,19 @@ import static seedu.address.testutil.TypicalClients.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class PetTest {
+
+    @Test
+    public void isOwnedBy_matchesPhoneRatherThanClientName() {
+        Pet pet = new PetBuilder(ALICE).build();
+        assertTrue(pet.isOwnedBy(ALICE.getPhone()));
+        assertTrue(pet.isOwnedBy(new ClientBuilder(ALICE).withName("Another Name").build().getPhone()));
+        assertFalse(pet.isOwnedBy(BOB.getPhone()));
+        assertFalse(pet.isOwnedBy(null));
+    }
 
     @Test
     public void isSamePet() {

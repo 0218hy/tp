@@ -225,6 +225,7 @@ breed) from an empty `b/` value (set the optional breed to `null`, thereby clear
 field, which makes transferring a pet impossible through this command by design.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />

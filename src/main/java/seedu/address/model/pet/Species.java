@@ -18,6 +18,8 @@ public enum Species {
      * @param displayName The readable name shown to users.
      */
     Species(String displayName) {
+        // Guards against invalid enum labels introduced during development, not user input.
+        assert displayName != null && !displayName.isBlank() : "Every species must have a display label";
         this.displayName = displayName;
     }
 
