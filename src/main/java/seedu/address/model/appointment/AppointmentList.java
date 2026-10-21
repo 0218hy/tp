@@ -8,6 +8,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
 
 /**
  * Stores appointments independently of owner records, rejecting nulls and overlaps.
@@ -64,6 +67,33 @@ public class AppointmentList {
         if (!internalList.remove(toRemove)) {
             throw new AppointmentNotFoundException();
         }
+    }
+
+    /** Removes every appointment belonging to the given owner phone number. */
+    public void removeAppointmentsForOwner(Phone ownerPhone) {
+        requireNonNull(ownerPhone);
+        internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
+    }
+
+    /** Updates appointments when their owner's client record is replaced. */
+    public void updateOwner(Client currentOwner, Client editedOwner) {
+        requireNonNull(currentOwner);
+        requireNonNull(editedOwner);
+        if (currentOwner.getPhone().equals(editedOwner.getPhone())) {
+            return;
+        }
+        for (int index = 0; index < internalList.size(); index++) {
+            Appointment appointment = internalList.get(index);
+            if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
+                internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+            }
+        }
+    }
+
+    /** Removes every appointment belonging to the given pet. */
+    public void removeAppointmentsForPet(Pet pet) {
+        requireNonNull(pet);
+        internalList.removeIf(appointment -> appointment.isForPet(pet));
     }
 
     public ObservableList<Appointment> getAppointmentList() {
