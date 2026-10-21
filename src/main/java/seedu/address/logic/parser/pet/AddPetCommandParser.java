@@ -7,9 +7,10 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 
-import java.util.Arrays;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.pet.AddPetCommand;
@@ -82,10 +83,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         if (!fields.getPreamble().isEmpty()) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
         }
-        if (fields.getValue(PREFIX_REQUIREMENTS)
-                .filter(value -> !value.isEmpty() && !Requirement.isValidRequirement(value)).isPresent()) {
-            throw new ParseException(Requirement.MESSAGE_CONSTRAINTS);
-        }
+        validateRequirementsIfPresent(fields);
         if (hasUnknownPrefix(args)) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
         }
@@ -95,7 +93,18 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     }
 
     /**
-     * Parses a pet name that meets the model constraints.
+     * Checks non-empty requirements before unknown-prefix and duplicate-field errors.
+     * Missing or empty requirements are reported later by {@link #getRequiredValue}.
+     */
+    private void validateRequirementsIfPresent(ArgumentMultimap fields) throws ParseException {
+        String requirements = fields.getValue(PREFIX_REQUIREMENTS).orElse("");
+        if (!requirements.isEmpty() && !Requirement.isValidRequirement(requirements)) {
+            throw new ParseException(Requirement.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    /**
+     * Validates the pet name before creating its model value.
      */
     private PetName parsePetName(String value) throws ParseException {
         if (!PetName.isValidName(value)) {
@@ -105,7 +114,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     }
 
     /**
-     * Returns a valid Singapore mobile phone number for owner lookup.
+     * Validates the phone number's format; the command checks whether the owner exists.
      */
     private String parseOwnerPhone(String value) throws ParseException {
         if (!Phone.isValidPhone(value)) {
@@ -115,7 +124,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     }
 
     /**
-     * Parses the pet's care requirements.
+     * Validates the care requirements before creating their model value.
      */
     private Requirement parseRequirement(String value) throws ParseException {
         if (!Requirement.isValidRequirement(value)) {
@@ -130,6 +139,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
      * @throws ParseException if the field is absent or empty.
      */
     private String getRequiredValue(ArgumentMultimap fields, Prefix prefix, String label) throws ParseException {
+        assert fields.getAllValues(prefix).size() <= MAX_FIELD_OCCURRENCES
+                : "Repeated fields must be rejected before reading their values";
         String value = fields.getValue(prefix).orElse("");
         if (value.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_MISSING_FIELD, label));
@@ -141,8 +152,12 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
      * Returns whether any single-valued pet field was supplied more than once.
      */
     private boolean hasDuplicateField(ArgumentMultimap fields) {
-        return Arrays.stream(PET_FIELD_PREFIXES)
-                .anyMatch(prefix -> fields.getAllValues(prefix).size() > MAX_FIELD_OCCURRENCES);
+        for (Prefix prefix : PET_FIELD_PREFIXES) {
+            if (fields.getAllValues(prefix).size() > MAX_FIELD_OCCURRENCES) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -164,10 +179,11 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
      * @throws ParseException if a supplied breed does not meet the text constraints.
      */
     private Breed parseBreed(ArgumentMultimap fields) throws ParseException {
-        if (fields.getValue(PREFIX_BREED).isEmpty()) {
+        Optional<String> breedValue = fields.getValue(PREFIX_BREED);
+        if (breedValue.isEmpty()) {
             return null;
         }
-        String breedText = fields.getValue(PREFIX_BREED).orElseThrow();
+        String breedText = breedValue.orElseThrow();
         if (!Breed.isValidBreed(breedText)) {
             throw new ParseException(Breed.MESSAGE_CONSTRAINTS);
         }
@@ -178,9 +194,13 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
      * Returns whether the input contains an unsupported parameter prefix.
      */
     private boolean hasUnknownPrefix(String args) {
-        return PARAMETER_PREFIX_PATTERN
-                .matcher(args).results()
-                .map(match -> match.group().trim())
-                .anyMatch(prefix -> !SUPPORTED_PREFIXES.contains(prefix));
+        Matcher matcher = PARAMETER_PREFIX_PATTERN.matcher(args);
+        while (matcher.find()) {
+            String prefix = matcher.group().trim();
+            if (!SUPPORTED_PREFIXES.contains(prefix)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -24,8 +24,6 @@ public class HelpCommandTest {
 
         assertTrue(commandReference.contains("help"));
         assertTrue(commandReference.contains("add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]..."));
-        assertTrue(commandReference.contains("list"));
-        assertTrue(commandReference.contains("find KEYWORD [MORE_KEYWORDS]"));
         assertTrue(commandReference.contains(
                 "edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]..."));
         assertTrue(commandReference.contains("delete-client INDEX"));

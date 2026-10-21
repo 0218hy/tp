@@ -1,6 +1,5 @@
 package seedu.address.storage.pet;
 
-import java.util.Iterator;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -114,29 +113,38 @@ public class JsonAdaptedPet {
 
     /**
      * Finds the owner identified by the stored phone number.
+     * Called only after {@link #findOwner(List)} selects a non-null phone identifier.
      */
     private Client findOwnerByPhone(List<Client> clients) throws IllegalValueException {
-        return clients.stream()
-                .filter(client -> client.getPhone().value.equals(ownerPhone))
-                .findFirst()
-                .orElseThrow(() -> new IllegalValueException(MESSAGE_OWNER_NOT_FOUND));
+        assert ownerPhone != null : "Phone lookup requires a stored owner phone";
+        for (Client client : clients) {
+            if (client.hasPhone(ownerPhone)) {
+                return client;
+            }
+        }
+        throw new IllegalValueException(MESSAGE_OWNER_NOT_FOUND);
     }
 
     /**
      * Finds the sole owner with the stored name in a legacy pet record.
+     * Called only after {@link #findOwner(List)} verifies that a name is available without a phone.
      */
     private Client findLegacyOwnerByName(List<Client> clients) throws IllegalValueException {
-        Iterator<Client> matchingOwners = clients.stream()
-                .filter(client -> client.getName().fullName.equals(ownerName))
-                .iterator();
-        if (!matchingOwners.hasNext()) {
+        assert ownerName != null : "Legacy lookup requires a stored owner name";
+        Client matchingOwner = null;
+        for (Client client : clients) {
+            if (!client.getName().fullName.equals(ownerName)) {
+                continue;
+            }
+            if (matchingOwner != null) {
+                throw new IllegalValueException(MESSAGE_AMBIGUOUS_OWNER);
+            }
+            matchingOwner = client;
+        }
+        if (matchingOwner == null) {
             throw new IllegalValueException(MESSAGE_OWNER_NOT_FOUND);
         }
-        Client owner = matchingOwners.next();
-        if (matchingOwners.hasNext()) {
-            throw new IllegalValueException(MESSAGE_AMBIGUOUS_OWNER);
-        }
-        return owner;
+        return matchingOwner;
     }
 
     /**

@@ -10,7 +10,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,14 +20,12 @@ import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.client.DeleteClientCommand;
-import seedu.address.logic.commands.client.FindClientsCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
@@ -125,11 +122,10 @@ public class BuBuParserTest {
     }
 
     @Test
-    public void parseCommand_find() throws Exception {
-        List<String> keywords = List.of("foo", "bar", "baz");
-        FindClientsCommand command = (FindClientsCommand) parser.parseCommand(
-                FindClientsCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
-        assertEquals(new FindClientsCommand(new ClientNameContainsKeywordsPredicate(keywords)), command);
+    public void parseCommand_removedClientCommands_throwsUnknownCommand() {
+        for (String input : List.of("find", "find Alex", "list", "list q/Alex")) {
+            assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(input));
+        }
     }
 
     @Test
@@ -139,7 +135,7 @@ public class BuBuParserTest {
     }
 
     @Test
-    public void parseCommand_list() throws Exception {
+    public void parseCommand_listClients() throws Exception {
         assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListClientsCommand);
         assertTrue(parser.parseCommand(" " + ListClientsCommand.COMMAND_WORD + " ") instanceof ListClientsCommand);
     }

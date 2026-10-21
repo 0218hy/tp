@@ -7,11 +7,7 @@ Add client
   add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 List clients
-  list
   list-clients [q/KEYWORD]
-
-Find clients
-  find KEYWORD [MORE_KEYWORDS]
 
 Edit client
   edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...

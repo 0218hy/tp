@@ -45,6 +45,13 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
             PREFIX_BREED.toString(), PREFIX_REQUIREMENTS.toString());
     private static final Pattern PARAMETER_PREFIX_PATTERN = Pattern.compile(PARAMETER_PREFIX_REGEX);
 
+    /**
+     * Parses an edit-pet command's identifier and optional replacement fields.
+     *
+     * @param args the text following the {@code edit-pet} command word
+     * @return an edit-pet command with a validated identifier and requested changes
+     * @throws ParseException if a required field is missing, a field is duplicated, or any value is invalid
+     */
     @Override
     public EditPetCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -74,6 +81,13 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         return new EditPetCommand(petName, ClientParserUtil.parsePhone(ownerPhone), descriptor);
     }
 
+    /**
+     * Rejects unexpected text, unsupported prefixes, and duplicate pet fields.
+     *
+     * @param args the raw command arguments used to detect unsupported prefixes
+     * @param fields the tokenized command fields
+     * @throws ParseException if the command structure is invalid
+     */
     private void validateStructure(String args, ArgumentMultimap fields) throws ParseException {
         if (!fields.getPreamble().isEmpty() || hasUnknownPrefix(args)) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
@@ -83,10 +97,28 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         }
     }
 
+    /**
+     * Parses a required pet-name field from the tokenized command arguments.
+     *
+     * @param fields the tokenized command fields
+     * @param prefix the prefix associated with the pet name
+     * @param label the field label used in an error message
+     * @return the validated pet name
+     * @throws ParseException if the field is missing, empty, or not a valid pet name
+     */
     private PetName parseRequiredPetName(ArgumentMultimap fields, Prefix prefix, String label) throws ParseException {
         return PetParserUtil.parsePetName(getRequiredValue(fields, prefix, label));
     }
 
+    /**
+     * Returns a required, non-empty field value.
+     *
+     * @param fields the tokenized command fields
+     * @param prefix the required field's prefix
+     * @param label the field label used in an error message
+     * @return the non-empty field value
+     * @throws ParseException if the field is missing or empty
+     */
     private String getRequiredValue(ArgumentMultimap fields, Prefix prefix, String label) throws ParseException {
         String value = fields.getValue(prefix).orElse("");
         if (value.isEmpty()) {
@@ -95,6 +127,13 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         return value;
     }
 
+    /**
+     * Parses a replacement breed.
+     *
+     * @param value the breed text to validate
+     * @return the validated breed
+     * @throws ParseException if the breed does not meet the model constraints
+     */
     private Breed parseBreed(String value) throws ParseException {
         if (!Breed.isValidBreed(value)) {
             throw new ParseException(Breed.MESSAGE_CONSTRAINTS);
@@ -102,6 +141,13 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         return new Breed(value);
     }
 
+    /**
+     * Parses a replacement grooming requirement.
+     *
+     * @param value the requirement text to validate
+     * @return the validated grooming requirement
+     * @throws ParseException if the requirement does not meet the model constraints
+     */
     private Requirement parseRequirement(String value) throws ParseException {
         if (!Requirement.isValidRequirement(value)) {
             throw new ParseException(Requirement.MESSAGE_CONSTRAINTS);
@@ -109,6 +155,13 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         return new Requirement(value);
     }
 
+    /**
+     * Parses a supported species, ignoring letter case and treating runs of whitespace as underscores.
+     *
+     * @param value the species text to parse
+     * @return the matching species
+     * @throws ParseException if the text does not name a supported species
+     */
     private Species parseSpecies(String value) throws ParseException {
         try {
             return Species.valueOf(value.replaceAll("\\s+", "_").toUpperCase(Locale.ROOT));
@@ -117,6 +170,12 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         }
     }
 
+    /**
+     * Returns whether the raw command arguments contain a prefix unsupported by {@code edit-pet}.
+     *
+     * @param args the raw command arguments to inspect
+     * @return {@code true} if an unsupported prefix is present
+     */
     private boolean hasUnknownPrefix(String args) {
         return PARAMETER_PREFIX_PATTERN.matcher(args).results()
                 .map(match -> match.group().trim())

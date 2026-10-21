@@ -18,7 +18,6 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
@@ -131,8 +130,7 @@ public class CommandTestUtil {
         assertTrue(targetIndex.getZeroBased() < model.getFilteredClientList().size());
 
         Client client = model.getFilteredClientList().get(targetIndex.getZeroBased());
-        final String[] splitName = client.getName().fullName.split("\\s+");
-        model.updateFilteredClientList(new ClientNameContainsKeywordsPredicate(List.of(splitName[0])));
+        model.updateFilteredClientList(client::equals);
 
         assertEquals(1, model.getFilteredClientList().size());
     }

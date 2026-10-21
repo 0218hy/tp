@@ -7,6 +7,7 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,6 +82,18 @@ public class ListPetsCommandTest {
         assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
         assertEquals(2, model.getFilteredPetList().size());
         assertTrue(model.getFilteredPetList().stream().allMatch(ALICE_PREDICATE));
+    }
+
+    @Test
+    public void execute_modelIgnoresOwnerFilter_assertionFails() {
+        Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs()) {
+            @Override
+            public void updateFilteredPetList(Predicate<Pet> predicate) {
+                // Simulates a model regression that exposes pets belonging to other owners.
+            }
+        };
+        addPet(model, BENSON, "Zoe", Species.DOG, null);
+        assertThrows(AssertionError.class, () -> new ListPetsCommand(ALICE_PREDICATE).execute(model));
     }
 
     @Test

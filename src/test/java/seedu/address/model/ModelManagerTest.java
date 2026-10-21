@@ -20,7 +20,6 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.Species;
@@ -211,8 +210,7 @@ public class ModelManagerTest {
         assertFalse(modelManager.equals(new ModelManager(differentBubuBook, userPrefs)));
 
         // different filteredList -> returns false
-        String[] keywords = ALICE.getName().fullName.split("\\s+");
-        modelManager.updateFilteredClientList(new ClientNameContainsKeywordsPredicate(List.of(keywords)));
+        modelManager.updateFilteredClientList(ALICE::equals);
         assertFalse(modelManager.equals(new ModelManager(bubuBook, userPrefs)));
 
         // resets modelManager to initial state for upcoming tests
