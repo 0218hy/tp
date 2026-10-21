@@ -153,6 +153,28 @@ public class JsonBubuBookAppointmentTest {
     }
 
     @Test
+    public void toModelType_snapshotWithoutRegisteredParticipants_restoresCompleteProfiles() throws Exception {
+        Appointment original = bookWithParticipantSnapshots().getAppointmentList().get(0);
+
+        Appointment restored = new JsonAdaptedAppointment(original).toModelType();
+
+        assertEquals(original, restored);
+        assertSame(restored.getOwner(), restored.getPet().getOwner());
+    }
+
+    @Test
+    public void toModelType_legacyDifferentPetName_rejected() {
+        Appointment participants = create("10:00", "11:00");
+        JsonAdaptedAppointment legacy = new JsonAdaptedAppointment("91234567", "Mochi",
+                "01-01-2000", "10:00", "11:00", "Full groom");
+
+        IllegalValueException exception = assertThrows(IllegalValueException.class, () -> legacy.toModelType(
+                List.of(participants.getOwner()), List.of(participants.getPet())));
+
+        assertEquals("Legacy appointment pet is not registered under its owner.", exception.getMessage());
+    }
+
+    @Test
     public void toModelType_legacyMissingParticipants_rejected() {
         Appointment participants = create("10:00", "11:00");
         JsonAdaptedAppointment legacy = new JsonAdaptedAppointment("91234567", "BuBu",
