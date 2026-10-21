@@ -20,12 +20,14 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ClearCommand;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.EditClientCommand.EditClientDescriptor;
 import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.EditClientDescriptorBuilder;
 
@@ -35,12 +37,14 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class EditClientCommandTest {
 
     private Model model = new ModelManager(getTypicalBubuBook(), new UserPrefs());
+    private final Phone firstPhone = model.getBubuBook().getClientList().get(0).getPhone();
+    private final Phone secondPhone = model.getBubuBook().getClientList().get(1).getPhone();
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Client editedClient = new ClientBuilder().build();
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(editedClient).build();
-        EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT, descriptor);
+        EditClientCommand editCommand = new EditClientCommand(firstPhone, descriptor);
 
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
@@ -48,7 +52,7 @@ public class EditClientCommandTest {
         Model expectedModel = new ModelManager(new BubuBook(model.getBubuBook()), new UserPrefs());
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
     }
 
     @Test
@@ -62,7 +66,7 @@ public class EditClientCommandTest {
 
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder().withName(VALID_NAME_BOB)
                 .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
-        EditClientCommand editCommand = new EditClientCommand(indexLastClient, descriptor);
+        EditClientCommand editCommand = new EditClientCommand(lastClient.getPhone(), descriptor);
 
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
                 Messages.format(editedClient));
@@ -70,12 +74,12 @@ public class EditClientCommandTest {
         Model expectedModel = new ModelManager(new BubuBook(model.getBubuBook()), new UserPrefs());
         expectedModel.setClient(lastClient, editedClient);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
     }
 
     @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
-        EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT, new EditClientDescriptor());
+        EditClientCommand editCommand = new EditClientCommand(firstPhone, new EditClientDescriptor());
         Client editedClient = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
 
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
@@ -83,7 +87,7 @@ public class EditClientCommandTest {
 
         Model expectedModel = new ModelManager(new BubuBook(model.getBubuBook()), new UserPrefs());
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
     }
 
     @Test
@@ -92,7 +96,7 @@ public class EditClientCommandTest {
 
         Client clientInFilteredList = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
         Client editedClient = new ClientBuilder(clientInFilteredList).withName(VALID_NAME_BOB).build();
-        EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT,
+        EditClientCommand editCommand = new EditClientCommand(firstPhone,
                 new EditClientDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
         String expectedMessage = String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS,
@@ -101,14 +105,14 @@ public class EditClientCommandTest {
         Model expectedModel = new ModelManager(new BubuBook(model.getBubuBook()), new UserPrefs());
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
-        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);
     }
 
     @Test
     public void execute_duplicateClientUnfilteredList_failure() {
         Client firstClient = model.getFilteredClientList().get(INDEX_FIRST_CLIENT.getZeroBased());
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(firstClient).build();
-        EditClientCommand editCommand = new EditClientCommand(INDEX_SECOND_CLIENT, descriptor);
+        EditClientCommand editCommand = new EditClientCommand(secondPhone, descriptor);
 
         assertCommandFailure(editCommand, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
@@ -119,45 +123,34 @@ public class EditClientCommandTest {
 
         // edit client in filtered list into a duplicate in BuBu
         Client clientInList = model.getBubuBook().getClientList().get(INDEX_SECOND_CLIENT.getZeroBased());
-        EditClientCommand editCommand = new EditClientCommand(INDEX_FIRST_CLIENT,
+        EditClientCommand editCommand = new EditClientCommand(firstPhone,
                 new EditClientDescriptorBuilder(clientInList).build());
 
         assertCommandFailure(editCommand, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
 
     @Test
-    public void execute_invalidClientIndexUnfilteredList_failure() {
-        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredClientList().size() + 1);
-        EditClientDescriptor descriptor = new EditClientDescriptorBuilder().withName(VALID_NAME_BOB).build();
-        EditClientCommand editCommand = new EditClientCommand(outOfBoundIndex, descriptor);
-
-        assertCommandFailure(editCommand, model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
-    }
-
-    /**
-     * Edit filtered list where index is larger than size of filtered list,
-     * but smaller than size of BuBu
-     */
-    @Test
-    public void execute_invalidClientIndexFilteredList_failure() {
-        showClientAtIndex(model, INDEX_FIRST_CLIENT);
-        Index outOfBoundIndex = INDEX_SECOND_CLIENT;
-        // ensures that outOfBoundIndex is still in bounds of BuBu list
-        assertTrue(outOfBoundIndex.getZeroBased() < model.getBubuBook().getClientList().size());
-
-        EditClientCommand editCommand = new EditClientCommand(outOfBoundIndex,
+    public void execute_unknownPhone_failure() {
+        EditClientCommand command = new EditClientCommand(new Phone("89998888"),
                 new EditClientDescriptorBuilder().withName(VALID_NAME_BOB).build());
-
-        assertCommandFailure(editCommand, model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+        assertCommandFailure(command, model, EditClientCommand.MESSAGE_CLIENT_NOT_FOUND);
     }
 
+    @Test
+    public void execute_hiddenClient_success() throws Exception {
+        Client hidden = model.getFilteredClientList().get(1);
+        showClientAtIndex(model, INDEX_FIRST_CLIENT);
+        new EditClientCommand(hidden.getPhone(),
+                new EditClientDescriptorBuilder().withName("Zoe Tan").build()).execute(model);
+        assertEquals("Zoe Tan", model.getBubuBook().getClientList().get(1).getName().fullName);
+    }
     @Test
     public void equals() {
-        final EditClientCommand standardCommand = new EditClientCommand(INDEX_FIRST_CLIENT, DESC_AMY);
+        final EditClientCommand standardCommand = new EditClientCommand(firstPhone, DESC_AMY);
 
         // same values -> returns true
         EditClientDescriptor copyDescriptor = new EditClientDescriptor(DESC_AMY);
-        EditClientCommand commandWithSameValues = new EditClientCommand(INDEX_FIRST_CLIENT, copyDescriptor);
+        EditClientCommand commandWithSameValues = new EditClientCommand(firstPhone, copyDescriptor);
         assertTrue(standardCommand.equals(commandWithSameValues));
 
         // same object -> returns true
@@ -169,20 +162,20 @@ public class EditClientCommandTest {
         // different types -> returns false
         assertFalse(standardCommand.equals(new ClearCommand()));
 
-        // different index -> returns false
-        assertFalse(standardCommand.equals(new EditClientCommand(INDEX_SECOND_CLIENT, DESC_AMY)));
+        // different identifier -> returns false
+        assertFalse(standardCommand.equals(new EditClientCommand(secondPhone, DESC_AMY)));
 
         // different descriptor -> returns false
-        assertFalse(standardCommand.equals(new EditClientCommand(INDEX_FIRST_CLIENT, DESC_BOB)));
+        assertFalse(standardCommand.equals(new EditClientCommand(firstPhone, DESC_BOB)));
     }
 
     @Test
     public void toStringMethod() {
-        Index index = Index.fromOneBased(1);
+        Phone identifier = new Phone("91234567");
         EditClientDescriptor editClientDescriptor = new EditClientDescriptor();
-        EditClientCommand editCommand = new EditClientCommand(index, editClientDescriptor);
-        String expected = EditClientCommand.class.getCanonicalName() + "{index=" + index + ", editPersonDescriptor="
-                + editClientDescriptor + "}";
+        EditClientCommand editCommand = new EditClientCommand(identifier, editClientDescriptor);
+        String expected = EditClientCommand.class.getCanonicalName() + "{identifier=" + identifier
+                + ", editClientDescriptor=" + editClientDescriptor + "}";
         assertEquals(expected, editCommand.toString());
     }
 
@@ -191,9 +184,9 @@ public class EditClientCommandTest {
     public void execute_changeOnlyPhoneOrEmailToHiddenClient_failure() {
         Client other = model.getBubuBook().getClientList().get(1);
         showClientAtIndex(model, INDEX_FIRST_CLIENT);
-        EditClientCommand duplicateEmail = new EditClientCommand(INDEX_FIRST_CLIENT,
+        EditClientCommand duplicateEmail = new EditClientCommand(firstPhone,
                 new EditClientDescriptorBuilder().withEmail(other.getEmail().value).build());
-        EditClientCommand duplicatePhone = new EditClientCommand(INDEX_FIRST_CLIENT,
+        EditClientCommand duplicatePhone = new EditClientCommand(firstPhone,
                 new EditClientDescriptorBuilder().withPhone(other.getPhone().value).build());
         assertCommandFailure(duplicateEmail, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
         assertCommandFailure(duplicatePhone, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);

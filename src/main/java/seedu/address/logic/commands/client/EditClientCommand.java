@@ -3,19 +3,18 @@ package seedu.address.logic.commands.client;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_IDENTIFIER;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
-import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NEW_PHONE;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -35,51 +34,49 @@ import seedu.address.model.tag.Tag;
  */
 public class EditClientCommand extends Command {
 
-    public static final String COMMAND_WORD = "edit";
+    public static final String COMMAND_WORD = "edit-client";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
-            + "by the index number used in the displayed person list. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the client identified "
+            + "by their current phone number. "
             + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: INDEX (must be a positive integer) "
+            + "Parameters: " + PREFIX_IDENTIFIER + "CURRENT_PHONE "
             + "[" + PREFIX_NAME + "NAME] "
-            + "[" + PREFIX_PHONE + "PHONE] "
+            + "[" + PREFIX_NEW_PHONE + "NEW_PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]...\n"
-            + "Example: " + COMMAND_WORD + " 1 "
-            + PREFIX_PHONE + "91234567 "
+            + "Example: " + COMMAND_WORD + " "
+            + PREFIX_IDENTIFIER + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
 
-    public static final String MESSAGE_EDIT_CLIENT_SUCCESS = "Edited person: %1$s";
+    public static final String MESSAGE_EDIT_CLIENT_SUCCESS = "Edited client: %1$s";
+    public static final String MESSAGE_CLIENT_NOT_FOUND = "No saved client has this phone number.";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_CLIENT =
             "A client with this phone number or email already exists.";
 
-    private final Index index;
+    private final Phone identifier;
     private final EditClientDescriptor editClientDescriptor;
 
     /**
-     * @param index of the client in the filtered client list to edit
+     * @param identifier current phone number of the client to edit
      * @param editClientDescriptor details to edit the client with
      */
-    public EditClientCommand(Index index, EditClientDescriptor editClientDescriptor) {
-        requireNonNull(index);
+    public EditClientCommand(Phone identifier, EditClientDescriptor editClientDescriptor) {
+        requireNonNull(identifier);
         requireNonNull(editClientDescriptor);
 
-        this.index = index;
+        this.identifier = identifier;
         this.editClientDescriptor = new EditClientDescriptor(editClientDescriptor);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Client> lastShownList = model.getFilteredClientList();
-
-        if (index.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
-        }
-
-        Client clientToEdit = lastShownList.get(index.getZeroBased());
+        Client clientToEdit = model.getBubuBook().getClientList().stream()
+                .filter(client -> client.getPhone().equals(identifier))
+                .findFirst()
+                .orElseThrow(() -> new CommandException(MESSAGE_CLIENT_NOT_FOUND));
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
         for (Client client : model.getBubuBook().getClientList()) {
@@ -90,7 +87,8 @@ public class EditClientCommand extends Command {
 
         model.setClient(clientToEdit, editedClient);
         model.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
-        return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)));
+        return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
+                CommandResult.DisplayType.CLIENTS);
     }
 
     /**
@@ -120,15 +118,15 @@ public class EditClientCommand extends Command {
             return false;
         }
 
-        return index.equals(otherEditCommand.index)
+        return identifier.equals(otherEditCommand.identifier)
                 && editClientDescriptor.equals(otherEditCommand.editClientDescriptor);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("index", index)
-                .add("editPersonDescriptor", editClientDescriptor)
+                .add("identifier", identifier)
+                .add("editClientDescriptor", editClientDescriptor)
                 .toString();
     }
 

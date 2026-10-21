@@ -149,10 +149,28 @@ Shows a list of all persons in the BuBu.
 
 Format: `list`
 
-### Editing records [planned]
+### Editing a client: `edit-client`
 
-Editing existing records is not supported in the MVP and is planned for a future release.
-The legacy `edit` command is disabled and returns `Unknown command.` without changing any records.
+Format: `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`
+
+* `i/` identifies the client by their current phone number. No index is needed, and the command works from any panel,
+  even if a search hides that client. An unknown phone number reports `No saved client has this phone number.`.
+* Use `p/` to change the phone number. Subsequent commands must identify the client using their new number.
+* Supply at least one update. Omitted fields retain their values; updated fields follow the same validation rules as
+  `add-client`. Each of `i/`, `n/`, `p/`, `e/`, and `a/` may appear only once.
+* A phone number or email already used by another client is rejected, including clients hidden by a search.
+* Supplied tags replace all existing tags. Use `t/` on its own to clear tags.
+* Successful edits display `Edited client: ...` and show the full client list.
+* Pet owner profiles are updated. Changing the phone number also updates linked appointment owner identifiers;
+  other appointment details remain as recorded at booking.
+* Changes are saved automatically. If saving fails, the previous records are restored and a storage error is shown.
+* The old `edit` command and index-based edit syntax are unsupported.
+
+Examples:
+
+* `edit-client i/91234567 n/Alex Tan` changes the name of the client whose current phone is 91234567.
+* `edit-client i/91234567 p/89998888` changes that client's phone number.
+* `edit-client i/89998888 t/` removes all tags after that phone change.
 
 ### Locating persons by name: `find`
 
@@ -446,6 +464,7 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Edit client** | `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`<br> e.g., `edit-client i/91234567 n/Alex Tan`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
