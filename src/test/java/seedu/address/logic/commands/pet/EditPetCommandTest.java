@@ -17,6 +17,11 @@ import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
@@ -62,6 +67,24 @@ public class EditPetCommandTest {
         assertTrue(model.hasPet(editedPet));
         assertTrue(model.getBubuBook().getPetList().stream()
                 .anyMatch(pet -> pet.getName().equals(editedPet.getName()) && pet.getOwner().equals(ALICE)));
+    }
+
+    @Test
+    public void execute_nameChange_updatesRelatedAppointmentName() {
+        Appointment appointment = new Appointment(ALICE, milo, new AppointmentDate("01-01-2020"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        model.addAppointment(appointment);
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("Rex"));
+        Pet editedPet = new PetBuilder(milo).withName("Rex").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+        Appointment updatedAppointment = model.getBubuBook().getAppointmentList().get(0);
+        assertEquals(new PetName("Rex"), updatedAppointment.getPetName());
+        assertTrue(updatedAppointment.isForPet(editedPet));
     }
 
     @Test

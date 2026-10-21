@@ -95,4 +95,19 @@ public class PetTest {
         assertEquals(pet.getSpecies(), updatedPet.getSpecies());
         assertEquals(pet.getRequirement(), updatedPet.getRequirement());
     }
+
+    @Test
+    public void withName_replacesOnlyName() {
+        Pet pet = new PetBuilder(ALICE).withBreed("Golden retriever").build();
+
+        Pet renamedPet = pet.withName(new PetName("Milo Bean"));
+
+        assertEquals(new PetName("Milo Bean"), renamedPet.getName());
+        assertSame(ALICE, renamedPet.getOwner());
+        assertEquals(pet.getSpecies(), renamedPet.getSpecies());
+        assertEquals(pet.getBreed(), renamedPet.getBreed());
+        assertEquals(pet.getRequirement(), renamedPet.getRequirement());
+        assertEquals(new PetName("Milo"), pet.getName());
+        assertThrows(NullPointerException.class, () -> pet.withName(null));
+    }
 }

@@ -141,6 +141,22 @@ public class AppointmentTest {
     }
 
     @Test
+    public void withPetName_preservesAppointmentSnapshotDetails() {
+        Appointment original = create("10:30", "12:00");
+
+        Appointment renamed = original.withPetName(new PetName("Rex"));
+
+        assertSame(OWNER, renamed.getOwner());
+        assertEquals(new PetName("Rex"), renamed.getPetName());
+        assertEquals(PET.getSpecies(), renamed.getPet().getSpecies());
+        assertEquals(PET.getBreed(), renamed.getPet().getBreed());
+        assertEquals(PET.getRequirement(), renamed.getPet().getRequirement());
+        assertTrue(renamed.isForPet(PET.withName(new PetName("Rex"))));
+        assertEquals(new PetName("BuBu"), original.getPetName());
+        assertThrows(NullPointerException.class, () -> original.withPetName(null));
+    }
+
+    @Test
     public void equalsAndIdentity_distinguishSlotFromFullDetails() {
         Appointment appointment = create("10:30", "12:00");
         Appointment copy = create("10:30", "12:00");
