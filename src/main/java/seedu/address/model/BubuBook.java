@@ -19,8 +19,8 @@ import seedu.address.model.pet.UniquePetList;
 
 /**
  * Owns the clients, pets and appointment schedule for a grooming business.
- * Pet owners are resolved to the stored client records. Historical appointments can remain
- * after their participants are removed; scheduling commands validate new participants.
+ * Pet owners are resolved to the stored client records. Removing a client or pet also removes
+ * its related appointments; scheduling commands validate new participants.
  */
 public class BubuBook implements ReadOnlyBubuBook {
     private final UniqueClientList clients = new UniqueClientList();
@@ -70,10 +70,15 @@ public class BubuBook implements ReadOnlyBubuBook {
         requireAllNonNull(target, editedClient);
         clients.setClient(target, editedClient);
         pets.updateOwner(target, editedClient);
+        appointments.updateOwner(target, editedClient);
     }
 
+    /** Removes a client and all pets and appointments belonging to that client. */
     public void removeClient(Client client) {
+        requireNonNull(client);
         clients.remove(client);
+        appointments.removeAppointmentsForOwner(client.getPhone());
+        pets.removeAllOwnedBy(client);
     }
 
     /** Replaces pets after validating uniqueness and resolving every owner. */
@@ -98,8 +103,11 @@ public class BubuBook implements ReadOnlyBubuBook {
         pets.setPet(target, editedPet.withOwner(findOwner(editedPet, getClientList())));
     }
 
+    /** Removes a pet and all appointments belonging to that pet. */
     public void removePet(Pet pet) {
+        requireNonNull(pet);
         pets.remove(pet);
+        appointments.removeAppointmentsForPet(pet);
     }
 
     /** Clears all clients, pets, and appointments, preserving the observable lists. */
