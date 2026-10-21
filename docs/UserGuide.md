@@ -280,8 +280,10 @@ Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Ful
 
 ### Listing appointments: `list-appointments`
 
-Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
-Each entry shows its date, start and end times, pet name, owner phone number, and service.
+Displays ongoing and future grooming appointments in the appointment panel and command result area,
+ordered by date and start time. Each entry shows its date, start and end times, pet name, owner name,
+owner phone number, address, pet care notes, and service. These are the participant details saved with
+the booking. Long addresses and care notes wrap across lines in the appointment cards.
 
 Format: `list-appointments`
 
@@ -338,7 +340,13 @@ Clients, pets, and appointments are saved together in `data/bububook.json` after
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets.
+Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
+details recorded when it was made, even if those records are later edited or deleted. The pet's registered name
+is used for display, including its original capitalization.
+
+Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
+registered. If either is missing, restore the missing participant from a backup before upgrading; those older
+bookings do not contain a full participant profile.
 
 ### Editing the data file
 

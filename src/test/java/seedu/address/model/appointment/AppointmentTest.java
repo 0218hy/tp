@@ -3,8 +3,10 @@ package seedu.address.model.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
@@ -12,17 +14,24 @@ import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class AppointmentTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
+    private static final Client OWNER = new ClientBuilder().withPhone(OWNER_PHONE.value).build();
+    private static final Pet PET = new PetBuilder(OWNER).withName("BuBu").build();
     private static final AppointmentDate DATE = new AppointmentDate("18-09-2026");
 
     @Test
     public void constructor_validAppointment_preservesFields() {
         Appointment appointment = create("10:30", "12:00");
+        assertSame(OWNER, appointment.getOwner());
+        assertSame(PET, appointment.getPet());
         assertEquals(OWNER_PHONE, appointment.getOwnerPhone());
         assertEquals(new PetName("BuBu"), appointment.getPetName());
         assertEquals(DATE, appointment.getDate());
@@ -43,25 +52,34 @@ public class AppointmentTest {
         StartTime start = new StartTime("10:30");
         EndTime end = new EndTime("12:00");
         Service service = Service.FULL_GROOM;
-        assertThrows(NullPointerException.class, () -> new Appointment(null, "BuBu", DATE, start, end, service));
-        assertThrows(NullPointerException.class, () -> new Appointment(OWNER_PHONE, null, DATE, start, end, service));
-        assertThrows(NullPointerException.class, () -> new Appointment(
-                OWNER_PHONE, "BuBu", null, start, end, service));
-        assertThrows(NullPointerException.class, () -> new Appointment(OWNER_PHONE, "BuBu", DATE, null, end, service));
-        assertThrows(NullPointerException.class, () -> new Appointment(
-                OWNER_PHONE, "BuBu", DATE, start, null, service));
-        assertThrows(NullPointerException.class, () -> new Appointment(OWNER_PHONE, "BuBu", DATE, start, end, null));
+        assertThrows(NullPointerException.class, () -> new Appointment(null, PET, DATE, start, end, service));
+        assertThrows(NullPointerException.class, () -> new Appointment(OWNER, null, DATE, start, end, service));
+        assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, null, start, end, service));
+        assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, null, end, service));
+        assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, null, service));
+        assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, end, null));
     }
 
     @Test
-    public void constructor_petName_normalisesWhitespaceAndValidates() {
-        Appointment appointment = new Appointment(OWNER_PHONE, "  BuBu   Junior  ", DATE,
-                new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
-        assertEquals(new PetName("BuBu Junior"), appointment.getPetName());
-        for (String name : new String[]{"", "   ", "Bu/Bu", "a".repeat(41)}) {
-            assertThrows(IllegalArgumentException.class, () -> new Appointment(OWNER_PHONE, name, DATE,
-                    new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM));
-        }
+    public void constructor_petBelongsToDifferentOwner_rejected() {
+        Client otherOwner = new ClientBuilder().withPhone("81234567").build();
+        assertThrows(IllegalArgumentException.class, () -> new Appointment(otherOwner, PET, DATE,
+                new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM));
+    }
+
+    @Test
+    public void equals_participantProfileDetailsParticipateInEquality() {
+        Appointment original = create("10:30", "12:00");
+        Client updatedOwner = new ClientBuilder(OWNER).withAddress("New address").build();
+        Pet updatedPet = new PetBuilder(PET).withRequirement("Sensitive skin").withBreed("Poodle").build();
+        Appointment changedOwner = new Appointment(updatedOwner, PET.withOwner(updatedOwner), DATE,
+                original.getStartTime(), original.getEndTime(), original.getService());
+        Appointment changedPet = new Appointment(OWNER, updatedPet, DATE,
+                original.getStartTime(), original.getEndTime(), original.getService());
+        assertNotEquals(original, changedOwner);
+        assertNotEquals(original, changedPet);
+        assertTrue(original.isSameAppointment(changedOwner));
+        assertTrue(original.isSameAppointment(changedPet));
     }
 
     @Test
@@ -76,10 +94,10 @@ public class AppointmentTest {
             assertFalse(appointment.overlaps(other));
             assertFalse(other.overlaps(appointment));
         }
-        Appointment differentOwner = new Appointment(new Phone("81234567"), "Mochi", DATE,
+        Appointment differentOwner = createAppointment(new Phone("81234567"), "Mochi", DATE,
                 new StartTime("11:00"), new EndTime("12:30"), Service.NAIL_TRIM);
         assertTrue(appointment.overlaps(differentOwner));
-        Appointment nextDay = new Appointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
+        Appointment nextDay = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
         assertFalse(appointment.overlaps(nextDay));
     }
@@ -97,12 +115,29 @@ public class AppointmentTest {
 
     @Test
     public void isForPet_matchesOwnerAndNormalizedName() {
-        Appointment appointment = new Appointment(ALICE.getPhone(), "milo", DATE,
+        Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).withName("milo").build(), DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
 
         assertTrue(appointment.isForPet(new PetBuilder(ALICE).withName("  MiLo  ").build()));
         assertFalse(appointment.isForPet(new PetBuilder(BENSON).withName("Milo").build()));
         assertFalse(appointment.isForPet(new PetBuilder(ALICE).withName("Luna").build()));
+        assertThrows(NullPointerException.class, () -> appointment.isForPet(null));
+    }
+
+    @Test
+    public void withOwnerPhone_preservesSnapshotsAndUpdatesBothParticipants() {
+        Appointment original = create("10:30", "12:00");
+        Phone newPhone = new Phone("81234567");
+        Client expectedOwner = new ClientBuilder(OWNER).withPhone(newPhone.value).build();
+
+        Appointment updated = original.withOwnerPhone(newPhone);
+
+        assertEquals(new Appointment(expectedOwner, PET.withOwner(expectedOwner), DATE,
+                original.getStartTime(), original.getEndTime(), original.getService()), updated);
+        assertSame(updated.getOwner(), updated.getPet().getOwner());
+        assertSame(OWNER, original.getOwner());
+        assertSame(PET, original.getPet());
+        assertThrows(NullPointerException.class, () -> original.withOwnerPhone(null));
     }
 
     @Test
@@ -116,7 +151,7 @@ public class AppointmentTest {
         assertFalse(appointment.isSameAppointment(create("11:00", "12:00")));
         assertFalse(appointment.isSameAppointment(null));
         assertNotEquals(null, appointment);
-        Appointment otherService = new Appointment(OWNER_PHONE, "BuBu", DATE,
+        Appointment otherService = createAppointment(OWNER_PHONE, "BuBu", DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.OTHER);
         assertTrue(appointment.isSameAppointment(otherService));
         assertNotEquals(appointment, otherService);
@@ -125,7 +160,7 @@ public class AppointmentTest {
     @Test
     public void constructor_petName_acceptsLengthBoundariesAndAllowedCharacters() {
         for (String name : new String[]{"A", "a".repeat(40), "Mr. O'Malley-2", "小白", "Café"}) {
-            Appointment appointment = new Appointment(OWNER_PHONE, name, DATE,
+            Appointment appointment = createAppointment(OWNER_PHONE, name, DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
             assertEquals(new PetName(name), appointment.getPetName());
         }
@@ -135,10 +170,10 @@ public class AppointmentTest {
     public void isSameAppointment_comparesDateAndStartRatherThanPet() {
         Appointment appointment = create("10:30", "12:00");
         assertTrue(appointment.isSameAppointment(appointment));
-        Appointment nextDay = new Appointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
+        Appointment nextDay = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
         assertFalse(appointment.isSameAppointment(nextDay));
-        Appointment differentPet = new Appointment(new Phone("81234567"), "Mochi", DATE,
+        Appointment differentPet = createAppointment(new Phone("81234567"), "Mochi", DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.NAIL_TRIM);
         assertTrue(appointment.isSameAppointment(differentPet));
     }
@@ -150,15 +185,15 @@ public class AppointmentTest {
         assertFalse(appointment.equals(null));
         assertFalse(appointment.equals("BuBu"));
         Appointment[] differentAppointments = {
-            new Appointment(new Phone("81234567"), "BuBu", DATE,
+            createAppointment(new Phone("81234567"), "BuBu", DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM),
-            new Appointment(OWNER_PHONE, "Mochi", DATE,
+            createAppointment(OWNER_PHONE, "Mochi", DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM),
-            new Appointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
+            createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("19-09-2026"),
                     new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM),
             create("11:00", "12:00"),
             create("10:30", "12:30"),
-            new Appointment(OWNER_PHONE, "BuBu", DATE,
+            createAppointment(OWNER_PHONE, "BuBu", DATE,
                     new StartTime("10:30"), new EndTime("12:00"), Service.OTHER)
         };
         for (Appointment different : differentAppointments) {
@@ -178,13 +213,13 @@ public class AppointmentTest {
     @Test
     public void toString_includesAppointmentDetails() {
         String expected = Appointment.class.getCanonicalName()
-                + "{ownerPhone=91234567, petName=BuBu, date=18-09-2026, "
+                + "{owner=" + OWNER + ", pet=" + PET + ", date=18-09-2026, "
                 + "startTime=10:30, endTime=12:00, service=Full groom}";
         assertEquals(expected, create("10:30", "12:00").toString());
     }
 
     private Appointment create(String start, String end) {
-        return new Appointment(OWNER_PHONE, "BuBu", DATE,
+        return new Appointment(OWNER, PET, DATE,
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
 }

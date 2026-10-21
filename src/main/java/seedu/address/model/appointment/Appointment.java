@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
@@ -16,6 +17,8 @@ import seedu.address.model.pet.PetName;
  * Represents an immutable grooming appointment in BuBu.
  * The scheduling command must verify the owner and pet, a future start in Singapore,
  * and the absence of overlaps before saving. Past appointments can still be loaded.
+ * Participant objects are immutable snapshots of their details when the booking was made,
+ * with owner phone changes propagated to keep related records identifiable.
  */
 public class Appointment {
     // Identity fields: date and start time identify a slot in the non-overlapping schedule.
@@ -23,35 +26,43 @@ public class Appointment {
     private final StartTime startTime;
 
     // Data fields
-    private final Phone ownerPhone;
-    private final PetName petName;
+    private final Client owner;
+    private final Pet pet;
     private final EndTime endTime;
     private final Service service;
 
     /**
      * Constructs an appointment with non-null fields and a duration of at least 30 minutes.
-     * Pet-name whitespace is normalised while its letter case is preserved for display.
+     * The supplied pet must belong to the supplied owner.
      */
-    public Appointment(Phone ownerPhone, String petName, AppointmentDate date,
+    public Appointment(Client owner, Pet pet, AppointmentDate date,
                        StartTime startTime, EndTime endTime, Service service) {
-        requireAllNonNull(ownerPhone, petName, date, startTime, endTime, service);
-        PetName normalisedPetName = new PetName(petName.trim().replaceAll("\\s+", " "));
+        requireAllNonNull(owner, pet, date, startTime, endTime, service);
+        checkArgument(owner.equals(pet.getOwner()), "Appointment pet must belong to its owner.");
         checkArgument(endTime.isAtLeastThirtyMinutesAfter(startTime), EndTime.MESSAGE_CONSTRAINTS);
 
-        this.ownerPhone = ownerPhone;
-        this.petName = normalisedPetName;
+        this.owner = owner;
+        this.pet = pet;
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
         this.service = service;
     }
 
+    public Client getOwner() {
+        return owner;
+    }
+
+    public Pet getPet() {
+        return pet;
+    }
+
     public Phone getOwnerPhone() {
-        return ownerPhone;
+        return owner.getPhone();
     }
 
     public PetName getPetName() {
-        return petName;
+        return pet.getName();
     }
 
     public AppointmentDate getDate() {
@@ -70,10 +81,12 @@ public class Appointment {
         return service;
     }
 
-    /** Returns a copy of this appointment with the given owner phone number. */
+    /** Returns a copy with the new owner phone, preserving the remaining participant details. */
     Appointment withOwnerPhone(Phone newOwnerPhone) {
         requireNonNull(newOwnerPhone);
-        return new Appointment(newOwnerPhone, petName.toString(), date, startTime, endTime, service);
+        Client updatedOwner = new Client(owner.getName(), newOwnerPhone, owner.getEmail(),
+                owner.getAddress(), owner.getTags());
+        return new Appointment(updatedOwner, pet.withOwner(updatedOwner), date, startTime, endTime, service);
     }
 
     /**
@@ -82,7 +95,7 @@ public class Appointment {
      */
     public boolean isForPet(Pet pet) {
         requireNonNull(pet);
-        return pet.isIdentifiedBy(ownerPhone, petName);
+        return pet.isSamePet(this.pet);
     }
 
     /**
@@ -126,8 +139,8 @@ public class Appointment {
         if (!(other instanceof Appointment otherAppointment)) {
             return false;
         }
-        return ownerPhone.equals(otherAppointment.ownerPhone)
-                && petName.equals(otherAppointment.petName)
+        return owner.equals(otherAppointment.owner)
+                && pet.equals(otherAppointment.pet)
                 && date.equals(otherAppointment.date)
                 && startTime.equals(otherAppointment.startTime)
                 && endTime.equals(otherAppointment.endTime)
@@ -136,14 +149,14 @@ public class Appointment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerPhone, petName, date, startTime, endTime, service);
+        return Objects.hash(owner, pet, date, startTime, endTime, service);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
-                .add("ownerPhone", ownerPhone)
-                .add("petName", petName)
+                .add("owner", owner)
+                .add("pet", pet)
                 .add("date", date)
                 .add("startTime", startTime)
                 .add("endTime", endTime)

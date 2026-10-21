@@ -10,6 +10,7 @@ import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.AMY;
@@ -98,7 +99,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_listAppointments_readsScheduleWithoutSaving() throws Exception {
-        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
 
         CommandResult result = logic.execute("list-appointments");
@@ -122,7 +123,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {
-        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+        Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         model.addAppointment(appointment);
 
@@ -164,7 +165,7 @@ public class LogicManagerTest {
     @Test
     public void execute_identifierDeletionDoesNotRequireMatchingDisplayedList() throws Exception {
         model.addClient(ALICE);
-        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         model.addAppointment(appointment);
 
@@ -213,7 +214,7 @@ public class LogicManagerTest {
     public void execute_addPetSaveFails_restoresModel() {
         model.addClient(ALICE);
         model.addPet(new PetBuilder(ALICE).withBreed("Golden retriever").build());
-        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(

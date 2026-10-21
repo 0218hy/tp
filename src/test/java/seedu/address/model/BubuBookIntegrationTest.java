@@ -3,6 +3,7 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
@@ -25,7 +26,7 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class BubuBookIntegrationTest {
-    private final Appointment appointment = new Appointment(ALICE.getPhone(), "Milo",
+    private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
     @Test
@@ -103,7 +104,7 @@ public class BubuBookIntegrationTest {
         book.addClient(BENSON);
         Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
         book.addPet(bensonPet);
-        Appointment bensonAppointment = new Appointment(BENSON.getPhone(), "Coco",
+        Appointment bensonAppointment = new Appointment(BENSON, bensonPet,
                 new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
                 Service.NAIL_TRIM);
         book.addAppointment(bensonAppointment);
@@ -128,13 +129,13 @@ public class BubuBookIntegrationTest {
         book.addPet(bensonMilo);
         book.addPet(aliceCoco);
 
-        Appointment aliceMiloAppointment = new Appointment(ALICE.getPhone(), "Milo",
+        Appointment aliceMiloAppointment = new Appointment(ALICE, aliceMilo,
                 new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
-        Appointment bensonMiloAppointment = new Appointment(BENSON.getPhone(), "Milo",
+        Appointment bensonMiloAppointment = new Appointment(BENSON, bensonMilo,
                 new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
                 Service.NAIL_TRIM);
-        Appointment aliceCocoAppointment = new Appointment(ALICE.getPhone(), "Coco",
+        Appointment aliceCocoAppointment = new Appointment(ALICE, aliceCoco,
                 new AppointmentDate("01-01-2000"), new StartTime("12:00"), new EndTime("13:00"),
                 Service.BATH_AND_BRUSH);
         book.addAppointment(aliceMiloAppointment);
@@ -153,7 +154,7 @@ public class BubuBookIntegrationTest {
         book.addClient(BENSON);
         Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
         book.addPet(bensonPet);
-        Appointment bensonAppointment = new Appointment(BENSON.getPhone(), "Coco",
+        Appointment bensonAppointment = new Appointment(BENSON, bensonPet,
                 new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
                 Service.NAIL_TRIM);
         book.addAppointment(bensonAppointment);

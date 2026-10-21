@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.util.List;
 
@@ -150,7 +151,7 @@ public class AddAppointmentCommandParserTest {
         model.addClient(owner);
         model.addPet(new PetBuilder(owner).withName("BuBu").build());
         parser.parse(VALID_ARGS).execute(model);
-        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-9999"),
+        Appointment appointment = createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
@@ -171,8 +172,8 @@ public class AddAppointmentCommandParserTest {
 
     private AddAppointmentCommand expected(String petName, String date, String start, String end,
             Service service) {
-        return new AddAppointmentCommand(new Appointment(new Phone("91234567"), petName, new AppointmentDate(date),
-                new StartTime(start), new EndTime(end), service));
+        return new AddAppointmentCommand(new Phone("91234567"), petName, new AppointmentDate(date),
+                new StartTime(start), new EndTime(end), service);
     }
 
     private void assertInvalid(String field, String replacement, String message) {

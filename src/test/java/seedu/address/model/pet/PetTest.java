@@ -26,6 +26,17 @@ public class PetTest {
     }
 
     @Test
+    public void isSamePet_ownerAndName_matchesNormalizedIdentity() {
+        Pet pet = new PetBuilder(ALICE).withName("Bu Bu").build();
+
+        assertTrue(pet.isSamePet(ALICE, new PetName("  bU   bU  ")));
+        assertFalse(pet.isSamePet(BOB, new PetName("Bu Bu")));
+        assertFalse(pet.isSamePet(ALICE, new PetName("Luna")));
+        assertFalse(pet.isSamePet(null, pet.getName()));
+        assertFalse(pet.isSamePet(ALICE, null));
+    }
+
+    @Test
     public void isIdentifiedBy_matchesOwnerAndNormalizedName() {
         Pet pet = new PetBuilder(ALICE).build();
 

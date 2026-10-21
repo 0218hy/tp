@@ -3,6 +3,7 @@ package seedu.address.ui.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
 import java.lang.reflect.Field;
@@ -26,7 +27,7 @@ public class AppointmentListPanelTest {
     @Test
     public void constructorAndCell_updateGraphicForEmptyAndPopulatedItems() {
         JavaFxTestUtils.runAndWait(() -> {
-            Appointment appointment = new Appointment(ALICE.getPhone(), "Milo",
+            Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
                     new AppointmentDate("01-01-2027"), new StartTime("10:00"),
                     new EndTime("11:00"), Service.FULL_GROOM);
             ObservableList<Appointment> appointments = FXCollections.observableArrayList(appointment);
