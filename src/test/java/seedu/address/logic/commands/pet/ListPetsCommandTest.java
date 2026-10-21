@@ -81,6 +81,24 @@ public class ListPetsCommandTest {
     }
 
     @Test
+    public void execute_ownerFilterWithSameNameOwners_listsOnlyMatchingPhone() throws Exception {
+        Model model = createModel();
+        Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
+                .withEmail("other-alice@example.com").build();
+        model.addClient(sameNameOwner);
+        Pet alicePet = addPet(model, ALICE, "Mochi", Species.DOG, null);
+        addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
+        List<Pet> savedPets = List.copyOf(model.getBubuBook().getPetList());
+
+        CommandResult result = new ListPetsCommand(ALICE_PREDICATE).execute(model);
+
+        assertEquals("Found 1 pet(s) under Alice Pauline.", result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
+        assertEquals(List.of(alicePet), model.getFilteredPetList());
+        assertEquals(savedPets, model.getBubuBook().getPetList());
+    }
+
+    @Test
     public void execute_emptyResults_returnsSpecificMessages() throws Exception {
         Model model = createModel();
 

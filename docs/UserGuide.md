@@ -28,7 +28,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
    application session.
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list-clients` : Lists all contacts.
 
    * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the BuBu.
 
@@ -62,7 +62,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME i/PHONE_NUMBER`, `i/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -94,7 +94,7 @@ without typing it again.
 ### Switching the displayed record list
 
 The GUI contains separate client, pet, and appointment list panels, but shows one panel at a time. A successful
-`list` or `list-clients` command displays clients, `list-pets` displays pets, and `list-appointments` displays
+`list-clients` command displays clients, `list-pets` displays pets, and `list-appointments` displays
 ongoing and future appointments. The selected panel remains visible until another list command changes it.
 
 Index-based deletion commands use the corresponding displayed list. For example, run `list-pets` before
@@ -143,33 +143,10 @@ Examples: `list-clients`, `list-clients q/amelia`, `list-clients q/@example.com`
 A search reports `Found N client(s).` If nothing matches, it reports `No clients match "KEYWORD".`
 No matches is a successful search with an empty list. This command does not change stored client records.
 
-### Listing all persons: `list`
-
-Shows a list of all persons in the BuBu.
-
-Format: `list`
-
 ### Editing records [planned]
 
 Editing existing records is not supported in the MVP and is planned for a future release.
 The legacy `edit` command is disabled and returns `Unknown command.` without changing any records.
-
-### Locating persons by name: `find`
-
-Finds persons whose names contain any of the given keywords.
-
-Format: `find KEYWORD [MORE_KEYWORDS]`
-
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
-
-Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
 
 ### Deleting a person: `delete-client`
 
@@ -188,8 +165,8 @@ delete-client i/PHONE_NUMBER
 * Provide either an index or a phone identifier, but not both.
 
 Examples:
-* `list` followed by `delete-client 2` deletes the 2nd person.
-* `find Betsy` followed by `delete-client 1` deletes the 1st search result.
+* `list-clients` followed by `delete-client 2` deletes the 2nd person.
+* `list-clients q/Betsy` followed by `delete-client 1` deletes the 1st search result.
 * `delete-client i/91234567` deletes the person with phone number `91234567`.
 
 ### Adding a pet to a person: `add-pet`
@@ -441,8 +418,6 @@ Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`

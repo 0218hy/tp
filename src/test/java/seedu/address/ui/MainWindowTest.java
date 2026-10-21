@@ -56,7 +56,7 @@ public class MainWindowTest {
             assertEquals(300, resultDisplayPlaceholder.getPrefHeight());
 
             logic.nextResult = new CommandResult("Listed all clients.");
-            executeCommand(mainWindow, "list");
+            executeCommand(mainWindow, "list-clients");
 
             assertFalse(helpDisplay.isVisible());
             assertEquals(100, resultDisplayPlaceholder.getPrefHeight());

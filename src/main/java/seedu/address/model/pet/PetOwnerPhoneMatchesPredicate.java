@@ -13,20 +13,10 @@ import seedu.address.model.client.Phone;
 public class PetOwnerPhoneMatchesPredicate implements Predicate<Pet> {
     private final Phone ownerPhone;
 
-    /**
-     * Creates a predicate for the given owner phone number.
-     *
-     * @param ownerPhone The phone number identifying the pet's owner.
-     */
     public PetOwnerPhoneMatchesPredicate(Phone ownerPhone) {
         this.ownerPhone = requireNonNull(ownerPhone);
     }
 
-    /**
-     * Returns the phone number used to identify the owner.
-     *
-     * @return The phone number matched by this predicate.
-     */
     public Phone getOwnerPhone() {
         return ownerPhone;
     }
@@ -34,7 +24,7 @@ public class PetOwnerPhoneMatchesPredicate implements Predicate<Pet> {
     @Override
     public boolean test(Pet pet) {
         requireNonNull(pet);
-        return pet.getOwner().getPhone().equals(ownerPhone);
+        return pet.isOwnedBy(ownerPhone);
     }
 
     @Override

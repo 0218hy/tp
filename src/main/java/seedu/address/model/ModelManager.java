@@ -46,10 +46,7 @@ public class ModelManager implements Model {
         filteredClients = new FilteredList<>(this.bubuBook.getClientList());
         sortedClients = new SortedList<>(filteredClients);
         filteredPets = new FilteredList<>(this.bubuBook.getPetList());
-        sortedPets = new SortedList<>(filteredPets, Comparator
-                .comparing((Pet pet) -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT))
-                .thenComparing(pet -> pet.getOwner().getPhone().value)
-                .thenComparing(pet -> pet.getName().getNormalizedName()));
+        sortedPets = new SortedList<>(filteredPets, createPetDisplayComparator());
         filteredAppointments = new FilteredList<>(this.bubuBook.getAppointmentList());
         sortedAppointments = new SortedList<>(filteredAppointments,
                 Comparator.comparing((Appointment appointment) -> appointment.getDate().value)
@@ -58,6 +55,14 @@ public class ModelManager implements Model {
 
     public ModelManager() {
         this(new BubuBook(), new UserPrefs());
+    }
+
+    /** Groups pets by owner name and phone, then orders each owner's pets by normalized name. */
+    private static Comparator<Pet> createPetDisplayComparator() {
+        Comparator<Pet> byOwnerName = Comparator.comparing(
+                pet -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT));
+        Comparator<Pet> byOwner = byOwnerName.thenComparing(pet -> pet.getOwner().getPhone().value);
+        return byOwner.thenComparing(pet -> pet.getName().getNormalizedName());
     }
 
     //=========== UserPrefs ==================================================================================

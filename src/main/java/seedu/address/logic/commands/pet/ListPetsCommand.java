@@ -15,7 +15,7 @@ import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
- * Updates the filtered pet list without changing the saved BubuBook or displayed client list.
+ * Selects the pet view without changing saved records or the client list's filter.
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
@@ -64,12 +64,16 @@ public class ListPetsCommand extends Command {
      * Returns the registered owner with the requested phone number.
      *
      * @param model The model whose registered owners are searched.
+     * @throws CommandException if no registered client has the requested phone number.
      */
     private Client findOwner(Model model) throws CommandException {
-        return model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().equals(predicate.getOwnerPhone()))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
+        assert predicate != null : "Owner lookup is only needed for an owner-filtered listing";
+        for (Client client : model.getBubuBook().getClientList()) {
+            if (client.getPhone().equals(predicate.getOwnerPhone())) {
+                return client;
+            }
+        }
+        throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
     }
 
     @Override
