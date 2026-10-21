@@ -34,6 +34,15 @@ public class PetNameTest {
     }
 
     @Test
+    public void hasSameName_comparesNormalizedNames() {
+        PetName name = new PetName("  MiLo  ");
+
+        assertTrue(name.hasSameName(new PetName("milo")));
+        assertFalse(name.hasSameName(new PetName("Luna")));
+        assertThrows(NullPointerException.class, () -> name.hasSameName(null));
+    }
+
+    @Test
     public void equals() {
         PetName petName = new PetName("Milo");
 

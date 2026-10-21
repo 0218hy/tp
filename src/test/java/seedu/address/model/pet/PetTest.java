@@ -26,6 +26,17 @@ public class PetTest {
     }
 
     @Test
+    public void isIdentifiedBy_matchesOwnerAndNormalizedName() {
+        Pet pet = new PetBuilder(ALICE).build();
+
+        assertTrue(pet.isIdentifiedBy(ALICE.getPhone(), new PetName("milo")));
+        assertFalse(pet.isIdentifiedBy(BOB.getPhone(), new PetName("Milo")));
+        assertFalse(pet.isIdentifiedBy(ALICE.getPhone(), new PetName("Luna")));
+        assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(null, pet.getName()));
+        assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(ALICE.getPhone(), null));
+    }
+
+    @Test
     public void constructor_nullField_throwsNullPointerException() {
         Pet pet = new PetBuilder(ALICE).build();
 
