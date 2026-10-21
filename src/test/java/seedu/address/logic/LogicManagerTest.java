@@ -190,7 +190,7 @@ public class LogicManagerTest {
 
         CommandResult result = logic.execute("list-pets i/" + ALICE.getPhone());
 
-        assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
+        assertEquals("Found 1 pet(s) under Alice Pauline.", result.getFeedbackToUser());
         assertEquals(1, model.getBubuBook().getPetList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }

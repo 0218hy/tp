@@ -1145,14 +1145,14 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`).
 
    2. Test case: `list-pets`<br>
-      Expected: `All pet profiles`, followed by Alex Yeoh's pets in the order `BuBu`, `Mochi`.
+      Expected: Feedback is `Listed all pets.` The list panel shows Alex Yeoh's pets in the order `BuBu`, `Mochi`.
 
 2. Listing one client's pets
 
    1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`), and Bernice Yu (phone number `99272758`) has no pets.
 
    2. Test case: `list-pets i/87438807`<br>
-      Expected: `Pets under Alex Yeoh`, followed by `BuBu` and `Mochi` with their species, optional breed, and requirements.
+      Expected: Feedback is `Found 2 pet(s) under Alex Yeoh.` The list panel shows `BuBu` and `Mochi` with their species, optional breed, and requirements.
 
    3. Test case: `list-pets i/99272758`<br>
       Expected: `Bernice Yu has no saved pet profiles.`

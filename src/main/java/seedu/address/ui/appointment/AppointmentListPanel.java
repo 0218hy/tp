@@ -1,5 +1,6 @@
 package seedu.address.ui.appointment;
 
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -20,10 +21,16 @@ public class AppointmentListPanel extends UiPart<Region> {
         super(FXML);
         appointmentListView.setItems(appointmentList);
         appointmentListView.setCellFactory(listView -> new AppointmentListViewCell());
+        // Refresh headings when a deletion or filter change moves the first appointment of a date.
+        appointmentList.addListener((ListChangeListener<Appointment>) change -> appointmentListView.refresh());
     }
 
     /** Custom cell that displays one appointment using an {@link AppointmentCard}. */
     class AppointmentListViewCell extends ListCell<Appointment> {
+        AppointmentListViewCell() {
+            indexProperty().addListener((observable, oldIndex, newIndex) -> updateItem(getItem(), isEmpty()));
+        }
+
         @Override
         protected void updateItem(Appointment appointment, boolean empty) {
             super.updateItem(appointment, empty);
@@ -31,9 +38,26 @@ public class AppointmentListPanel extends UiPart<Region> {
             if (empty || appointment == null) {
                 setGraphic(null);
                 setText(null);
-            } else {
-                setGraphic(new AppointmentCard(appointment, getIndex() + 1).getRoot());
+                return;
             }
+
+            boolean showDateHeading = startsDateGroup(appointment, getIndex());
+            AppointmentCard card = new AppointmentCard(appointment, getIndex() + 1, showDateHeading);
+            setGraphic(card.getRoot());
+        }
+
+        /**
+         * Returns whether this appointment starts a new date group in the displayed list.
+         * Temporary out-of-range cell indices are treated as group starts during list updates.
+         */
+        private boolean startsDateGroup(Appointment appointment, int index) {
+            ObservableList<Appointment> appointments = appointmentListView.getItems();
+            // Virtualised cells can temporarily have an index outside the current list.
+            if (index <= 0 || index >= appointments.size()) {
+                return true;
+            }
+            Appointment previousAppointment = appointments.get(index - 1);
+            return !appointment.getDate().equals(previousAppointment.getDate());
         }
     }
 }

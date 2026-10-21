@@ -14,6 +14,8 @@ import org.junit.jupiter.api.condition.OS;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.Label;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
@@ -46,6 +48,104 @@ public class AppointmentListPanelTest {
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
         });
+    }
+
+    @Test
+    public void updateItem_dateGroups_showsOnlyFirstHeadingAndKeepsContinuousIndices() {
+        JavaFxTestUtils.runAndWait(() -> {
+            Appointment first = appointmentOn("01-01-2027", "10:00", "11:00");
+            Appointment second = appointmentOn("01-01-2027", "12:00", "13:00");
+            Appointment third = appointmentOn("02-01-2027", "10:00", "11:00");
+            ObservableList<Appointment> appointments = FXCollections.observableArrayList(first, second, third);
+            AppointmentListPanel panel = new AppointmentListPanel(appointments);
+            AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
+
+            cell.updateIndex(0);
+            cell.updateItem(first, false);
+            assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
+
+            cell.updateIndex(1);
+            cell.updateItem(second, false);
+            assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
+
+            cell.updateIndex(2);
+            cell.updateItem(third, false);
+            assertCard(cell, true, "3. ", "Appointments for 02-01-2027");
+        });
+    }
+
+    @Test
+    public void updateItem_temporaryIndices_showsHeadingWithoutReadingPreviousAppointment() {
+        JavaFxTestUtils.runAndWait(() -> {
+            Appointment appointment = appointmentOn("01-01-2027", "10:00", "11:00");
+            ObservableList<Appointment> appointments = FXCollections.observableArrayList(appointment);
+            AppointmentListPanel panel = new AppointmentListPanel(appointments);
+            AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
+
+            cell.updateIndex(-1);
+            cell.updateItem(appointment, false);
+            assertCard(cell, true, "0. ", "Appointments for 01-01-2027");
+
+            cell.updateIndex(appointments.size());
+            cell.updateItem(appointment, false);
+            assertCard(cell, true, "2. ", "Appointments for 01-01-2027");
+
+            cell.updateIndex(appointments.size() + 1);
+            cell.updateItem(appointment, false);
+            assertCard(cell, true, "3. ", "Appointments for 01-01-2027");
+        });
+    }
+
+    @Test
+    public void updateItem_afterFilteringAndDeletion_recalculatesGroupHeading() {
+        JavaFxTestUtils.runAndWait(() -> {
+            Appointment first = appointmentOn("01-01-2027", "10:00", "11:00");
+            Appointment second = appointmentOn("01-01-2027", "12:00", "13:00");
+            ObservableList<Appointment> savedAppointments = FXCollections.observableArrayList(first, second);
+            FilteredList<Appointment> displayedAppointments = new FilteredList<>(savedAppointments);
+            AppointmentListPanel panel = new AppointmentListPanel(displayedAppointments);
+            AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
+            cell.updateIndex(1);
+            cell.updateItem(second, false);
+            assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
+
+            displayedAppointments.setPredicate(appointment -> appointment.equals(second));
+            cell.updateIndex(0);
+            cell.updateItem(second, false);
+            assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
+
+            displayedAppointments.setPredicate(appointment -> true);
+            cell.updateIndex(1);
+            cell.updateItem(second, false);
+            assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
+
+            savedAppointments.remove(first);
+            cell.updateIndex(0);
+            cell.updateItem(second, false);
+            assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
+
+            savedAppointments.clear();
+            cell.updateItem(null, true);
+            assertNull(cell.getGraphic());
+        });
+    }
+
+    private static Appointment appointmentOn(String date, String startTime, String endTime) {
+        return createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate(date),
+                new StartTime(startTime), new EndTime(endTime), Service.FULL_GROOM);
+    }
+
+    private static void assertCard(AppointmentListPanel.AppointmentListViewCell cell, boolean headingVisible,
+            String expectedIndex, String expectedDateHeading) {
+        Label heading = getLabel(cell, "dateHeading");
+        assertEquals(headingVisible, heading.isVisible());
+        assertEquals(headingVisible, heading.isManaged());
+        assertEquals(expectedIndex, getLabel(cell, "id").getText());
+        assertEquals(expectedDateHeading, heading.getText());
+    }
+
+    private static Label getLabel(AppointmentListPanel.AppointmentListViewCell cell, String id) {
+        return (Label) cell.getGraphic().lookup("#" + id);
     }
 
     @SuppressWarnings("unchecked")

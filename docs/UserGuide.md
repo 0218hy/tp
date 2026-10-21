@@ -225,29 +225,23 @@ Format: `list-pets [i/OWNER_IDENTIFIER]`
   pet names are compared without case differences; owners with the same name remain in separate groups.
 * `OWNER_IDENTIFIER`, if given, must be an existing eight-digit phone number starting with `8` or `9`, without spaces or
   hyphens. Only that client's pets are shown, ordered alphabetically by pet name.
-* Each entry shows the pet's name, species, optional breed, and care requirements. A missing breed is omitted.
+* Each entry shows the pet's name, species, breed, and care requirements. A missing breed is shown as `Not recorded`.
 
 Examples after adding `Mochi` and `BuBu` under Alex Yeoh:
 
-* `list-pets` displays:
+* `list-pets` shows all pet profiles in the list panel, with feedback:
 
   ```text
-  All pet profiles
-
-  Alex Yeoh
-  BuBu Cat Calm with baths
-  Mochi Dog Golden retriever Nervous around dryers
+  Listed all pets.
   ```
 
-* `list-pets i/87438807` displays:
+* `list-pets i/87438807` shows Alex Yeoh's pets in the list panel, with feedback:
 
   ```text
-  Pets under Alex Yeoh
-  BuBu Cat Calm with baths
-  Mochi Dog Golden retriever Nervous around dryers
+  Found 2 pet(s) under Alex Yeoh.
   ```
 
-With no pets saved, `list-pets` displays `No saved pet profiles.` For a client without pets, such as Bernice Yu,
+With no pets saved, `list-pets` displays `Listed all pets.` with an empty list panel. For a client without pets, such as Bernice Yu,
 `list-pets i/99272758` displays `Bernice Yu has no saved pet profiles.` A phone number with no saved client reports
 `No saved client has this phone number.` Repeating `i/` reports `Each owner identifier may be specified only once.`
 An invalid phone number reports `Owner identifier must be a valid phone number belonging to the specified client.`
