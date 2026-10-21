@@ -1,0 +1,216 @@
+/* Light theme, typography and shared record-card styling. */
+.root {
+    -fx-base: #f5f7fb;
+    -fx-background: #edf2f8;
+    -fx-control-inner-background: #ffffff;
+    -fx-accent: #2563cf;
+    -fx-focus-color: #2563cf;
+    -fx-faint-focus-color: #2563cf22;
+    -fx-text-background-color: #193153;
+}
+
+.background, .stack-pane, .split-pane, .pane-with-border {
+    -fx-background-color: #f5f7fb;
+}
+
+.pane-with-border, .split-pane {
+    -fx-border-color: #e1e8f1;
+}
+
+.label, .label-bright, .label-header, .list-cell .label {
+    -fx-text-fill: #193153;
+}
+
+.list-view, .list-cell:filled:even, .menu-bar, .context-menu {
+    -fx-background-color: #ffffff;
+}
+
+.list-cell:filled:odd {
+    -fx-background-color: #f8fafd;
+}
+
+.list-cell:empty {
+    -fx-background: #ffffff;
+    -fx-background-color: #ffffff;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #e2ecff;
+}
+
+.list-cell:filled:selected #cardPane {
+    -fx-border-width: 0;
+}
+
+.list-cell:filled:selected .label {
+    -fx-text-fill: #1d56b5;
+}
+
+.menu-bar .label, .context-menu .label {
+    -fx-text-fill: #193153;
+}
+
+.menu:hover, .menu:showing, .menu-item:focused {
+    -fx-background-color: #e2ecff;
+}
+
+.menu .left-container {
+    -fx-background-color: transparent;
+}
+
+.status-bar, .status-bar-with-border {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e1e8f1;
+}
+
+.status-bar .label, .status-bar-with-border .label {
+    -fx-text-fill: #536987;
+}
+
+#commandTextField {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #a6c5fb;
+    -fx-text-fill: #193153;
+    -fx-prompt-text-fill: #75859d;
+    -fx-highlight-fill: #e2ecff;
+    -fx-highlight-text-fill: #193153;
+}
+
+.result-display {
+    -fx-font-size: 16pt;
+    -fx-text-fill: #193153;
+    -fx-highlight-fill: #e2ecff;
+    -fx-highlight-text-fill: #193153;
+}
+
+#resultDisplay .content {
+    -fx-background-color: #ffffff;
+}
+
+#resultDisplay:feedback-success {
+    -fx-background-color: #eaf7ef;
+    -fx-border-color: #c5e9d3;
+    -fx-text-fill: #176b3a;
+}
+
+#resultDisplay:feedback-success .content {
+    -fx-background-color: #eaf7ef;
+}
+
+#resultDisplay:feedback-error {
+    -fx-background-color: #fff1f0;
+    -fx-border-color: #f2c6c2;
+    -fx-text-fill: #b42318;
+}
+
+#resultDisplay:feedback-error .content {
+    -fx-background-color: #fff1f0;
+}
+
+.help-heading, .help-command-name {
+    -fx-fill: #193153;
+}
+
+.help-command-format {
+    -fx-fill: #2563cf;
+}
+
+.scroll-bar {
+    -fx-background-color: #f5f7fb;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #c4cfde;
+}
+
+#filterField, #clientListPanel, #personWebpage {
+    -fx-effect: null;
+}
+
+#tags .label {
+    -fx-font-size: 14px;
+    -fx-background-color: #e2ecff;
+    -fx-text-fill: #1d56b5;
+}
+
+.error {
+    -fx-text-fill: #b42318 !important;
+}
+
+.list-cell .owner-heading, .list-cell .date-heading,
+.list-cell:filled:selected .owner-heading, .list-cell:filled:selected .date-heading {
+    -fx-text-fill: #17468f;
+    -fx-font-size: 17pt;
+    -fx-font-weight: bold;
+    -fx-background-color: #e2ecff;
+    -fx-background-radius: 6;
+    -fx-padding: 10 12 10 12;
+}
+
+.record-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #9bb9e8;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 14;
+}
+
+.list-cell:filled:selected .record-card {
+    -fx-background-color: #e2ecff;
+    -fx-border-color: #2563cf;
+}
+
+.record-content {
+    -fx-background-color: #f5f7fb;
+}
+
+.record-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.record-count {
+    -fx-font-size: 16px;
+    -fx-text-fill: #536987;
+}
+
+.record-content .list-view, .record-content .list-cell {
+    -fx-background-color: #f5f7fb;
+}
+
+.record-content .list-cell {
+    -fx-padding: 5 0 5 0;
+}
+
+.record-content .cell_big_label {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.record-content .cell_small_label {
+    -fx-font-size: 19px;
+}
+
+.record-card-heading {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.list-cell .date-heading {
+    -fx-font-family: "Consolas", "DejaVu Sans Mono", monospace;
+    -fx-font-weight: bold;
+}
+
+.list-cell .record-card-heading .label,
+.list-cell:filled:selected .record-card-heading .label {
+    -fx-text-fill: #17468f;
+}
+
+.list-cell .care-highlight, .list-cell:filled:selected .care-highlight {
+    -fx-background-color: #fff5df;
+    -fx-background-radius: 4;
+    -fx-padding: 8;
+    -fx-text-fill: #59421c;
+}
+

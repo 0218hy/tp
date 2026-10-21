@@ -10,6 +10,12 @@ import seedu.address.ui.UiPart;
 /** A UI component that displays information of a {@code Pet}. */
 public class PetCard extends UiPart<Region> {
     private static final String FXML = "PetCard.fxml";
+    private static final String INDEX_FORMAT = "%d. ";
+    private static final String OWNER_FORMAT = "Owner: %s (%s)";
+    private static final String SPECIES_FORMAT = "Species: %s";
+    private static final String BREED_FORMAT = "Breed: %s";
+    private static final String REQUIREMENT_FORMAT = "Requirement: %s";
+    private static final String UNRECORDED_BREED = "Not recorded";
 
     public final Pet pet;
 
@@ -30,14 +36,26 @@ public class PetCard extends UiPart<Region> {
 
     /** Creates a {@code PetCard} with the given pet and displayed index. */
     public PetCard(Pet pet, int displayedIndex) {
+        this(pet, displayedIndex, true);
+    }
+
+    /**
+     * Creates a pet card with an optional owner heading.
+     *
+     * @param pet Pet to display.
+     * @param displayedIndex One-based index in the displayed list.
+     * @param showOwnerHeading Whether to show the heading; the panel determines owner-group boundaries.
+     */
+    public PetCard(Pet pet, int displayedIndex, boolean showOwnerHeading) {
         super(FXML);
         this.pet = pet;
-        id.setText(displayedIndex + ". ");
+        id.setText(String.format(INDEX_FORMAT, displayedIndex));
         name.setText(pet.getName().toString());
-        owner.setText("Owner: " + pet.getOwner().getName().fullName
-                + " (" + pet.getOwner().getPhone().value + ")");
-        species.setText("Species: " + pet.getSpecies().getDisplayName());
-        breed.setText("Breed: " + (pet.getBreed() == null ? "Not recorded" : pet.getBreed()));
-        requirement.setText("Requirement: " + pet.getRequirement());
+        owner.setText(String.format(OWNER_FORMAT, pet.getOwner().getName(), pet.getOwner().getPhone()));
+        owner.setVisible(showOwnerHeading);
+        owner.setManaged(showOwnerHeading);
+        species.setText(String.format(SPECIES_FORMAT, pet.getSpecies().getDisplayName()));
+        breed.setText(String.format(BREED_FORMAT, pet.getBreed() == null ? UNRECORDED_BREED : pet.getBreed()));
+        requirement.setText(String.format(REQUIREMENT_FORMAT, pet.getRequirement()));
     }
 }

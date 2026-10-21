@@ -1,6 +1,7 @@
 package seedu.address.ui.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalClients.ALICE;
@@ -35,13 +36,14 @@ public class AppointmentCardTest {
 
             assertEquals(appointment, card.appointment);
             assertEquals("3. ", getLabel(card, "id").getText());
-            assertEquals("01-01-2027 10:00-11:00", getLabel(card, "dateTime").getText());
+            assertEquals("Appointments for 01-01-2027", getLabel(card, "dateHeading").getText());
+            assertTrue(getLabel(card, "dateHeading").isVisible());
+            assertEquals("Full groom (10:00-11:00)", getLabel(card, "appointmentTitle").getText());
             assertEquals("Pet: Milo", getLabel(card, "pet").getText());
             assertEquals("Owner: Alice Pauline", getLabel(card, "owner").getText());
             assertEquals("Owner phone: 94351253", getLabel(card, "phone").getText());
             assertEquals("Address: " + ALICE.getAddress(), getLabel(card, "address").getText());
             assertEquals("Care notes: Daily walk", getLabel(card, "careNotes").getText());
-            assertEquals("Service: Full groom", getLabel(card, "service").getText());
             assertNotNull(card.getRoot());
         });
     }
@@ -66,6 +68,19 @@ public class AppointmentCardTest {
             assertTrue(getLabel(card, "address").isWrapText());
             assertTrue(careNotes.getHeight() > getLabel(card, "phone").getHeight());
             assertTrue(careNotes.getHeight() >= careNotes.prefHeight(careNotes.getWidth()));
+        });
+    }
+
+    @Test
+    public void constructor_sameDate_hidesHeadingWithoutResettingIndex() {
+        JavaFxTestUtils.runAndWait(() -> {
+            Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).build(),
+                    new AppointmentDate("01-01-2027"), new StartTime("10:00"),
+                    new EndTime("11:00"), Service.FULL_GROOM);
+            AppointmentCard card = new AppointmentCard(appointment, 2, false);
+            assertFalse(getLabel(card, "dateHeading").isVisible());
+            assertFalse(getLabel(card, "dateHeading").isManaged());
+            assertEquals("2. ", getLabel(card, "id").getText());
         });
     }
 
