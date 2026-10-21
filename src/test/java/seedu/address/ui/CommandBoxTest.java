@@ -21,7 +21,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 public class CommandBoxTest {
 
     @Test
-    public void commandHistory_emptyHistoryAndEmptySubmission_leaveCommandBoxUnchanged() {
+    public void commandHistory_emptyHistory_doesNotConsumeArrowKeys() {
         JavaFxTestUtils.runAndWait(() -> {
             List<String> executedCommands = new ArrayList<>();
             CommandBox commandBox = new CommandBox(command -> {
@@ -30,13 +30,13 @@ public class CommandBoxTest {
             });
             TextField commandTextField = getCommandTextField(commandBox);
 
-            press(commandTextField, KeyCode.UP);
-            press(commandTextField, KeyCode.DOWN);
-            submit(commandTextField, "");
             commandTextField.setText("draft command");
-            press(commandTextField, KeyCode.LEFT);
+            KeyEvent upEvent = press(commandTextField, KeyCode.UP);
+            KeyEvent downEvent = press(commandTextField, KeyCode.DOWN);
 
             assertEquals("draft command", commandTextField.getText());
+            assertFalse(upEvent.isConsumed());
+            assertFalse(downEvent.isConsumed());
             assertTrue(executedCommands.isEmpty());
         });
     }
@@ -78,6 +78,25 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void commandHistory_navigatingUp_preservesUnsubmittedDraft() {
+        JavaFxTestUtils.runAndWait(() -> {
+            CommandBox commandBox = new CommandBox(command -> new CommandResult("Executed"));
+            TextField commandTextField = getCommandTextField(commandBox);
+
+            submit(commandTextField, "list-pets");
+            submit(commandTextField, "help");
+            commandTextField.setText("add-pet p/BuBu");
+
+            press(commandTextField, KeyCode.UP);
+            assertCommandText(commandTextField, "help");
+            press(commandTextField, KeyCode.DOWN);
+            assertCommandText(commandTextField, "add-pet p/BuBu");
+            press(commandTextField, KeyCode.DOWN);
+            assertCommandText(commandTextField, "");
+        });
+    }
+
+    @Test
     public void commandHistory_failedSubmissionIsRecordedAndIndicatesFailure() {
         JavaFxTestUtils.runAndWait(() -> {
             CommandBox commandBox = new CommandBox(command -> {
@@ -112,9 +131,11 @@ public class CommandBoxTest {
         commandTextField.fireEvent(new ActionEvent());
     }
 
-    private static void press(TextField commandTextField, KeyCode keyCode) {
-        commandTextField.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", keyCode,
-                false, false, false, false));
+    private static KeyEvent press(TextField commandTextField, KeyCode keyCode) {
+        KeyEvent event = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", keyCode,
+                false, false, false, false);
+        commandTextField.fireEvent(event);
+        return event;
     }
 
     private static void assertCommandText(TextField commandTextField, String expectedText) {

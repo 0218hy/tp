@@ -140,14 +140,16 @@ reference in sync with the User Guide.
 
 `CommandBox` maintains session-only command history independently of the `Logic` and `Model` components. It records
 each non-empty submission before invoking its `CommandExecutor`, so commands that fail parsing or execution can also
-be recalled and corrected. The `commandHistory` list keeps entries in submission order, while `historyIndex` points to
-the currently recalled entry. An index equal to the list size represents the blank position after the newest command.
+be recalled and corrected. Before moving backwards through non-empty history, it also records any non-empty draft in
+the command field. The `commandHistory` list keeps entries in submission order, while `historyIndex` points to the
+currently recalled entry. An index equal to the list size represents the blank position after the newest command.
 
 The command text field handles <kbd>↑</kbd> and <kbd>↓</kbd> key presses through a JavaFX event filter. <kbd>↑</kbd>
 moves the index towards the oldest entry and <kbd>↓</kbd> moves it towards the blank position. Navigation stops at
-both boundaries rather than wrapping. When an entry is loaded, the caret is placed at the end so that users can edit
-it immediately. This state is intentionally not persisted: restarting the application starts a new history and avoids
-storing commands that may contain client information.
+both boundaries rather than wrapping. When no commands have been recorded, the event filter does not consume either
+arrow key, allowing normal focus or page navigation to proceed. When an entry is loaded, the caret is placed at the
+end so that users can edit it immediately. This state is intentionally not persisted: restarting the application
+starts a new history and avoids storing commands that may contain client information.
 
 ### Logic component
 

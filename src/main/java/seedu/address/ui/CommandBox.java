@@ -65,13 +65,35 @@ public class CommandBox extends UiPart<Region> {
      * The history stops at its oldest entry and at the blank position after its newest entry.
      */
     private void handleHistoryNavigation(KeyEvent event) {
+        if (commandHistory.isEmpty()) {
+            return;
+        }
+
         if (event.getCode() == KeyCode.UP) {
+            saveCurrentCommandBeforeLoadingPrevious();
             loadPreviousCommand();
             event.consume();
         } else if (event.getCode() == KeyCode.DOWN) {
             loadNextCommand();
             event.consume();
         }
+    }
+
+    /**
+     * Saves a non-empty command being drafted before navigating away from it.
+     * An unchanged recalled command is already present in the history and is not added again.
+     */
+    private void saveCurrentCommandBeforeLoadingPrevious() {
+        String currentCommand = commandTextField.getText();
+        boolean isAtBlankPosition = historyIndex == commandHistory.size();
+        int currentEntryIndex = isAtBlankPosition ? commandHistory.size() - 1 : historyIndex;
+        boolean isNewOrEditedCommand = !currentCommand.equals(commandHistory.get(currentEntryIndex));
+        if (currentCommand.isEmpty() || !isNewOrEditedCommand) {
+            return;
+        }
+
+        commandHistory.add(currentCommand);
+        historyIndex = commandHistory.size() - 1;
     }
 
     /** Loads the next oldest command, if one exists. */
