@@ -82,8 +82,7 @@ public class Appointment {
      */
     public boolean isForPet(Pet pet) {
         requireNonNull(pet);
-        return ownerPhone.equals(pet.getOwner().getPhone())
-                && petName.getNormalizedName().equals(pet.getName().getNormalizedName());
+        return pet.isIdentifiedBy(ownerPhone, petName);
     }
 
     /**

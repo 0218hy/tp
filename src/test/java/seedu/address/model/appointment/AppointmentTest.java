@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalClients.ALICE;
+import static seedu.address.testutil.TypicalClients.BENSON;
 
 import java.time.LocalTime;
 
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.PetName;
+import seedu.address.testutil.PetBuilder;
 
 public class AppointmentTest {
     private static final Phone OWNER_PHONE = new Phone("91234567");
@@ -90,6 +93,16 @@ public class AppointmentTest {
         assertFalse(appointment.matches(DATE, LocalTime.of(12, 0)));
         assertFalse(appointment.matches(new AppointmentDate("19-09-2026"), LocalTime.of(10, 30)));
         assertTrue(create("12:00", "13:30").matches(DATE, LocalTime.of(12, 0)));
+    }
+
+    @Test
+    public void isForPet_matchesOwnerAndNormalizedName() {
+        Appointment appointment = new Appointment(ALICE.getPhone(), "milo", DATE,
+                new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
+
+        assertTrue(appointment.isForPet(new PetBuilder(ALICE).withName("  MiLo  ").build()));
+        assertFalse(appointment.isForPet(new PetBuilder(BENSON).withName("Milo").build()));
+        assertFalse(appointment.isForPet(new PetBuilder(ALICE).withName("Luna").build()));
     }
 
     @Test
