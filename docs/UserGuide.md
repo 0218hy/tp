@@ -24,6 +24,8 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
    ![Ui](images/Ui.png)
 
 5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to display the command reference.<br>
+   Use the <kbd>↑</kbd> and <kbd>↓</kbd> arrow keys in the command box to recall commands entered during the current
+   application session.
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -73,6 +75,20 @@ Displays a scrollable list of available commands and their formats in the result
 You can display this reference by entering `help`, selecting **Help** from the menu, or pressing <kbd>F1</kbd>. The result display expands while the reference is shown and returns to its usual size after the next command.
 
 Format: `help`
+
+### Recalling previously entered commands
+
+Use the <kbd>↑</kbd> and <kbd>↓</kbd> arrow keys while the command box is focused to recall commands that you have
+entered during the current application session. This is useful for repeating a command or editing a similar command
+without typing it again.
+
+* <kbd>↑</kbd> starts with the most recently entered command and moves towards older commands.
+* <kbd>↓</kbd> moves towards newer commands. After the newest command, it restores a blank command box.
+* At either end of the history, further presses of the corresponding arrow key leave the displayed text unchanged.
+* Every non-empty submitted command is remembered, including commands that produced an error. If you begin typing a
+  command and press <kbd>↑</kbd>, that unfinished command is remembered too; press <kbd>↓</kbd> to restore it.
+  Recalling an unchanged command does not duplicate it in the history.
+* Command history is kept only while BuBu is running and is cleared when the application closes.
 
 
 ### Switching the displayed record list
