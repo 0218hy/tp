@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 
 /**
  * Represents a pet in the BuBu.
@@ -70,6 +71,12 @@ public class Pet {
      */
     public Pet withOwner(Client newOwner) {
         return new Pet(name, newOwner, species, breed, requirement);
+    }
+
+    /** Returns whether this pet has the given owner phone and normalized name. */
+    public boolean isIdentifiedBy(Phone ownerPhone, PetName petName) {
+        requireAllNonNull(ownerPhone, petName);
+        return owner.getPhone().equals(ownerPhone) && name.hasSameName(petName);
     }
 
     /**

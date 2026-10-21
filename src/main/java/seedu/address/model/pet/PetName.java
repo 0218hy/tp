@@ -47,6 +47,12 @@ public class PetName {
         return value.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
+    /** Returns whether this name matches {@code otherName} after normalization. */
+    public boolean hasSameName(PetName otherName) {
+        requireNonNull(otherName);
+        return getNormalizedName().equals(otherName.getNormalizedName());
+    }
+
     @Override
     public String toString() {
         return value;
