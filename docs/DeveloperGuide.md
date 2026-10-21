@@ -378,7 +378,7 @@ The `redo` command does the opposite — it calls `Model#redoBubuBook()`, wh
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the BubuBook, such as `list`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list-clients`. Commands that do not modify the BubuBook, such as `list-clients`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
@@ -850,7 +850,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Displaying each record type
 
-   1. Test case: `list`<br>
+   1. Test case: `list-clients`<br>
       Expected: The client list is visible and the clients are shown in the result area/list panel.
 
    2. Test case: `list-pets`<br>
@@ -878,7 +878,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all persons using the `list-clients` command, with multiple persons in the list.
 
    2. Test case: `delete-client 1`<br>
       Expected: The first person is deleted from the list. The status message shows the deleted person's details.
