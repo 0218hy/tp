@@ -115,7 +115,7 @@ public class AppointmentTest {
 
     @Test
     public void isForPet_matchesOwnerAndNormalizedName() {
-        Appointment appointment = new Appointment(ALICE.getPhone(), "milo", DATE,
+        Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).withName("milo").build(), DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
 
         assertTrue(appointment.isForPet(new PetBuilder(ALICE).withName("  MiLo  ").build()));

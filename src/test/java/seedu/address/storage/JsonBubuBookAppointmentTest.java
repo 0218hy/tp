@@ -53,37 +53,86 @@ public class JsonBubuBookAppointmentTest {
     }
 
     @Test
-    public void saveAndRead_participantSnapshots_preserveProfilesAfterEditsAndDeletion() throws Exception {
+    public void saveAndRead_participantSnapshots_reusesMatchingProfiles() throws Exception {
         JsonBubuBookStorage storage = storage("snapshots.json");
-        Client owner = new ClientBuilder().withPhone("91234567").withTags("friend").build();
-        Pet pet = new PetBuilder(owner).withName("BuBu").withBreed("Poodle")
-                .withRequirement("Sensitive skin").build();
-        Appointment appointment = new Appointment(owner, pet, new AppointmentDate("01-01-2000"),
-                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
-        BubuBook book = new BubuBook();
-        book.addClient(owner);
-        book.addPet(pet);
-        book.addAppointment(appointment);
+        BubuBook book = bookWithParticipantSnapshots();
+
         storage.saveBubuBook(book);
+
         var restored = storage.readBubuBook().orElseThrow();
         Appointment restoredAppointment = restored.getAppointmentList().get(0);
+        assertEquals(book, restored);
         assertSame(restored.getClientList().get(0), restoredAppointment.getOwner());
         assertSame(restored.getPetList().get(0), restoredAppointment.getPet());
+    }
 
-        Client editedOwner = new ClientBuilder(owner).withPhone("81234567").withAddress("New address").build();
-        book.setClient(owner, editedOwner);
-        book.setPet(book.getPetList().get(0), new PetBuilder(pet).withOwner(editedOwner)
+    @Test
+    public void saveAndRead_profileEdits_preservesParticipantSnapshots() throws Exception {
+        JsonBubuBookStorage storage = storage("edited-profiles.json");
+        BubuBook book = bookWithParticipantSnapshots();
+        Appointment appointment = book.getAppointmentList().get(0);
+        Client editedOwner = new ClientBuilder(appointment.getOwner()).withAddress("New address").build();
+        book.setClient(appointment.getOwner(), editedOwner);
+        book.setPet(book.getPetList().get(0), new PetBuilder(appointment.getPet()).withOwner(editedOwner)
                 .withName("New name").withRequirement("New care instructions").build());
-        storage.saveBubuBook(book);
-        assertEquals(book, storage.readBubuBook().orElseThrow());
-        assertEquals(appointment, book.getAppointmentList().get(0));
 
-        book.removePet(book.getPetList().get(0));
-        book.removeClient(editedOwner);
         storage.saveBubuBook(book);
-        var historical = storage.readBubuBook().orElseThrow().getAppointmentList().get(0);
-        assertEquals(appointment, historical);
-        assertSame(historical.getOwner(), historical.getPet().getOwner());
+
+        var restored = storage.readBubuBook().orElseThrow();
+        assertEquals(book, restored);
+        assertEquals(appointment, restored.getAppointmentList().get(0));
+        assertSame(restored.getAppointmentList().get(0).getOwner(),
+                restored.getAppointmentList().get(0).getPet().getOwner());
+    }
+
+    @Test
+    public void saveAndRead_changedPhone_updatesBothParticipantLinksAndPreservesProfiles() throws Exception {
+        JsonBubuBookStorage storage = storage("changed-phone.json");
+        BubuBook book = bookWithParticipantSnapshots();
+        Appointment original = book.getAppointmentList().get(0);
+        Client editedOwner = new ClientBuilder(original.getOwner())
+                .withPhone("81234567").withAddress("New address").build();
+        book.setClient(original.getOwner(), editedOwner);
+
+        storage.saveBubuBook(book);
+
+        var restored = storage.readBubuBook().orElseThrow();
+        Appointment updated = restored.getAppointmentList().get(0);
+        Client expectedOwner = new ClientBuilder(original.getOwner()).withPhone("81234567").build();
+        assertEquals(book, restored);
+        assertEquals(new Appointment(expectedOwner, original.getPet().withOwner(expectedOwner),
+                original.getDate(), original.getStartTime(), original.getEndTime(), original.getService()), updated);
+        assertSame(updated.getOwner(), updated.getPet().getOwner());
+        assertEquals(new Phone("91234567"), original.getOwnerPhone());
+    }
+
+    @Test
+    public void saveAndRead_removedPet_removesRelatedAppointments() throws Exception {
+        JsonBubuBookStorage storage = storage("removed-pet.json");
+        BubuBook book = bookWithParticipantSnapshots();
+        book.removePet(book.getPetList().get(0));
+
+        storage.saveBubuBook(book);
+
+        var restored = storage.readBubuBook().orElseThrow();
+        assertEquals(book, restored);
+        assertTrue(restored.getAppointmentList().isEmpty());
+        assertTrue(restored.getPetList().isEmpty());
+        assertEquals(1, restored.getClientList().size());
+    }
+
+    @Test
+    public void saveAndRead_removedClientAfterPhoneChange_removesRelatedAppointments() throws Exception {
+        JsonBubuBookStorage storage = storage("removed-client.json");
+        BubuBook book = bookWithParticipantSnapshots();
+        Client owner = book.getClientList().get(0);
+        Client editedOwner = new ClientBuilder(owner).withPhone("81234567").build();
+        book.setClient(owner, editedOwner);
+        book.removeClient(editedOwner);
+
+        storage.saveBubuBook(book);
+
+        assertEquals(new BubuBook(), storage.readBubuBook().orElseThrow());
     }
 
     @Test
@@ -207,6 +256,19 @@ public class JsonBubuBookAppointmentTest {
     public void constructorAndSave_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> new JsonBubuBookStorage(null));
         assertThrows(NullPointerException.class, () -> storage("bububook.json").saveBubuBook(null));
+    }
+
+    private BubuBook bookWithParticipantSnapshots() {
+        Client owner = new ClientBuilder().withPhone("91234567").withTags("friend").build();
+        Pet pet = new PetBuilder(owner).withName("BuBu").withBreed("Poodle")
+                .withRequirement("Sensitive skin").build();
+        Appointment appointment = new Appointment(owner, pet, new AppointmentDate("01-01-2000"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        BubuBook book = new BubuBook();
+        book.addClient(owner);
+        book.addPet(pet);
+        book.addAppointment(appointment);
+        return book;
     }
 
     private JsonBubuBookStorage storage(String filename) {

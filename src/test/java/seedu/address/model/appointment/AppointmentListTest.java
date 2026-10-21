@@ -38,7 +38,7 @@ public class AppointmentListTest {
     public void updateOwner_updatesMatchingAppointmentsAndPreservesOthers() {
         AppointmentList appointments = new AppointmentList();
         Appointment currentOwnerAppointment = create("10:00", "11:00");
-        Appointment otherOwnerAppointment = new Appointment(new Phone("81234567"), "Mochi",
+        Appointment otherOwnerAppointment = createAppointment(new Phone("81234567"), "Mochi",
                 new AppointmentDate("01-01-2020"), new StartTime("11:00"), new EndTime("12:00"),
                 Service.NAIL_TRIM);
         appointments.setAppointments(List.of(currentOwnerAppointment, otherOwnerAppointment));
