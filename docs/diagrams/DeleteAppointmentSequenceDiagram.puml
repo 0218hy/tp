@@ -1,0 +1,55 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+title Deleting an appointment by index or date/time
+
+Participant ":LogicManager" as logic LOGIC_COLOR
+Participant ":BuBuParser" as parser LOGIC_COLOR
+Participant ":DeleteAppointmentCommandParser" as dap LOGIC_COLOR
+Participant "command:DeleteAppointmentCommand" as command LOGIC_COLOR
+Participant "model:Model" as model MODEL_COLOR
+Participant "result:CommandResult" as result LOGIC_COLOR
+
+[-> logic : execute(commandText)
+activate logic
+logic -> parser ++: parseCommand(commandText)
+create dap
+parser -> dap ++: parse(arguments)
+create command
+dap -> command ++: target index or date/time
+command --> dap --
+dap --> parser --: command
+parser --> logic --: command
+
+logic -> command ++: execute(model)
+note right of logic
+  Index-based execution first requires
+  the appointment list to be the current display.
+end note
+alt index-based target
+    command -> model ++: getFilteredAppointmentList()
+    model --> command --: displayed appointments
+    command -> command : select appointment at index
+else date/time target
+    command -> model ++: getBubuBook().getAppointmentList()
+    model --> command --: saved appointments
+    command -> command : find appointment.matches(date, time)
+    note right of command
+      The query time is inclusive of the start
+      and exclusive of the end time.
+    end note
+end
+
+command -> model ++: deleteAppointment(appointmentToDelete)
+model --> command --
+create result
+command -> result ++: create(success message)
+result --> command --
+command --> logic --: result
+note right of logic
+  LogicManager saves the updated BubuBook
+  after successful command execution.
+end note
+[<-- logic : commandResult
+deactivate logic
+@enduml

@@ -4,18 +4,22 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
-BubuBook *-right-> "1" UniquePersonList
-BubuBook *-right-> "1" UniqueTagList
-UniqueTagList -[hidden]down- UniquePersonList
-UniqueTagList -[hidden]down- UniquePersonList
+title Core model records used by client and appointment commands
 
-UniqueTagList -right-> "*" Tag
-UniquePersonList -right-> Person
+BubuBook *-right-> "1" UniqueClientList
+BubuBook *-down-> "1" UniquePetList
+BubuBook *-left-> "1" AppointmentList
 
-Person -up-> "*" Tag
+UniqueClientList -right-> "*" Client
+UniquePetList -right-> "*" Pet
+AppointmentList -right-> "*" Appointment
 
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
+Pet --> "1 owner" Client
+Appointment --> "1 owner" Client
+Appointment --> "1 pet" Pet
+
+note right of BubuBook
+  Removing a client also removes
+  its pets and appointments.
+end note
 @enduml

@@ -1,70 +1,81 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
+title Deleting a client by index or phone number
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":BuBuParser" as BuBuParser LOGIC_COLOR
 participant ":DeleteClientCommandParser" as DeleteClientCommandParser LOGIC_COLOR
-participant "d:DeleteClientCommand" as DeleteClientCommand LOGIC_COLOR
+participant "command:DeleteClientCommand" as DeleteClientCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
-participant "m:Model" as Model MODEL_COLOR
+participant "model:Model" as Model MODEL_COLOR
+participant "book:BubuBook" as BubuBook MODEL_COLOR
+participant "clients:UniqueClientList" as UniqueClientList MODEL_COLOR
+participant "pets:UniquePetList" as UniquePetList MODEL_COLOR
+participant "appointments:AppointmentList" as AppointmentList MODEL_COLOR
 end box
 
-[-> LogicManager : execute("delete 1")
+[-> LogicManager : execute("delete-client 1")
 activate LogicManager
 
-LogicManager -> BuBuParser : parseCommand("delete 1")
+LogicManager -> BuBuParser : parseCommand(commandText)
 activate BuBuParser
-
-create DeleteClientCommandParser
-BuBuParser -> DeleteClientCommandParser
-activate DeleteClientCommandParser
-
-DeleteClientCommandParser --> BuBuParser
-deactivate DeleteClientCommandParser
-
 BuBuParser -> DeleteClientCommandParser : parse("1")
 activate DeleteClientCommandParser
-
-create DeleteClientCommand
-DeleteClientCommandParser -> DeleteClientCommand
+DeleteClientCommandParser -> DeleteClientCommand : create(Index)
 activate DeleteClientCommand
-
-DeleteClientCommand --> DeleteClientCommandParser :
+DeleteClientCommand --> DeleteClientCommandParser
 deactivate DeleteClientCommand
-
-DeleteClientCommandParser --> BuBuParser : d
+DeleteClientCommandParser --> BuBuParser : command
 deactivate DeleteClientCommandParser
-'Hidden arrow to position the destroy marker below the end of the activation bar.
-DeleteClientCommandParser -[hidden]-> BuBuParser
-destroy DeleteClientCommandParser
-
-BuBuParser --> LogicManager : d
+BuBuParser --> LogicManager : command
 deactivate BuBuParser
 
-LogicManager -> DeleteClientCommand : execute(m)
+LogicManager -> DeleteClientCommand : execute(model)
 activate DeleteClientCommand
+note right of LogicManager
+  Index-based execution first requires
+  the client list to be the current display.
+end note
+alt index-based target
+    DeleteClientCommand -> Model : getFilteredClientList()
+    Model --> DeleteClientCommand : displayed clients
+    DeleteClientCommand -> DeleteClientCommand : select client at index
+else phone-based target
+    DeleteClientCommand -> Model : getBubuBook().getClientList()
+    Model --> DeleteClientCommand : saved clients
+    DeleteClientCommand -> DeleteClientCommand : find client by phone
+end
 
-DeleteClientCommand -> Model : deletePerson(1)
+DeleteClientCommand -> Model : deleteClient(clientToDelete)
 activate Model
-
+Model -> BubuBook : removeClient(clientToDelete)
+activate BubuBook
+BubuBook -> UniqueClientList : remove(clientToDelete)
+BubuBook -> AppointmentList : removeAppointmentsForOwner(phone)
+BubuBook -> UniquePetList : removeAllOwnedBy(clientToDelete)
+BubuBook --> Model
+deactivate BubuBook
 Model --> DeleteClientCommand
 deactivate Model
 
 create CommandResult
-DeleteClientCommand -> CommandResult
+DeleteClientCommand -> CommandResult : create(success message)
 activate CommandResult
-
 CommandResult --> DeleteClientCommand
 deactivate CommandResult
-
-DeleteClientCommand --> LogicManager : r
+DeleteClientCommand --> LogicManager : result
 deactivate DeleteClientCommand
 
-[<--LogicManager
+note right of LogicManager
+  LogicManager saves the updated BubuBook
+  after successful command execution.
+end note
+
+[<--LogicManager : commandResult
 deactivate LogicManager
 @enduml

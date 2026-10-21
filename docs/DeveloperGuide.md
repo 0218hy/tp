@@ -167,8 +167,11 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 ![Interactions Inside the Logic Component for the `delete-client 1` Command](images/DeleteSequenceDiagram.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteClientCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</div>
+The appointment command flows are shown separately because both commands support two target forms:
+
+![Interactions Inside the Logic Component for the `edit-appointment` Command](images/EditAppointmentSequenceDiagram.png)
+
+![Interactions Inside the Logic Component for the `delete-appointment` Command](images/DeleteAppointmentSequenceDiagram.png)
 
 How the `Logic` component works:
 
@@ -266,7 +269,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `BubuBook`, and each `Person` references tags from that list. This lets `BubuBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The simplified model diagram below focuses on the record collections and ownership relationships used by client, pet, and appointment commands.<br>
 
 <img src="images/BetterModelClassDiagram.png" width="450" />
 
@@ -305,7 +308,8 @@ edit that changes a pet's name, species, breed, or requirements.
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
 `Appointment` holds immutable `Client` and `Pet` objects. `AddAppointmentCommandParser` parses participant
 identifiers; `AddAppointmentCommand` resolves them against the full registered lists when executed.
-Appointments retain the participant details from booking time when a client or pet is later edited or deleted.
+Client edits update linked appointment owner references, while deleting a client or pet removes its related appointments
+from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
 Loading reuses equal registered objects when available and accepts historical snapshots independently of the
 registered lists. Invalid, mismatched, or overlapping records are rejected.
@@ -316,6 +320,8 @@ format contains insufficient information to reconstruct its profile; no placehol
 The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
 `BubuBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
+Client deletion flows through `DeleteClientCommand` → `ModelManager.deleteClient()` →
+`BubuBook.removeClient()`, which removes the client, its pets, and its related appointments.
 `LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
 an error. `clear` removes all clients, pets, and appointments, including historical and future bookings,
 and saves the empty BubuBook in the same file.
