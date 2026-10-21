@@ -44,7 +44,17 @@ public class PetName {
      * and letter case is ignored.
      */
     public String getNormalizedName() {
-        return value.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+        String trimmedName = value.strip();
+        String collapsedName = trimmedName.replaceAll("\\s+", " ");
+        String normalizedName = collapsedName.toLowerCase(Locale.ROOT);
+        assert !normalizedName.isBlank() : "Normalizing a valid pet name must not produce a blank name";
+        return normalizedName;
+    }
+
+    /** Returns whether this name matches {@code otherName} after normalization. */
+    public boolean hasSameName(PetName otherName) {
+        requireNonNull(otherName);
+        return getNormalizedName().equals(otherName.getNormalizedName());
     }
 
     @Override

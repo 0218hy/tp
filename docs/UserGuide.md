@@ -24,9 +24,11 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
    ![Ui](images/Ui.png)
 
 5. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to display the command reference.<br>
+   Use the <kbd>↑</kbd> and <kbd>↓</kbd> arrow keys in the command box to recall commands entered during the current
+   application session.
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list-clients` : Lists all contacts.
 
    * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the BuBu.
 
@@ -60,7 +62,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME i/PHONE_NUMBER`, `i/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -74,11 +76,25 @@ You can display this reference by entering `help`, selecting **Help** from the m
 
 Format: `help`
 
+### Recalling previously entered commands
+
+Use the <kbd>↑</kbd> and <kbd>↓</kbd> arrow keys while the command box is focused to recall commands that you have
+entered during the current application session. This is useful for repeating a command or editing a similar command
+without typing it again.
+
+* <kbd>↑</kbd> starts with the most recently entered command and moves towards older commands.
+* <kbd>↓</kbd> moves towards newer commands. After the newest command, it restores a blank command box.
+* At either end of the history, further presses of the corresponding arrow key leave the displayed text unchanged.
+* Every non-empty submitted command is remembered, including commands that produced an error. If you begin typing a
+  command and press <kbd>↑</kbd>, that unfinished command is remembered too; press <kbd>↓</kbd> to restore it.
+  Recalling an unchanged command does not duplicate it in the history.
+* Command history is kept only while BuBu is running and is cleared when the application closes.
+
 
 ### Switching the displayed record list
 
 The GUI contains separate client, pet, and appointment list panels, but shows one panel at a time. A successful
-`list` or `list-clients` command displays clients, `list-pets` displays pets, and `list-appointments` displays
+`list-clients` command displays clients, `list-pets` displays pets, and `list-appointments` displays
 ongoing and future appointments. The selected panel remains visible until another list command changes it.
 
 Index-based deletion commands use the corresponding displayed list. For example, run `list-pets` before
@@ -127,33 +143,28 @@ Examples: `list-clients`, `list-clients q/amelia`, `list-clients q/@example.com`
 A search reports `Found N client(s).` If nothing matches, it reports `No clients match "KEYWORD".`
 No matches is a successful search with an empty list. This command does not change stored client records.
 
-### Listing all persons: `list`
+### Editing a client: `edit-client`
 
-Shows a list of all persons in the BuBu.
+Format: `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`
 
-Format: `list`
-
-### Editing records [planned]
-
-Editing existing records is not supported in the MVP and is planned for a future release.
-The legacy `edit` command is disabled and returns `Unknown command.` without changing any records.
-
-### Locating persons by name: `find`
-
-Finds persons whose names contain any of the given keywords.
-
-Format: `find KEYWORD [MORE_KEYWORDS]`
-
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* `i/` identifies the client by their current phone number. No index is needed, and the command works from any panel,
+  even if a search hides that client. An unknown phone number reports `No saved client has this phone number.`.
+* Use `p/` to change the phone number. Subsequent commands must identify the client using their new number.
+* Supply at least one update. Omitted fields retain their values; updated fields follow the same validation rules as
+  `add-client`. Each of `i/`, `n/`, `p/`, `e/`, and `a/` may appear only once.
+* A phone number or email already used by another client is rejected, including clients hidden by a search.
+* Supplied tags replace all existing tags. Use `t/` on its own to clear tags.
+* Successful edits display `Edited client: ...` and show the full client list.
+* Pet owner profiles are updated. Changing the phone number also updates linked appointment owner identifiers;
+  other appointment details remain as recorded at booking.
+* Changes are saved automatically. If saving fails, the previous records are restored and a storage error is shown.
+* The old `edit` command and index-based edit syntax are unsupported.
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+* `edit-client i/91234567 n/Alex Tan` changes the name of the client whose current phone is 91234567.
+* `edit-client i/91234567 p/89998888` changes that client's phone number.
+* `edit-client i/89998888 t/` removes all tags after that phone change.
 
 ### Deleting a person: `delete-client`
 
@@ -172,8 +183,8 @@ delete-client i/PHONE_NUMBER
 * Provide either an index or a phone identifier, but not both.
 
 Examples:
-* `list` followed by `delete-client 2` deletes the 2nd person.
-* `find Betsy` followed by `delete-client 1` deletes the 1st search result.
+* `list-clients` followed by `delete-client 2` deletes the 2nd person.
+* `list-clients q/Betsy` followed by `delete-client 1` deletes the 1st search result.
 * `delete-client i/91234567` deletes the person with phone number `91234567`.
 
 ### Adding a pet to a person: `add-pet`
@@ -214,33 +225,75 @@ Format: `list-pets [i/OWNER_IDENTIFIER]`
   pet names are compared without case differences; owners with the same name remain in separate groups.
 * `OWNER_IDENTIFIER`, if given, must be an existing eight-digit phone number starting with `8` or `9`, without spaces or
   hyphens. Only that client's pets are shown, ordered alphabetically by pet name.
-* Each entry shows the pet's name, species, optional breed, and care requirements. A missing breed is omitted.
+* Each entry shows the pet's name, species, breed, and care requirements. A missing breed is shown as `Not recorded`.
 
 Examples after adding `Mochi` and `BuBu` under Alex Yeoh:
 
-* `list-pets` displays:
+* `list-pets` shows all pet profiles in the list panel, with feedback:
 
   ```text
-  All pet profiles
-
-  Alex Yeoh
-  BuBu Cat Calm with baths
-  Mochi Dog Golden retriever Nervous around dryers
+  Listed all pets.
   ```
 
-* `list-pets i/87438807` displays:
+* `list-pets i/87438807` shows Alex Yeoh's pets in the list panel, with feedback:
 
   ```text
-  Pets under Alex Yeoh
-  BuBu Cat Calm with baths
-  Mochi Dog Golden retriever Nervous around dryers
+  Found 2 pet(s) under Alex Yeoh.
   ```
 
-With no pets saved, `list-pets` displays `No saved pet profiles.` For a client without pets, such as Bernice Yu,
+With no pets saved, `list-pets` displays `Listed all pets.` with an empty list panel. For a client without pets, such as Bernice Yu,
 `list-pets i/99272758` displays `Bernice Yu has no saved pet profiles.` A phone number with no saved client reports
 `No saved client has this phone number.` Repeating `i/` reports `Each owner identifier may be specified only once.`
 An invalid phone number reports `Owner identifier must be a valid phone number belonging to the specified client.`
 Unknown fields or extra text report `Invalid command format. Check the command syntax and try again.`
+
+### Editing a pet: `edit-pet`
+
+Edits one or more details of a saved pet. The pet is identified by its **current** name and its owner's phone number,
+so this command does not depend on the currently displayed pet list. Editing never transfers a pet to another owner.
+
+Format: `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
+
+* `PET_NAME` is the pet's currently saved name. It must be 1–40 letters, digits, spaces, apostrophes, hyphens, or
+  full stops. To select a profile, it must match the saved current name after leading and trailing whitespace is
+  removed; letter case and repeated internal whitespace are ignored for this lookup.
+* `OWNER_IDENTIFIER` is the current owner's eight-digit phone number, starting with `8` or `9`, without spaces or
+  hyphens. Together, `PET_NAME` and `OWNER_IDENTIFIER` identify one saved pet.
+* Supply at least one optional update. Omitting an optional prefix keeps that field unchanged. Every prefix may appear
+  at most once.
+* `NEW_PET_NAME` uses the same rules as `PET_NAME`.
+* `SPECIES` is `Dog`, `Cat`, `Rabbit`, `Guinea Pig`, or `Other`, ignoring case. `Guinea_Pig` is also accepted.
+* A non-empty `BREED` must be 2–50 letters, digits, spaces, apostrophes, hyphens, or full stops. Use `b/` with no
+  value to remove a saved breed; omitting `b/` leaves the breed unchanged.
+* `REQUIREMENTS` must be 5–240 characters and cannot contain `/`.
+* A client cannot have two pets with the same name after ignoring case and extra whitespace. Different clients may
+  have pets with the same name.
+
+Examples:
+
+* `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` changes Mochi's name and requirements.
+* `edit-pet p/mochi i/87438807 s/Cat` also finds `Mochi`, because pet-name lookup ignores letter case and repeated
+  whitespace.
+* `edit-pet p/Mochi Bean i/87438807 b/` removes Mochi Bean's breed.
+* `edit-pet p/Mochi Bean i/87438807 s/Cat b/British Shorthair` changes the species and records a breed.
+
+On success, BuBu displays `Edited pet: PET_NAME`. It also refreshes the saved pet view so that all pet profiles are
+available to later pet-list operations.
+
+The profile remains unchanged when the command cannot be completed. Relevant error messages include:
+
+* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` when either selector is absent
+  or empty.
+* `At least one field to edit must be provided.` when no optional update is supplied.
+* `Each pet field may be specified only once.` when any prefix is repeated.
+* `Invalid command format. Check the command syntax and try again.` for unsupported prefixes or text outside a field.
+* A field-specific validation message for an invalid name, phone number, species, breed, or requirement.
+* `No pet with the specified name and owner phone number was found.` when the name-and-owner pair does not identify a
+  saved pet.
+* `This client already has a pet named PET_NAME.` when a new name conflicts with another pet under that owner.
+
+Edits are saved together with the rest of the BubuBook. If saving fails, BuBu restores the previous records and
+reports the storage error instead of leaving a partially applied edit.
 
 ### Deleting a pet: `delete-pet`
 
@@ -280,8 +333,10 @@ Example: `add-appointment i/91234567 p/BuBu d/18-09-2027 st/10:00 et/11:00 s/Ful
 
 ### Listing appointments: `list-appointments`
 
-Displays ongoing and future grooming appointments in the command result area, ordered by date and start time.
-Each entry shows its date, start and end times, pet name, owner phone number, and service.
+Displays ongoing and future grooming appointments in the appointment panel and command result area,
+ordered by date and start time. Each entry shows its date, start and end times, pet name, owner name,
+owner phone number, address, pet care notes, and service. These are the participant details saved with
+the booking. Long addresses and care notes wrap across lines in the appointment cards.
 
 Format: `list-appointments`
 
@@ -338,7 +393,13 @@ Clients, pets, and appointments are saved together in `data/bububook.json` after
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets.
+Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
+details recorded when it was made, even if those records are later edited or deleted. The pet's registered name
+is used for display, including its original capitalization.
+
+Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
+registered. If either is missing, restore the missing participant from a backup before upgrading; those older
+bookings do not contain a full participant profile.
 
 ### Editing the data file
 
@@ -374,12 +435,12 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Edit client** | `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`<br> e.g., `edit-client i/91234567 n/Alex Tan`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
-**List** | `list`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
+**Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`

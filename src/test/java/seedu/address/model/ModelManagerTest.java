@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
@@ -19,7 +20,6 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
-import seedu.address.model.client.ClientNameContainsKeywordsPredicate;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.Species;
@@ -133,7 +133,7 @@ public class ModelManagerTest {
 
     @Test
     public void deleteAppointment_appointmentInBubuBook_removesAppointment() {
-        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+        Appointment appointment = createAppointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
         modelManager.addAppointment(appointment);
@@ -145,10 +145,10 @@ public class ModelManagerTest {
 
     @Test
     public void updateFilteredAppointmentList_filtersAppointments() {
-        Appointment firstAppointment = new Appointment(new Phone("91234567"), "BuBu",
+        Appointment firstAppointment = createAppointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
-        Appointment secondAppointment = new Appointment(new Phone("91234567"), "BuBu",
+        Appointment secondAppointment = createAppointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("02-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
         modelManager.setAppointments(List.of(firstAppointment, secondAppointment));
@@ -160,7 +160,7 @@ public class ModelManagerTest {
 
     @Test
     public void addAndDeleteAppointment_updatesFilteredAppointmentList() {
-        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+        Appointment appointment = createAppointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
 
@@ -173,7 +173,7 @@ public class ModelManagerTest {
 
     @Test
     public void getFilteredAppointmentList_modifyList_throwsUnsupportedOperationException() {
-        Appointment appointment = new Appointment(new Phone("91234567"), "BuBu",
+        Appointment appointment = createAppointment(new Phone("91234567"), "BuBu",
                 new AppointmentDate("01-01-2020"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
         modelManager.addAppointment(appointment);
@@ -210,8 +210,7 @@ public class ModelManagerTest {
         assertFalse(modelManager.equals(new ModelManager(differentBubuBook, userPrefs)));
 
         // different filteredList -> returns false
-        String[] keywords = ALICE.getName().fullName.split("\\s+");
-        modelManager.updateFilteredClientList(new ClientNameContainsKeywordsPredicate(List.of(keywords)));
+        modelManager.updateFilteredClientList(ALICE::equals);
         assertFalse(modelManager.equals(new ModelManager(bubuBook, userPrefs)));
 
         // resets modelManager to initial state for upcoming tests

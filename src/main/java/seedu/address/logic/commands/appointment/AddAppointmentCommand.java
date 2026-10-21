@@ -1,19 +1,31 @@
 package seedu.address.logic.commands.appointment;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
+import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 
 /**
  * Schedules a grooming appointment after verifying its participants and start time.
@@ -32,45 +44,53 @@ public class AddAppointmentCommand extends Command {
     public static final String MESSAGE_PAST_START = "Appointment must start in the future (Singapore time).";
     public static final String MESSAGE_OVERLAP = "This appointment overlaps an existing appointment.";
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
+    private static final Logger logger = LogsCenter.getLogger(AddAppointmentCommand.class);
 
-    private final Appointment toSchedule;
+    private final Phone ownerPhone;
+    private final PetName petName;
+    private final AppointmentDate date;
+    private final StartTime startTime;
+    private final EndTime endTime;
+    private final Service service;
     private final Clock clock;
 
-    /**
-     * Creates a command for normal application use, using the real clock in Singapore.
-     * Delegates to the constructor below so both constructors share the same setup.
-     */
-    public AddAppointmentCommand(Appointment appointment) {
-        this(appointment, Clock.system(SINGAPORE_ZONE));
+    /** Creates a command using participant identifiers and the current Singapore time. */
+    public AddAppointmentCommand(Phone ownerPhone, String petName, AppointmentDate date,
+            StartTime startTime, EndTime endTime, Service service) {
+        this(ownerPhone, petName, date, startTime, endTime, service, Clock.system(SINGAPORE_ZONE));
     }
 
-    /**
-     * Creates a command with a supplied clock. Tests use a fixed clock so their results
-     * do not depend on the actual date and time when the tests run.
-     */
-    public AddAppointmentCommand(Appointment appointment, Clock clock) {
-        requireAllNonNull(appointment, clock);
-        toSchedule = appointment;
+    /** Creates a command with a supplied clock for deterministic time checks. */
+    public AddAppointmentCommand(Phone ownerPhone, String petName, AppointmentDate date,
+            StartTime startTime, EndTime endTime, Service service, Clock clock) {
+        requireAllNonNull(ownerPhone, petName, date, startTime, endTime, service, clock);
+        checkArgument(endTime.isAtLeastThirtyMinutesAfter(startTime), EndTime.MESSAGE_CONSTRAINTS);
+        this.ownerPhone = ownerPhone;
+        this.petName = new PetName(petName.trim().replaceAll("\\s+", " "));
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.service = service;
         this.clock = clock.withZone(SINGAPORE_ZONE);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        long matchingOwners = model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().equals(toSchedule.getOwnerPhone()))
-                .count();
-        if (matchingOwners != 1) {
+        List<Client> matchingOwners = model.getBubuBook().getClientList().stream()
+                .filter(client -> client.getPhone().equals(ownerPhone))
+                .toList();
+        if (matchingOwners.size() != 1) {
             throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
         }
-        boolean hasPet = model.getBubuBook().getPetList().stream()
-                .anyMatch(pet -> pet.getOwner().getPhone().equals(toSchedule.getOwnerPhone())
-                        && pet.getName().getNormalizedName().equals(toSchedule.getPetName().getNormalizedName()));
-        if (!hasPet) {
-            throw new CommandException(MESSAGE_PET_NOT_FOUND);
-        }
+        Client owner = matchingOwners.get(0);
+        Pet pet = model.getBubuBook().getPetList().stream()
+                .filter(candidate -> candidate.getOwner().equals(owner)
+                        && candidate.getName().getNormalizedName().equals(petName.getNormalizedName()))
+                .findFirst().orElseThrow(() -> new CommandException(MESSAGE_PET_NOT_FOUND));
+        Appointment toSchedule = new Appointment(owner, pet, date, startTime, endTime, service);
 
-        LocalDateTime start = toSchedule.getDate().value.atTime(toSchedule.getStartTime().value);
+        LocalDateTime start = date.value.atTime(startTime.value);
         if (!start.isAfter(LocalDateTime.now(clock))) {
             throw new CommandException(MESSAGE_PAST_START);
         }
@@ -78,8 +98,10 @@ public class AddAppointmentCommand extends Command {
         try {
             model.addAppointment(toSchedule);
         } catch (OverlappingAppointmentException e) {
+            logger.fine(() -> "Appointment rejected due to overlap: " + date + " " + startTime + "-" + endTime);
             throw new CommandException(MESSAGE_OVERLAP, e);
         }
+        logger.info(() -> "Appointment added to model: " + date + " " + startTime + "-" + endTime);
         String details = toSchedule.getPetName() + "; Owner phone: " + toSchedule.getOwnerPhone()
                 + "; Date: " + toSchedule.getDate() + "; Time: " + toSchedule.getStartTime()
                 + "-" + toSchedule.getEndTime() + "; Service: " + toSchedule.getService();
@@ -89,11 +111,18 @@ public class AddAppointmentCommand extends Command {
     @Override
     public boolean equals(Object other) {
         return other == this || (other instanceof AddAppointmentCommand otherCommand
-                && toSchedule.equals(otherCommand.toSchedule));
+                && ownerPhone.equals(otherCommand.ownerPhone)
+                && petName.equals(otherCommand.petName)
+                && date.equals(otherCommand.date)
+                && startTime.equals(otherCommand.startTime)
+                && endTime.equals(otherCommand.endTime)
+                && service == otherCommand.service);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).add("toSchedule", toSchedule).toString();
+        return new ToStringBuilder(this).add("ownerPhone", ownerPhone).add("petName", petName)
+                .add("date", date).add("startTime", startTime).add("endTime", endTime)
+                .add("service", service).toString();
     }
 }

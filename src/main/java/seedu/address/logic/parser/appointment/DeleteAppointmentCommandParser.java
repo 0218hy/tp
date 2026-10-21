@@ -23,6 +23,7 @@ import seedu.address.model.appointment.AppointmentDate;
 public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentCommand> {
     public static final String MESSAGE_INDEX_AND_DATE_TIME =
             "An appointment index cannot be combined with date/time identifiers.";
+    public static final String MESSAGE_INVALID_TIME = "Time must be a real HH:mm time (00:00 to 23:59).";
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
             .withResolverStyle(ResolverStyle.STRICT);
@@ -41,25 +42,22 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
             throw new ParseException(MESSAGE_INDEX_AND_DATE_TIME);
         }
 
-        try {
-            if (hasIndex && !hasDate && !hasTime) {
-                Index index = ParserUtil.parseIndex(arguments.getPreamble());
-                return new DeleteAppointmentCommand(index);
-            }
-            if (!hasIndex && hasDate && hasTime) {
-                AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
-                LocalTime time = LocalTime.parse(arguments.getValue(PREFIX_TIME).get(), TIME_FORMATTER);
-                return new DeleteAppointmentCommand(date, time);
-            }
-        } catch (DateTimeParseException | IllegalArgumentException | ParseException e) {
-            throw invalidFormat(e);
+        if (hasIndex) {
+            Index index = ParserUtil.parseIndex(arguments.getPreamble());
+            return new DeleteAppointmentCommand(index);
         }
-
-        throw invalidFormat(null);
-    }
-
-    private static ParseException invalidFormat(Exception cause) {
-        String message = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteAppointmentCommand.MESSAGE_USAGE);
-        return cause == null ? new ParseException(message) : new ParseException(message, cause);
+        if (!hasDate || !hasTime) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                    DeleteAppointmentCommand.MESSAGE_USAGE));
+        }
+        try {
+            AppointmentDate date = new AppointmentDate(arguments.getValue(PREFIX_DATE).get());
+            LocalTime time = LocalTime.parse(arguments.getValue(PREFIX_TIME).get(), TIME_FORMATTER);
+            return new DeleteAppointmentCommand(date, time);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(MESSAGE_INVALID_TIME, e);
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), e);
+        }
     }
 }

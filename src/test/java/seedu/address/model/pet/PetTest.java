@@ -10,9 +10,19 @@ import static seedu.address.testutil.TypicalClients.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class PetTest {
+
+    @Test
+    public void isOwnedBy_matchesPhoneRatherThanClientName() {
+        Pet pet = new PetBuilder(ALICE).build();
+        assertTrue(pet.isOwnedBy(ALICE.getPhone()));
+        assertTrue(pet.isOwnedBy(new ClientBuilder(ALICE).withName("Another Name").build().getPhone()));
+        assertFalse(pet.isOwnedBy(BOB.getPhone()));
+        assertFalse(pet.isOwnedBy(null));
+    }
 
     @Test
     public void isSamePet() {
@@ -23,6 +33,28 @@ public class PetTest {
         assertFalse(pet.isSamePet(new PetBuilder(pet).withName("Luna").build()));
         assertFalse(pet.isSamePet(new PetBuilder(pet).withOwner(BOB).build()));
         assertFalse(pet.isSamePet(null));
+    }
+
+    @Test
+    public void isSamePet_ownerAndName_matchesNormalizedIdentity() {
+        Pet pet = new PetBuilder(ALICE).withName("Bu Bu").build();
+
+        assertTrue(pet.isSamePet(ALICE, new PetName("  bU   bU  ")));
+        assertFalse(pet.isSamePet(BOB, new PetName("Bu Bu")));
+        assertFalse(pet.isSamePet(ALICE, new PetName("Luna")));
+        assertFalse(pet.isSamePet(null, pet.getName()));
+        assertFalse(pet.isSamePet(ALICE, null));
+    }
+
+    @Test
+    public void isIdentifiedBy_matchesOwnerAndNormalizedName() {
+        Pet pet = new PetBuilder(ALICE).build();
+
+        assertTrue(pet.isIdentifiedBy(ALICE.getPhone(), new PetName("milo")));
+        assertFalse(pet.isIdentifiedBy(BOB.getPhone(), new PetName("Milo")));
+        assertFalse(pet.isIdentifiedBy(ALICE.getPhone(), new PetName("Luna")));
+        assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(null, pet.getName()));
+        assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(ALICE.getPhone(), null));
     }
 
     @Test

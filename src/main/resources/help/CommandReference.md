@@ -7,11 +7,11 @@ Add client
   add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 List clients
-  list
   list-clients [q/KEYWORD]
 
-Find clients
-  find KEYWORD [MORE_KEYWORDS]
+Edit client
+  edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+  i/ identifies the client; p/ changes their phone. Use the new number in i/ after a phone change.
 
 Delete client
   delete-client INDEX
@@ -22,6 +22,9 @@ Add pet
 
 List pets
   list-pets [i/OWNER_IDENTIFIER]
+
+Edit pet
+  edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
 
 Delete pet
   delete-pet INDEX

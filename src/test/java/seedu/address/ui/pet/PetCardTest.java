@@ -1,6 +1,7 @@
 package seedu.address.ui.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
@@ -41,6 +42,16 @@ public class PetCardTest {
             PetCard card = new PetCard(new PetBuilder(ALICE).withBreed("Golden retriever").build(), 1);
 
             assertEquals("Breed: Golden retriever", getLabel(card, "breed").getText());
+        });
+    }
+
+    @Test
+    public void constructor_sameOwner_hidesHeadingWithoutResettingIndex() {
+        JavaFxTestUtils.runAndWait(() -> {
+            PetCard card = new PetCard(new PetBuilder(ALICE).build(), 2, false);
+            assertFalse(getLabel(card, "owner").isVisible());
+            assertFalse(getLabel(card, "owner").isManaged());
+            assertEquals("2. ", getLabel(card, "id").getText());
         });
     }
 

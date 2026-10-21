@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
+import javafx.css.PseudoClass;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.text.Text;
@@ -53,6 +54,53 @@ public class ResultDisplayTest {
     }
 
     @Test
+    public void setErrorFeedbackToUser_afterSuccess_displaysError() {
+        JavaFxTestUtils.runAndWait(() -> {
+            ResultDisplay resultDisplay = new ResultDisplay();
+            resultDisplay.setFeedbackToUser("Pet added.");
+
+            resultDisplay.setErrorFeedbackToUser("Owner not found.\nPlease add the client first.");
+
+            TextArea feedbackDisplay = getField(resultDisplay, "resultDisplay", TextArea.class);
+            assertEquals("Owner not found.\nPlease add the client first.", feedbackDisplay.getText());
+            assertFeedbackState(feedbackDisplay, false, true);
+        });
+    }
+
+    @Test
+    public void setFeedbackToUser_afterError_displaysSuccess() {
+        JavaFxTestUtils.runAndWait(() -> {
+            ResultDisplay resultDisplay = new ResultDisplay();
+            resultDisplay.setErrorFeedbackToUser("Invalid command.");
+
+            resultDisplay.setFeedbackToUser("Listed all pets.");
+
+            TextArea feedbackDisplay = getField(resultDisplay, "resultDisplay", TextArea.class);
+            assertEquals("Listed all pets.", feedbackDisplay.getText());
+            assertFeedbackState(feedbackDisplay, true, false);
+        });
+    }
+
+    @Test
+    public void setHelpContent_afterError_clearsFeedbackState() {
+        JavaFxTestUtils.runAndWait(() -> {
+            ResultDisplay resultDisplay = new ResultDisplay();
+            resultDisplay.setErrorFeedbackToUser("Invalid command.");
+
+            resultDisplay.setHelpContent("AVAILABLE COMMANDS");
+
+            TextArea feedbackDisplay = getField(resultDisplay, "resultDisplay", TextArea.class);
+            assertFeedbackState(feedbackDisplay, false, false);
+            assertFalse(feedbackDisplay.isVisible());
+
+            resultDisplay.setErrorFeedbackToUser("Invalid command.");
+            assertTrue(feedbackDisplay.isVisible());
+            assertFalse(getField(resultDisplay, "helpDisplay", ScrollPane.class).isVisible());
+            assertFeedbackState(feedbackDisplay, false, true);
+        });
+    }
+
+    @Test
     public void getHelpLineStyleClass_heading_returnsHeadingStyle() {
         assertEquals("help-heading", ResultDisplay.getHelpLineStyleClass("AVAILABLE COMMANDS"));
     }
@@ -71,6 +119,13 @@ public class ResultDisplayTest {
     @Test
     public void getHelpLineStyleClass_blankLine_returnsSpacingStyle() {
         assertEquals("help-spacing", ResultDisplay.getHelpLineStyleClass("   "));
+    }
+
+    private static void assertFeedbackState(TextArea feedbackDisplay, boolean isSuccess, boolean isError) {
+        assertEquals(isSuccess,
+                feedbackDisplay.getPseudoClassStates().contains(PseudoClass.getPseudoClass("feedback-success")));
+        assertEquals(isError,
+                feedbackDisplay.getPseudoClassStates().contains(PseudoClass.getPseudoClass("feedback-error")));
     }
 
     private static <T> T getField(Object target, String fieldName, Class<T> fieldType) {

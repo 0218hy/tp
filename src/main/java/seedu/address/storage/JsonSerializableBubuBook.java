@@ -88,7 +88,7 @@ class JsonSerializableBubuBook {
                 throw new IllegalValueException("Appointment must not be null.");
             }
             try {
-                bubuBook.addAppointment(appointment.toModelType());
+                bubuBook.addAppointment(appointment.toModelType(bubuBook.getClientList(), bubuBook.getPetList()));
             } catch (OverlappingAppointmentException e) {
                 throw new IllegalValueException(e.getMessage(), e);
             }

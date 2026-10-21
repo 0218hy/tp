@@ -15,6 +15,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -28,6 +29,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
+import seedu.address.testutil.PetBuilder;
+import seedu.address.testutil.TypicalClients;
 import seedu.address.ui.appointment.AppointmentListPanel;
 import seedu.address.ui.client.ClientListPanel;
 import seedu.address.ui.pet.PetListPanel;
@@ -53,7 +56,7 @@ public class MainWindowTest {
             assertEquals(300, resultDisplayPlaceholder.getPrefHeight());
 
             logic.nextResult = new CommandResult("Listed all clients.");
-            executeCommand(mainWindow, "list");
+            executeCommand(mainWindow, "list-clients");
 
             assertFalse(helpDisplay.isVisible());
             assertEquals(100, resultDisplayPlaceholder.getPrefHeight());
@@ -86,6 +89,39 @@ public class MainWindowTest {
             assertFalse(clientListPanel.getRoot().isVisible());
             assertFalse(petListPanel.getRoot().isVisible());
             assertTrue(appointmentListPanel.getRoot().isVisible());
+        });
+    }
+
+    @Test
+    public void executeCommand_recordHeading_tracksVisibleListAndCount() {
+        JavaFxTestUtils.runAndWait(() -> {
+            StubLogic logic = new StubLogic();
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, Path.of("bubu.json"));
+            mainWindow.fillInnerParts();
+            Label title = getField(mainWindow, "recordTitle", Label.class);
+            Label count = getField(mainWindow, "recordCount", Label.class);
+            assertEquals("👥 Clients", title.getText());
+            assertEquals("0 records", count.getText());
+
+            logic.nextResult = new CommandResult("Listed all pets.", DisplayType.PETS);
+            executeCommand(mainWindow, "list-pets");
+            assertEquals("🐾 Pets", title.getText());
+            logic.pets.add(new PetBuilder(TypicalClients.ALICE).build());
+            assertEquals("1 record", count.getText());
+            logic.pets.add(new PetBuilder(TypicalClients.ALICE).withName("Luna").build());
+            assertEquals("2 records", count.getText());
+            logic.pets.clear();
+            assertEquals("0 records", count.getText());
+
+            logic.nextResult = new CommandResult("Appointments", DisplayType.APPOINTMENTS);
+            executeCommand(mainWindow, "list-appointments");
+            assertEquals("📅 Appointments", title.getText());
+            logic.pets.add(new PetBuilder(TypicalClients.ALICE).build());
+            assertEquals("0 records", count.getText());
+
+            logic.nextResult = new CommandResult("Help", true, false);
+            mainWindow.handleHelp();
+            assertEquals("📅 Appointments", title.getText());
         });
     }
 

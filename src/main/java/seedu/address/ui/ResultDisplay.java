@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -15,6 +16,8 @@ import javafx.scene.text.TextFlow;
 public class ResultDisplay extends UiPart<Region> {
 
     private static final String FXML = "ResultDisplay.fxml";
+    private static final PseudoClass SUCCESS = PseudoClass.getPseudoClass("feedback-success");
+    private static final PseudoClass ERROR = PseudoClass.getPseudoClass("feedback-error");
 
     @FXML
     private TextArea resultDisplay;
@@ -29,9 +32,27 @@ public class ResultDisplay extends UiPart<Region> {
         super(FXML);
     }
 
+    /** Displays successful command feedback and clears any previous error styling. */
     public void setFeedbackToUser(String feedbackToUser) {
+        showFeedback(feedbackToUser, false);
+    }
+
+    /** Displays failed command feedback and clears any previous success styling. */
+    public void setErrorFeedbackToUser(String feedbackToUser) {
+        showFeedback(feedbackToUser, true);
+    }
+
+    /**
+     * Replaces any help content with command feedback and applies the matching visual state.
+     *
+     * @param feedbackToUser Non-null message to display.
+     * @param isError Whether to use error styling instead of success styling.
+     */
+    private void showFeedback(String feedbackToUser, boolean isError) {
         requireNonNull(feedbackToUser);
         showFeedbackDisplay();
+        resultDisplay.pseudoClassStateChanged(SUCCESS, !isError);
+        resultDisplay.pseudoClassStateChanged(ERROR, isError);
         resultDisplay.setText(feedbackToUser);
     }
 
@@ -40,6 +61,8 @@ public class ResultDisplay extends UiPart<Region> {
      */
     public void setHelpContent(String commandReference) {
         requireNonNull(commandReference);
+        resultDisplay.pseudoClassStateChanged(SUCCESS, false);
+        resultDisplay.pseudoClassStateChanged(ERROR, false);
         showHelpDisplay();
         helpContent.getChildren().clear();
 

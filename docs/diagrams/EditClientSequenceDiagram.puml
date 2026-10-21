@@ -1,0 +1,46 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+title Editing a client by current phone number
+
+Participant ":LogicManager" as logic LOGIC_COLOR
+Participant ":BuBuParser" as abp LOGIC_COLOR
+Participant ":EditClientCommandParser" as ecp LOGIC_COLOR
+Participant "command:EditClientCommand" as ec LOGIC_COLOR
+Participant "model:Model" as model MODEL_COLOR
+
+[-> logic : execute("edit-client i/91234567 p/89998888")
+activate logic
+logic -> abp ++: parseCommand(commandText)
+create ecp
+abp -> ecp
+abp -> ecp ++: parse(arguments)
+create ec
+ecp -> ec ++: identifier, editClientDescriptor
+ec --> ecp --
+ecp --> abp --: command
+abp --> logic --: command
+
+logic -> ec ++: execute(model)
+ec -> model ++: getBubuBook().getClientList()
+model --> ec --: saved clients
+note right of ec
+  Find the client by current phone number.
+  Reject an unknown identifier or duplicate phone/email.
+end note
+ec -> model ++: setClient(clientToEdit, editedClient)
+note right of model
+  Replace the client, refresh pet owners,
+  and update linked appointment phone numbers.
+end note
+model --> ec --
+ec -> model : updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS)
+ec --> logic --: CommandResult (CLIENTS)
+note right of logic
+  Save records; restore previous records if saving fails.
+  Use i/89998888 for subsequent edits after success.
+end note
+[<-- logic : commandResult
+deactivate logic
+
+@enduml

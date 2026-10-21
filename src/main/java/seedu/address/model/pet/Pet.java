@@ -6,9 +6,10 @@ import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 
 /**
- * Represents a pet in the BuBu.
+ * Represents a pet in BuBu.
  * Its required details are non-null, while breed may be absent.
  * The profile is immutable.
  */
@@ -49,6 +50,15 @@ public class Pet {
         return owner;
     }
 
+    /**
+     * Returns whether this pet belongs to the client identified by {@code ownerPhone}.
+     * Ownership is determined by phone number, not by name or other client details.
+     * Returns false when {@code ownerPhone} is null.
+     */
+    public boolean isOwnedBy(Phone ownerPhone) {
+        return owner.getPhone().equals(ownerPhone);
+    }
+
     public Species getSpecies() {
         return species;
     }
@@ -72,6 +82,12 @@ public class Pet {
         return new Pet(name, newOwner, species, breed, requirement);
     }
 
+    /** Returns whether this pet has the given owner phone and normalized name. */
+    public boolean isIdentifiedBy(Phone ownerPhone, PetName petName) {
+        requireAllNonNull(ownerPhone, petName);
+        return owner.getPhone().equals(ownerPhone) && name.hasSameName(petName);
+    }
+
     /**
      * Returns whether both pets belong to the same owner and have the same normalized name.
      * Case and repeated whitespace in the names do not affect identity.
@@ -82,8 +98,17 @@ public class Pet {
         }
 
         return otherPet != null
-                && owner.getPhone().equals(otherPet.owner.getPhone())
-                && name.getNormalizedName().equals(otherPet.name.getNormalizedName());
+                && isSamePet(otherPet.owner, otherPet.name);
+    }
+
+    /**
+     * Returns whether the owner phone and normalized name identify this pet.
+     * Changes to the owner's other profile details do not affect pet identity.
+     */
+    public boolean isSamePet(Client otherOwner, PetName otherName) {
+        return otherOwner != null && otherName != null
+                && owner.getPhone().equals(otherOwner.getPhone())
+                && name.getNormalizedName().equals(otherName.getNormalizedName());
     }
 
     @Override

@@ -18,7 +18,6 @@ import seedu.address.logic.parser.Parser;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.client.ClientParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
@@ -46,12 +45,11 @@ public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand
 
         Phone ownerPhone = ClientParserUtil.parsePhone(arguments.getValue(PREFIX_OWNER_IDENTIFIER).get());
         try {
-            Appointment appointment = new Appointment(ownerPhone, arguments.getValue(PREFIX_PET_NAME).get(),
+            return new AddAppointmentCommand(ownerPhone, arguments.getValue(PREFIX_PET_NAME).get(),
                     new AppointmentDate(arguments.getValue(PREFIX_DATE).get()),
                     new StartTime(arguments.getValue(PREFIX_START_TIME).get()),
                     new EndTime(arguments.getValue(PREFIX_END_TIME).get()),
                     Service.fromString(arguments.getValue(PREFIX_SERVICE).get()));
-            return new AddAppointmentCommand(appointment);
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

@@ -3,6 +3,7 @@ package seedu.address.logic;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -114,8 +115,10 @@ public class LogicManager implements Logic {
             throws CommandException {
         try {
             storage.saveBubuBook(model.getBubuBook());
+            logger.info(() -> "Records saved successfully after " + command.getClass().getSimpleName());
         } catch (IOException ioe) {
             model.setBubuBook(previousBubuBook);
+            logger.log(Level.WARNING, "Saving records failed; previous model state restored", ioe);
             if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
             }

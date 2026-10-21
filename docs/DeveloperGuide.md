@@ -49,6 +49,8 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 `ListPetsCommand` and `ListAppointmentsCommand` prepare the corresponding filtered views.
 `DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
 appointment deletion also accepts a date/time pair.
+`EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
+phone-identified client-edit flow.
 
 Replacing the BubuBook validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners.
@@ -138,6 +140,19 @@ The `help` command returns the command reference stored in
 The **Help** menu item and <kbd>F1</kbd> invoke the same command. When adding or changing a command, keep this
 reference in sync with the User Guide.
 
+`CommandBox` maintains session-only command history independently of the `Logic` and `Model` components. It records
+each non-empty submission before invoking its `CommandExecutor`, so commands that fail parsing or execution can also
+be recalled and corrected. Before moving backwards through non-empty history, it also records any non-empty draft in
+the command field. The `commandHistory` list keeps entries in submission order, while `historyIndex` points to the
+currently recalled entry. An index equal to the list size represents the blank position after the newest command.
+
+The command text field handles <kbd>↑</kbd> and <kbd>↓</kbd> key presses through a JavaFX event filter. <kbd>↑</kbd>
+moves the index towards the oldest entry and <kbd>↓</kbd> moves it towards the blank position. Navigation stops at
+both boundaries rather than wrapping. When no commands have been recorded, the event filter does not consume either
+arrow key, allowing normal focus or page navigation to proceed. When an entry is loaded, the caret is placed at the
+end so that users can edit it immediately. This state is intentionally not persisted: restarting the application
+starts a new history and avoids storing commands that may contain client information.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -174,13 +189,59 @@ Index-based commands accept exactly one positive integer index:
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
-* Identifier forms such as `delete-client i/PHONE_NUMBER` and `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`
+* Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
+  `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
+  `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
 `LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
 list is not displayed. This prevents a deletion index from being interpreted against a different record type.
 
+#### Identifier-based client editing
+
+`BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser requires `i/CURRENT_PHONE` and at least
+one update field. `i/` selects the existing client; `p/` supplies a replacement phone number. Names, emails,
+addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is rejected.
+
+`EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
+or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
+`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and updates linked appointment phone numbers.
+After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
+
+Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
+records and restores the previous records if saving fails. No client-panel guard is needed because selection does
+not depend on a displayed index.
+
+#### Identifier-based pet editing
+
+`edit-pet` is deliberately identifier-based rather than index-based. A displayed index is transient: it depends on the
+currently selected panel and any active pet filter. A pet's current name together with its owner's phone number is a
+stable, domain-level identifier because pet names only need to be unique within an owner.
+
+The execution flow is:
+
+1. `BuBuParser` routes `edit-pet` to `EditPetCommandParser`.
+2. The parser tokenizes the target prefixes (`p/` and `i/`) and the optional update prefixes (`n/`, `s/`, `b/`, and
+   `r/`). It rejects a preamble, unknown prefix, duplicate prefix, missing target selector, invalid value, or a command
+   with no updates. It constructs an `EditPetDescriptor` containing only the requested changes.
+3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the normalized current pet name and exact
+   owner-phone pair. Both target lookup and the later duplicate check use `PetName.getNormalizedName()`, which ignores
+   letter case and leading, trailing, or repeated whitespace.
+   It intentionally does not use `getFilteredPetList()`, so the command works regardless of the currently displayed
+   record panel or a pet filter.
+4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
+   Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
+5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. The command then
+   resets the pet filter to show all pets and returns a success `CommandResult`.
+6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
+   failed write does not leave an in-memory edit that was not persisted.
+
+The descriptor uses an explicit `isBreedEdited` flag. This distinguishes an omitted `b/` prefix (keep the existing
+breed) from an empty `b/` value (set the optional breed to `null`, thereby clearing it). The owner has no descriptor
+field, which makes transferring a pet impossible through this command by design.
+
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
@@ -192,7 +253,9 @@ The `Model` component,
   `BubuBook`.
 * represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
   to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
-* rejects duplicate clients and duplicate pet names for the same owner. `AppointmentList` rejects any appointment that
+  `BubuBook.setPet` also resolves the edited pet's owner against the saved client list before replacing the record.
+* rejects duplicate clients and duplicate pet names for the same owner, using the owner's phone number and a normalized
+  pet name (case-insensitive with leading, trailing, and repeated whitespace ignored). `AppointmentList` rejects any appointment that
   overlaps an existing appointment, while allowing back-to-back appointments and retaining historical appointments.
 * maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
   observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
@@ -223,11 +286,30 @@ The `Storage` component:
   A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone
   when available, or by name for records without a phone.
 
+#### Pet-profile persistence
+
+Pet edits are persisted through the same shared-book path as other record-changing commands:
+`EditPetCommand` → `ModelManager.setPet()` → `BubuBook.setPet()` → `UniquePetList.setPet()` →
+`StorageManager` → `data/bububook.json`.
+
+`Pet` is immutable, so an edit replaces one complete profile rather than mutating individual fields. The optional
+breed is serialized only when present; clearing a breed with `b/` therefore removes the stored breed value for that
+pet on the next successful save. `LogicManager` takes a copy of the complete BubuBook before executing the command.
+If storage throws an `IOException`, it restores that copy before reporting the failure. This applies equally to an
+edit that changes a pet's name, species, breed, or requirements.
+
 #### Appointment persistence
 
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
-`JsonAdaptedAppointment` converts the phone, pet name, date, times, and service into JSON fields and back.
-Loading accepts historical appointments and rejects invalid or overlapping records.
+`Appointment` holds immutable `Client` and `Pet` objects. `AddAppointmentCommandParser` parses participant
+identifiers; `AddAppointmentCommand` resolves them against the full registered lists when executed.
+Appointments retain the participant details from booking time when a client or pet is later edited or deleted.
+`JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
+Loading reuses equal registered objects when available and accepts historical snapshots independently of the
+registered lists. Invalid, mismatched, or overlapping records are rejected.
+Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
+and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
+format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
 
 The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
@@ -313,7 +395,7 @@ The `redo` command does the opposite — it calls `Model#redoBubuBook()`, wh
 
 </div>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the BubuBook, such as `list`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list-clients`. Commands that do not modify the BubuBook, such as `list-clients`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
 
 ![UndoRedoState4](images/UndoRedoState4.png)
 
@@ -514,7 +596,7 @@ Use case ends.
 - The old appointment is removed only after Groomer confirms.
 - The new appointment does not overlap any existing appointment.
 
-*BuBu has no edit feature, so rescheduling is a deletion followed by a new booking.*
+*BuBu has no appointment-edit feature, so rescheduling is a deletion followed by a new booking.*
 
 **MSS:**
 
@@ -651,6 +733,46 @@ Use case ends.
     - 3b2. Groomer enters a different search keyword.
     - Steps 3b1-3b2 are repeated until the intended client is found.
     - Use case resumes from step 4.
+
+**Use case: Edit a pet**
+
+**MSS**
+
+1. Groomer enters `edit-pet` with a pet's current name, the owner's phone number, and one or more updated fields.
+2. BuBu validates the selectors and requested field values.
+3. BuBu finds the pet matching both the current name and owner phone number in the saved BubuBook.
+4. BuBu creates a replacement pet profile, preserving the owner and any fields that were not supplied.
+5. BuBu verifies that the replacement name does not duplicate another pet belonging to the same owner.
+6. BuBu replaces the saved pet profile, saves the BubuBook, and confirms the edit.
+
+Use case ends.
+
+**Extensions**
+
+* 2a. A required selector is missing, a prefix is repeated or unsupported, no updated field is supplied, or a value is invalid.
+
+    * 2a1. BuBu reports the validation error and leaves the profile unchanged.
+
+      Use case ends.
+
+* 3a. No pet matches the supplied current name and owner phone number.
+
+    * 3a1. BuBu reports that no matching pet was found and leaves all records unchanged.
+
+      Use case ends.
+
+* 5a. The requested new name duplicates another pet under the same owner.
+
+    * 5a1. BuBu reports the duplicate-name error and leaves the profile unchanged.
+
+      Use case ends.
+
+* 6a. The updated BubuBook cannot be saved.
+
+    * 6a1. BuBu restores the pre-edit records and reports the storage error.
+
+      Use case ends.
+
 **Use case: Delete a pet**
 
 **MSS**
@@ -745,7 +867,7 @@ testers are expected to do more *exploratory* testing.
 
 1. Displaying each record type
 
-   1. Test case: `list`<br>
+   1. Test case: `list-clients`<br>
       Expected: The client list is visible and the clients are shown in the result area/list panel.
 
    2. Test case: `list-pets`<br>
@@ -769,11 +891,182 @@ testers are expected to do more *exploratory* testing.
    5. Test case: `delete-appointment 1`<br>
       Expected: The first displayed appointment is deleted.
 
+### Adding a client
+
+1. Adding clients with and without tags
+
+   1. Prerequisites: No saved client uses phone numbers `91234567` or `82345678`, or email addresses
+      `zoe@example.com` or `amelia@example.com`. Run the following cases in order.
+
+   2. Test case: `add-client n/Zoe Tan i/91234567 e/zoe@example.com a/10 Clementi Road`<br>
+      Expected: `Client added: Zoe Tan (91234567).` Running `list-clients` shows Zoe with the supplied details and no tags.
+
+   3. Test case: `add-client n/Amelia Lim i/82345678 e/amelia@example.com a/20 Tampines Road t/friends t/regular`<br>
+      Expected: `Client added: Amelia Lim (82345678).` Running `list-clients` shows Amelia with both tags.
+
+2. Rejecting duplicate phone numbers or email addresses
+
+   1. Prerequisites: Zoe Tan from the successful addition above exists. No client uses `93456789` or `other@example.com`.
+
+   2. Test case: `add-client n/Other Client i/91234567 e/other@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `A client with this phone number or email already exists.`
+
+   3. Test case: `add-client n/Other Client i/93456789 e/zoe@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The same duplicate-client message is shown even though the phone number differs.
+
+3. Rejecting missing or repeated required fields
+
+   1. Test case: `add-client n/Test Client i/93456789 a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `Missing required field: e/.`.
+
+   2. Test case: `add-client n/Test Client i/93456789 e/ a/30 Bedok Road`<br>
+      Expected: No client is added. The same missing-email message is shown for an empty email field.
+
+   3. Test case: `add-client n/Test Client n/Another Client i/93456789 e/test@example.com a/30 Bedok Road`<br>
+      Expected: No client is added. The status message is `Repeated field: Each client field may be specified only once`.
+
+   4. Other cases to try: Omit or leave blank each of `n/`, `i/`, and `a/` in an otherwise complete command;
+      repeat each of `i/`, `e/`, and `a/`.<br>
+      Expected: No client is added. The status message identifies the missing field or reports a repeated field.
+
+4. Rejecting invalid client details
+
+   1. Prerequisites: Use `add-client n/Test Client i/93456789 e/test@example.com a/30 Bedok Road` as the base command.
+      Replace only the specified field for each case below.
+
+   2. Test case: Replace `n/Test Client` with `n/A` or `n/Test123`.<br>
+      Expected: No client is added. The status message is `Client names must be 2-60 characters and use valid name characters.`
+
+   3. Test case: Replace `i/93456789` with `i/73456789`, `i/9345678`, or `i/9345678a`.<br>
+      Expected: No client is added. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
+
+   4. Test case: Replace `e/test@example.com` with `e/testexample.com` or `e/test@example`.<br>
+      Expected: No client is added. The status message is `Email must contain one @, no spaces, and a domain with a full stop.`
+
+   5. Test case: Replace `a/30 Bedok Road` with `a/1234` or `a/30 Bedok Road!`.<br>
+      Expected: No client is added. The status message is `Addresses must be 5-120 characters and use valid address characters.`
+
+5. Saving added clients
+
+   1. Prerequisites: Zoe Tan and Amelia Lim were successfully added above.
+
+   2. Test case: Close and relaunch BuBu, then run `list-clients`.<br>
+      Expected: Both clients remain saved with their contact details and tags.
+
+### Listing clients
+
+1. Listing all clients alphabetically
+
+   1. Prerequisites: Zoe Tan and Amelia Lim from the adding-client tests exist. Run `list-pets` first.
+
+   2. Test case: `list-clients`<br>
+      Expected: The client list replaces the pet list. The status message is `Listed all clients.` All saved clients
+      are displayed in alphabetical order by name, ignoring case, with Amelia Lim before Zoe Tan.
+
+2. Searching across client contact details
+
+   1. Prerequisites: Zoe Tan from the adding-client tests exists. For the exact counts below, ensure no other client's
+      name, phone, email, or address contains `zoe`, `91234567`, `zoe@example.com`, or `10 Clementi Road`.
+
+   2. Test case: `list-clients q/zOe`<br>
+      Expected: Only Zoe Tan is displayed. The status message is `Found 1 client(s).` Matching ignores letter case.
+
+   3. Test case: Run `list-clients q/91234567`, `list-clients q/zoe@example.com`, and
+      `list-clients q/10 Clementi Road` separately.<br>
+      Expected: Each command displays Zoe Tan and reports `Found 1 client(s).`, matching the phone, email, and address respectively.
+
+   4. Test case: `list-clients q/  zOe  `<br>
+      Expected: Surrounding spaces are ignored. Zoe Tan is displayed and the status message is `Found 1 client(s).`.
+
+   5. Test case: `list-clients q/Road`<br>
+      Expected: All clients with `Road` anywhere in their name, phone, email, or address are displayed alphabetically.
+      The status message reports the number of matches. This includes Amelia Lim and Zoe Tan from the adding-client tests.
+
+3. Handling no matches and restoring the full list
+
+   1. Prerequisites: No client's contact details contain `zzzznomatch`.
+
+   2. Test case: `list-clients q/zzzznomatch`<br>
+      Expected: The client list is empty. The status message is `No clients match "zzzznomatch".`.
+
+   3. Test case: `list-clients`<br>
+      Expected: All saved clients are displayed again, alphabetically. The status message is `Listed all clients.`.
+      Searching has not deleted any clients.
+
+   4. Test case: Run `list-clients` when no clients are saved, using a separate test data set.<br>
+      Expected: The client list is empty and the status message is `Listed all clients.`.
+
+4. Rejecting invalid search input
+
+   1. Test case: `list-clients q/`, `list-clients q/   `, or `list-clients q/zoe!`<br>
+      Expected: The command is rejected with `Search keyword must be 1-60 characters and use valid text characters.`
+
+   2. Test case: Enter `list-clients q/` followed by 60 consecutive `a` characters, then repeat with 61.<br>
+      Expected: The 60-character keyword is accepted and reports matching clients or no matches. The 61-character
+      keyword is rejected with the invalid-keyword message above.
+
+   3. Test case: `list-clients q/zoe q/amelia`<br>
+      Expected: The command is rejected with `Each search field may be specified only once.`
+
+   4. Test case: `list-clients zoe` or `list-clients n/Zoe`<br>
+      Expected: The command is rejected with an invalid-command-format message and the command usage.
+
+### Editing a client
+
+1. Identifying a client independently of the displayed list
+
+   1. Prerequisites: A saved client uses phone `91234567`. Note their contact details and tags.
+
+   2. Test case: Run `list-pets`, then `edit-client i/91234567 n/Zoe Tan`.<br>
+      Expected: The client's name changes to Zoe Tan, with all other details unchanged. The status message
+      begins with `Edited client:` and the full client list is displayed.
+
+   3. Test case: Run `list-clients q/zzzznomatch` to hide the client, then `edit-client i/91234567 t/`.<br>
+      Expected: The same client's tags are cleared despite being hidden. The full client list is displayed again.
+
+   4. Test case: Run `list-appointments`, then `edit-client i/91234567 n/Zoe Lim`.<br>
+      Expected: The edit succeeds and the client list replaces the appointment panel.
+
+2. Rejecting invalid edits
+
+   1. Test case: `edit-client 1 n/Zoe Tan`, `edit-client n/Zoe Tan`, or `edit-client i/ n/Zoe Tan`<br>
+      Expected: No client changes. An invalid-command-format message and usage are shown.
+
+   2. Test case: `edit-client i/91234567`, `edit-client i/91234567 p/123`, or
+      `edit-client i/91234567 n/Zoe n/Amy`<br>
+      Expected: No client changes. The error reports a missing update, invalid phone number, or repeated field.
+
+   3. Test case: `edit-client i/89998888 n/Zoe Tan` when that phone number is not saved<br>
+      Expected: No client changes. The message is `No saved client has this phone number.`.
+
+   4. Test case: `edit-client i/91234567 i/82345678 n/Zoe Tan`<br>
+      Expected: No client changes. Repeated identifiers are rejected.
+
+   5. Prerequisites: Another saved client has phone `82345678` and email `other@example.com`.
+
+   6. Test case: `edit-client i/91234567 p/82345678` or `edit-client i/91234567 e/other@example.com`<br>
+      Expected: Both edits are rejected with `A client with this phone number or email already exists.`,
+      even when the other client is hidden by a search.
+
+3. Updating linked records and saving changes
+
+   1. Prerequisites: The client with phone `91234567` owns a pet and has an appointment. Phone `89998888` is unused.
+
+   2. Test case: `edit-client i/91234567 p/89998888`, then `list-pets i/89998888`<br>
+      Expected: The client's phone changes and the same pet appears under the new phone.
+      The linked appointment's owner phone also becomes `89998888`; its other booking details remain unchanged.
+
+   3. Test case: `edit-client i/91234567 n/Zoe Tan`, then `edit-client i/89998888 n/Zoe Tan`<br>
+      Expected: The old identifier is rejected as unknown. The new identifier succeeds.
+
+   4. Test case: Close and relaunch BuBu, then inspect the client, pet, and appointment.<br>
+      Expected: The updated phone and links persist after restart.
+
 ### Deleting a person
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all persons using the `list-clients` command, with multiple persons in the list.
 
    2. Test case: `delete-client 1`<br>
       Expected: The first person is deleted from the list. The status message shows the deleted person's details.
@@ -852,14 +1145,14 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`).
 
    2. Test case: `list-pets`<br>
-      Expected: `All pet profiles`, followed by Alex Yeoh's pets in the order `BuBu`, `Mochi`.
+      Expected: Feedback is `Listed all pets.` The list panel shows Alex Yeoh's pets in the order `BuBu`, `Mochi`.
 
 2. Listing one client's pets
 
    1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`), and Bernice Yu (phone number `99272758`) has no pets.
 
    2. Test case: `list-pets i/87438807`<br>
-      Expected: `Pets under Alex Yeoh`, followed by `BuBu` and `Mochi` with their species, optional breed, and requirements.
+      Expected: Feedback is `Found 2 pet(s) under Alex Yeoh.` The list panel shows `BuBu` and `Mochi` with their species, optional breed, and requirements.
 
    3. Test case: `list-pets i/99272758`<br>
       Expected: `Bernice Yu has no saved pet profiles.`
@@ -877,6 +1170,73 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: `list-pets x/extra`<br>
       Expected: The status message is `Invalid command format. Check the command syntax and try again.`
+
+### Editing a pet
+
+1. Editing multiple fields without relying on a displayed index
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh (phone number `87438807`), and the pet has a known breed.
+
+   2. Test case: Run `list-clients`, then enter
+      `edit-pet p/Mochi i/87438807 n/Mochi Bean s/Cat r/Prefers quiet drying`.<br>
+      Expected: The command succeeds even though the client list is displayed. The status message is
+      `Edited pet: Mochi Bean`. Running `list-pets i/87438807` shows `Mochi Bean`, species `Cat`, the original breed,
+      and the updated requirement. The pet remains owned by Alex Yeoh.
+
+2. Updating or clearing an optional breed
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh and has a saved breed.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 b/British Shorthair`<br>
+      Expected: The pet's breed changes to `British Shorthair`; all omitted fields are unchanged.
+
+   3. Test case: `edit-pet p/Mochi i/87438807 b/`<br>
+      Expected: The pet's breed is removed. The status message is `Edited pet: Mochi`. `list-pets i/87438807` no
+      longer displays a breed for that pet.
+
+3. Matching pets by both name and owner
+
+   1. Prerequisites: Alex Yeoh (`87438807`) and Bernice Yu (`99272758`) each have a pet named `Milo`.
+
+   2. Test case: `edit-pet p/mIlO i/87438807 r/Needs calm handling`<br>
+      Expected: Only Alex Yeoh's Milo is updated. Bernice Yu's Milo is unchanged.
+
+   3. Test case: `edit-pet p/Milo i/91234567 r/Needs calm handling` when no pet has that owner phone number<br>
+      Expected: No pet is changed. The status message is
+      `No pet with the specified name and owner phone number was found.`
+
+4. Rejecting a duplicate name under one owner
+
+   1. Prerequisites: Alex Yeoh owns pets named `Mochi` and `BuBu`.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 n/  bUbU  `<br>
+      Expected: No pet is changed. The status message is `This client already has a pet named BuBu.` The comparison
+      ignores letter case and surrounding whitespace.
+
+5. Rejecting incomplete or malformed edits
+
+   1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh.
+
+   2. Test case: `edit-pet p/Mochi i/87438807`<br>
+      Expected: No pet is changed. The status message is `At least one field to edit must be provided.`
+
+   3. Test case: `edit-pet i/87438807 n/Mochi Bean` or `edit-pet p/Mochi n/Mochi Bean`<br>
+      Expected: No pet is changed. The status message identifies the missing required selector.
+
+   4. Test case: `edit-pet p/Mochi i/87438807 s/Horse`, `edit-pet p/Mochi i/71234567 n/Mochi Bean`, or
+      `edit-pet p/Mochi i/87438807 r/Bad/care`<br>
+      Expected: No pet is changed. The status message identifies the invalid species, phone number, or requirement.
+
+   5. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean n/Mochi Junior` or
+      `edit-pet p/Mochi i/87438807 x/value n/Mochi Bean`<br>
+      Expected: No pet is changed. The status message reports a repeated field or invalid command format.
+
+6. Saving the edited profile
+
+   1. Prerequisites: A successful `edit-pet` command has changed a pet profile.
+
+   2. Test case: Exit and relaunch BuBu, then run `list-pets i/OWNER_IDENTIFIER` for that pet.<br>
+      Expected: The edited values persist after restart.
 
 ### Deleting a pet
 

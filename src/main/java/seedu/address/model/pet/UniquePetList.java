@@ -79,6 +79,12 @@ public class UniquePetList implements Iterable<Pet> {
         }
     }
 
+    /** Removes every pet owned by {@code owner}. */
+    public void removeAllOwnedBy(Client owner) {
+        requireNonNull(owner);
+        internalList.removeIf(pet -> pet.getOwner().isSameClient(owner));
+    }
+
     /**
      * Replaces the contents of this list with {@code pets}.
      */

@@ -6,7 +6,9 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
@@ -35,6 +37,7 @@ public class DeleteAppointmentCommand extends Command {
             "No appointment was found for the specified date and time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is invalid.";
+    private static final Logger logger = LogsCenter.getLogger(DeleteAppointmentCommand.class);
 
     private final Index targetIndex;
     private final AppointmentDate targetDate;
@@ -67,6 +70,8 @@ public class DeleteAppointmentCommand extends Command {
 
         Appointment appointmentToDelete = findAppointment(model);
         model.deleteAppointment(appointmentToDelete);
+        logger.info(() -> "Appointment removed from model: " + appointmentToDelete.getDate()
+                + " " + appointmentToDelete.getStartTime() + "-" + appointmentToDelete.getEndTime());
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(appointmentToDelete)));
     }
 
@@ -79,6 +84,8 @@ public class DeleteAppointmentCommand extends Command {
             return appointments.get(targetIndex.getZeroBased());
         }
 
+        assert targetDate != null && targetTime != null
+                : "Date/time deletion requires both a date and a time";
         return model.getBubuBook().getAppointmentList().stream()
                 .filter(appointment -> appointment.matches(targetDate, targetTime))
                 .findFirst()

@@ -3,8 +3,11 @@ package seedu.address.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
@@ -31,6 +34,11 @@ import seedu.address.ui.pet.PetListPanel;
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final String CLIENTS_TITLE = "👥 Clients";
+    private static final String PETS_TITLE = "🐾 Pets";
+    private static final String APPOINTMENTS_TITLE = "📅 Appointments";
+    private static final String SINGLE_RECORD_FORMAT = "%d record";
+    private static final String MULTIPLE_RECORDS_FORMAT = "%d records";
     private static final double DEFAULT_RESULT_DISPLAY_HEIGHT = 100;
     private static final double HELP_RESULT_DISPLAY_HEIGHT = 300;
 
@@ -60,6 +68,12 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane statusbarPlaceholder;
+
+    @FXML
+    private Label recordTitle;
+
+    @FXML
+    private Label recordCount;
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
@@ -191,6 +205,31 @@ public class MainWindow extends UiPart<Stage> {
         setListVisibility(clientListPanel.getRoot(), displayType == DisplayType.CLIENTS);
         setListVisibility(petListPanel.getRoot(), displayType == DisplayType.PETS);
         setListVisibility(appointmentListPanel.getRoot(), displayType == DisplayType.APPOINTMENTS);
+        switch (displayType) {
+            case CLIENTS:
+                updateRecordHeading(CLIENTS_TITLE, logic.getFilteredClientList());
+                break;
+            case PETS:
+                updateRecordHeading(PETS_TITLE, logic.getFilteredPetList());
+                break;
+            case APPOINTMENTS:
+                updateRecordHeading(APPOINTMENTS_TITLE, logic.getFilteredAppointmentList());
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** Keeps the count in sync with filtering, additions and deletions in the visible list. */
+    private void updateRecordHeading(String title, ObservableList<?> records) {
+        recordTitle.setText(title);
+        recordCount.textProperty().unbind();
+        recordCount.textProperty().bind(Bindings.createStringBinding(() -> formatRecordCount(records.size()), records));
+    }
+
+    private String formatRecordCount(int count) {
+        String format = count == 1 ? SINGLE_RECORD_FORMAT : MULTIPLE_RECORDS_FORMAT;
+        return String.format(format, count);
     }
 
     private static void setListVisibility(Region listRoot, boolean visible) {
@@ -223,7 +262,7 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
-            resultDisplay.setFeedbackToUser(e.getMessage());
+            resultDisplay.setErrorFeedbackToUser(e.getMessage());
             setResultDisplayHeight(DEFAULT_RESULT_DISPLAY_HEIGHT);
             throw e;
         }

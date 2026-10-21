@@ -42,9 +42,7 @@ public class ListPetsCommandTest {
         List<Pet> savedOrder = List.copyOf(model.getBubuBook().getPetList());
         model.updateFilteredPetList(pet -> false);
 
-        String expected = "All pet profiles\n\nAlice Pauline\n"
-                + "BuBu Cat Daily walk\nmochi Dog Golden retriever Daily walk\n\n"
-                + "Benson Meier\nZoe Cat Daily walk";
+        String expected = "Listed all pets.";
         CommandResult result = new ListPetsCommand(null).execute(model);
         assertEquals(expected, result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
@@ -58,13 +56,13 @@ public class ListPetsCommandTest {
         Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
                 .withEmail("other-alice@example.com").build();
         model.addClient(sameNameOwner);
-        addPet(model, ALICE, "Mochi", Species.DOG, null);
-        addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
-        addPet(model, ALICE, "BuBu", Species.CAT, null);
+        Pet mochi = addPet(model, ALICE, "Mochi", Species.DOG, null);
+        Pet otherMochi = addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
+        Pet bubu = addPet(model, ALICE, "BuBu", Species.CAT, null);
 
-        String expected = "All pet profiles\n\nAlice Pauline\nMochi Cat Daily walk\n\n"
-                + "Alice Pauline\nBuBu Cat Daily walk\nMochi Dog Daily walk";
+        String expected = "Listed all pets.";
         assertEquals(expected, new ListPetsCommand(null).execute(model).getFeedbackToUser());
+        assertEquals(List.of(otherMochi, bubu, mochi), model.getFilteredPetList());
     }
 
     @Test
@@ -74,8 +72,7 @@ public class ListPetsCommandTest {
         addPet(model, ALICE, "Mochi", Species.DOG, "Golden retriever");
         addPet(model, ALICE, "BuBu", Species.CAT, null);
 
-        String expected = "Pets under Alice Pauline\nBuBu Cat Daily walk\n"
-                + "Mochi Dog Golden retriever Daily walk";
+        String expected = "Found 2 pet(s) under Alice Pauline.";
         CommandResult result = new ListPetsCommand(ALICE_PREDICATE).execute(model);
         assertEquals(expected, result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
@@ -84,10 +81,28 @@ public class ListPetsCommandTest {
     }
 
     @Test
+    public void execute_ownerFilterWithSameNameOwners_listsOnlyMatchingPhone() throws Exception {
+        Model model = createModel();
+        Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
+                .withEmail("other-alice@example.com").build();
+        model.addClient(sameNameOwner);
+        Pet alicePet = addPet(model, ALICE, "Mochi", Species.DOG, null);
+        addPet(model, sameNameOwner, "Mochi", Species.CAT, null);
+        List<Pet> savedPets = List.copyOf(model.getBubuBook().getPetList());
+
+        CommandResult result = new ListPetsCommand(ALICE_PREDICATE).execute(model);
+
+        assertEquals("Found 1 pet(s) under Alice Pauline.", result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.PETS, result.getDisplayType());
+        assertEquals(List.of(alicePet), model.getFilteredPetList());
+        assertEquals(savedPets, model.getBubuBook().getPetList());
+    }
+
+    @Test
     public void execute_emptyResults_returnsSpecificMessages() throws Exception {
         Model model = createModel();
 
-        assertEquals(ListPetsCommand.MESSAGE_NO_PETS,
+        assertEquals("Listed all pets.",
                 new ListPetsCommand(null).execute(model).getFeedbackToUser());
         assertEquals("Alice Pauline has no saved pet profiles.",
                 new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
@@ -99,12 +114,13 @@ public class ListPetsCommandTest {
     }
 
     @Test
-    public void execute_guineaPig_displaysReadableSpecies() throws Exception {
+    public void execute_singlePet_returnsCountAndPreservesProfile() throws Exception {
         Model model = createModel();
-        addPet(model, ALICE, "Pip", Species.GUINEA_PIG, null);
+        Pet pip = addPet(model, ALICE, "Pip", Species.GUINEA_PIG, null);
 
-        assertEquals("Pets under Alice Pauline\nPip Guinea pig Daily walk",
+        assertEquals("Found 1 pet(s) under Alice Pauline.",
                 new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
+        assertEquals(List.of(pip), model.getFilteredPetList());
     }
 
     @Test

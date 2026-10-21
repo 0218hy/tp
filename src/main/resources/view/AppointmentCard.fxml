@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -11,23 +12,29 @@
 <HBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <GridPane HBox.hgrow="ALWAYS">
     <columnConstraints>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10" prefWidth="150" />
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10" prefWidth="150" />
     </columnConstraints>
-    <VBox alignment="CENTER_LEFT" minHeight="105" GridPane.columnIndex="0">
+    <VBox alignment="CENTER_LEFT" spacing="8" minHeight="105" GridPane.columnIndex="0">
       <padding>
         <Insets top="5" right="5" bottom="5" left="15" />
       </padding>
-      <HBox spacing="0.5" alignment="CENTER_LEFT">
-        <Label fx:id="id" styleClass="cell_big_label">
-          <minWidth>
-            <Region fx:constant="USE_PREF_SIZE" />
-          </minWidth>
-        </Label>
-        <Label fx:id="dateTime" styleClass="cell_big_label" />
-      </HBox>
-      <Label fx:id="pet" styleClass="cell_small_label" />
-      <Label fx:id="owner" styleClass="cell_small_label" />
-      <Label fx:id="service" styleClass="cell_small_label" />
+      <Label fx:id="dateHeading" styleClass="date-heading" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+      <VBox styleClass="record-card" spacing="8" fillWidth="true">
+        <HBox spacing="0.5" alignment="CENTER_LEFT" styleClass="record-card-heading">
+          <Label fx:id="id" styleClass="cell_big_label">
+            <minWidth>
+              <Region fx:constant="USE_PREF_SIZE" />
+            </minWidth>
+          </Label>
+          <Label fx:id="appointmentTitle" styleClass="cell_big_label" wrapText="true" minHeight="-Infinity" HBox.hgrow="ALWAYS" />
+        </HBox>
+        <Label fx:id="pet" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+        <Label fx:id="owner" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+        <Label fx:id="phone" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+        <Label fx:id="address" styleClass="cell_small_label" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+        <Separator />
+        <Label fx:id="careNotes" styleClass="cell_small_label, care-highlight" wrapText="true" minHeight="-Infinity" maxWidth="Infinity" />
+      </VBox>
     </VBox>
   </GridPane>
 </HBox>

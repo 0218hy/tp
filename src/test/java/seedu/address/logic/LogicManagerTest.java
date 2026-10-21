@@ -10,6 +10,7 @@ import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.AMY;
@@ -17,6 +18,7 @@ import static seedu.address.testutil.TypicalClients.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,9 +29,11 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.appointment.DeleteAppointmentCommand;
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
-import seedu.address.logic.commands.client.ListCommand;
+import seedu.address.logic.commands.client.EditClientCommand;
+import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.DeletePetCommand;
+import seedu.address.logic.commands.pet.EditPetCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -40,10 +44,12 @@ import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
+import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.storage.JsonBubuBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class LogicManagerTest {
@@ -66,6 +72,75 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editClientFromFilteredList_updatesLinksAndSaves() throws Exception {
+        model.addClient(AMY);
+        model.addClient(ALICE);
+        model.addPet(new PetBuilder(ALICE).build());
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        logic.execute("list-clients q/" + ALICE.getPhone());
+
+        Client edited = new ClientBuilder(ALICE).withName("Zoe Tan").withPhone("89998888").build();
+        CommandResult result = logic.execute("edit-client i/" + ALICE.getPhone() + " n/Zoe Tan p/89998888");
+
+        assertEquals(String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(edited)),
+                result.getFeedbackToUser());
+        assertEquals(List.of(AMY, edited), model.getFilteredClientList());
+        assertEquals(edited, model.getBubuBook().getPetList().getFirst().getOwner());
+        assertEquals(edited.getPhone(), model.getBubuBook().getAppointmentList().getFirst().getOwnerPhone());
+        assertEquals(edited.getPhone(),
+                model.getBubuBook().getAppointmentList().getFirst().getPet().getOwner().getPhone());
+        assertEquals(model.getBubuBook(), new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"))
+                .readBubuBook().orElseThrow());
+        assertThrows(CommandException.class, EditClientCommand.MESSAGE_CLIENT_NOT_FOUND, () ->
+                logic.execute("edit-client i/" + ALICE.getPhone() + " n/Alex Tan"));
+        logic.execute("edit-client i/89998888 n/Alex Tan");
+        assertEquals("Alex Tan", model.getBubuBook().getClientList().get(1).getName().fullName);
+    }
+
+    @Test
+    public void execute_editClientFromOtherPanels_displaysClients() throws Exception {
+        model.addClient(ALICE);
+        for (String command : List.of("list-pets", "list-appointments")) {
+            logic.execute(command);
+            CommandResult result = logic.execute("edit-client i/" + ALICE.getPhone() + " n/Zoe Tan");
+            assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
+            assertEquals("Zoe Tan", model.getFilteredClientList().getFirst().getName().fullName);
+        }
+    }
+    @Test
+    public void execute_editClientRejectsHiddenDuplicatePhoneAndEmail() throws Exception {
+        model.addClient(ALICE);
+        model.addClient(AMY);
+        logic.execute("list-clients q/" + ALICE.getPhone());
+        for (String field : List.of("p/" + AMY.getPhone(), "e/" + AMY.getEmail())) {
+            assertThrows(CommandException.class, EditClientCommand.MESSAGE_DUPLICATE_CLIENT, () ->
+                    logic.execute("edit-client i/" + ALICE.getPhone() + " " + field));
+            assertEquals(List.of(ALICE), model.getFilteredClientList());
+            assertEquals(List.of(ALICE, AMY), model.getBubuBook().getClientList());
+        }
+    }
+
+    @Test
+    public void execute_editClientSaveFails_restoresLinkedRecords() {
+        model.addClient(ALICE);
+        model.addPet(new PetBuilder(ALICE).build());
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+
+        assertCommandException("edit-client i/" + ALICE.getPhone() + " p/89998888",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
@@ -79,8 +154,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_validCommand_success() throws Exception {
-        String listCommand = ListCommand.COMMAND_WORD;
-        assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+        String listCommand = ListClientsCommand.COMMAND_WORD;
+        assertCommandSuccess(listCommand, ListClientsCommand.MESSAGE_SUCCESS, model);
     }
 
     @Test
@@ -98,7 +173,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_listAppointments_readsScheduleWithoutSaving() throws Exception {
-        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
 
         CommandResult result = logic.execute("list-appointments");
@@ -115,14 +190,14 @@ public class LogicManagerTest {
 
         CommandResult result = logic.execute("list-pets i/" + ALICE.getPhone());
 
-        assertEquals("Pets under Alice Pauline\nMochi Dog Daily walk", result.getFeedbackToUser());
+        assertEquals("Found 1 pet(s) under Alice Pauline.", result.getFeedbackToUser());
         assertEquals(1, model.getBubuBook().getPetList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
     @Test
     public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {
-        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+        Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         model.addAppointment(appointment);
 
@@ -164,7 +239,7 @@ public class LogicManagerTest {
     @Test
     public void execute_identifierDeletionDoesNotRequireMatchingDisplayedList() throws Exception {
         model.addClient(ALICE);
-        Appointment appointment = new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         model.addAppointment(appointment);
 
@@ -200,6 +275,43 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_editPet_updatesAndSavesProfile() throws Exception {
+        Pet pet = new PetBuilder(ALICE).withBreed("Golden retriever").build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        Pet editedPet = new PetBuilder(pet).withName("Milo Bean").withRequirement("Prefers quiet drying").build();
+        expectedModel.setPet(pet, editedPet);
+
+        assertCommandSuccess("edit-pet p/mIlO i/" + ALICE.getPhone().value
+                        + " n/Milo Bean r/Prefers quiet drying",
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+
+        ReadOnlyBubuBook savedBubuBook = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")).readBubuBook().orElseThrow();
+        assertEquals(expectedModel.getBubuBook(), savedBubuBook);
+    }
+
+    @Test
+    public void execute_editPetSaveFails_restoresModel() {
+        Pet pet = new PetBuilder(ALICE).build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(bubuBookStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+
+        assertCommandException("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs a short walk",
+                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
     }
@@ -213,7 +325,7 @@ public class LogicManagerTest {
     public void execute_addPetSaveFails_restoresModel() {
         model.addClient(ALICE);
         model.addPet(new PetBuilder(ALICE).withBreed("Golden retriever").build());
-        model.addAppointment(new Appointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         JsonBubuBookStorage bubuBookStorage = new JsonBubuBookStorage(

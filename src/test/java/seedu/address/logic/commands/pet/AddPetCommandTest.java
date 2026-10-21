@@ -51,6 +51,17 @@ public class AddPetCommandTest {
     }
 
     @Test
+    public void execute_modelDoesNotStorePet_assertionFails() {
+        Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs()) {
+            @Override
+            public void addPet(Pet pet) {
+                // Simulates a model regression that silently drops an added pet.
+            }
+        };
+        assertThrows(AssertionError.class, () -> command("Mochi", OWNER_PHONE, null).execute(model));
+    }
+
+    @Test
     public void execute_unknownOwner_rejected() {
         Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs());
         assertThrows(CommandException.class, AddPetCommand.MESSAGE_OWNER_NOT_FOUND, () ->

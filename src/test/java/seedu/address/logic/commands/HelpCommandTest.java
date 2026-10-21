@@ -24,14 +24,16 @@ public class HelpCommandTest {
 
         assertTrue(commandReference.contains("help"));
         assertTrue(commandReference.contains("add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]..."));
-        assertTrue(commandReference.contains("list"));
-        assertTrue(commandReference.contains("find KEYWORD [MORE_KEYWORDS]"));
+        assertTrue(commandReference.contains(
+                "edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]..."));
         assertTrue(commandReference.contains("delete-client INDEX"));
         assertTrue(commandReference.contains("delete-client i/PHONE_NUMBER"));
         assertTrue(commandReference.contains(
                 "add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS"));
         assertTrue(commandReference.contains("list-clients [q/KEYWORD]"));
         assertTrue(commandReference.contains("list-pets [i/OWNER_IDENTIFIER]"));
+        assertTrue(commandReference.contains(
+                "edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]"));
         assertTrue(commandReference.contains("delete-pet INDEX"));
         assertTrue(commandReference.contains("delete-pet p/PET_NAME i/OWNER_IDENTIFIER"));
         assertTrue(commandReference.contains(

@@ -3,8 +3,10 @@ package seedu.address.logic.commands.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -52,6 +54,9 @@ public class AddAppointmentCommandTest {
         assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
         assertEquals("Appointment scheduled: BuBu; Owner phone: 91234567; Date: 07-10-2026; "
                 + "Time: 10:30-11:00; Service: Full groom", result.getFeedbackToUser());
+        Appointment saved = model.getBubuBook().getAppointmentList().get(0);
+        assertSame(model.getBubuBook().getClientList().get(0), saved.getOwner());
+        assertSame(model.getBubuBook().getPetList().get(0), saved.getPet());
         assertFalse(result.isExit());
         assertFalse(result.isShowHelp());
     }
@@ -106,11 +111,28 @@ public class AddAppointmentCommandTest {
     }
 
     @Test
+    public void execute_participantDetailsEditedBeforeExecution_usesLatestObjects() throws Exception {
+        AddAppointmentCommand command = command(VALID_APPOINTMENT);
+        Client editedOwner = new ClientBuilder(owner).withAddress("New address").withTags("friend").build();
+        model.setClient(owner, editedOwner);
+        Pet editedPet = new PetBuilder(pet).withOwner(editedOwner).withBreed("Poodle")
+                .withRequirement("Sensitive skin").build();
+        model.setPet(model.getBubuBook().getPetList().get(0), editedPet);
+
+        command.execute(model);
+
+        Appointment saved = model.getBubuBook().getAppointmentList().get(0);
+        assertSame(editedOwner, saved.getOwner());
+        assertSame(model.getBubuBook().getPetList().get(0), saved.getPet());
+        assertEquals(editedPet, saved.getPet());
+    }
+
+    @Test
     public void execute_ownerPhoneEdited_usesUpdatedPetOwner() throws Exception {
         Client editedOwner = new ClientBuilder(owner).withPhone("81234567").build();
         model.setClient(owner, editedOwner);
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
-        Appointment appointment = new Appointment(editedOwner.getPhone(), "BuBu", VALID_APPOINTMENT.getDate(),
+        Appointment appointment = createAppointment(editedOwner.getPhone(), "BuBu", VALID_APPOINTMENT.getDate(),
                 VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         command(appointment).execute(model);
         assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
@@ -140,7 +162,7 @@ public class AddAppointmentCommandTest {
 
     @Test
     public void execute_overlapForDifferentOwnerAndPet_noMutation() {
-        model.addAppointment(new Appointment(new Phone("81234567"), "Mochi", new AppointmentDate("07-10-2026"),
+        model.addAppointment(createAppointment(new Phone("81234567"), "Mochi", new AppointmentDate("07-10-2026"),
                 new StartTime("11:00"), new EndTime("12:00"), Service.NAIL_TRIM));
         for (Appointment appointment : List.of(create("07-10-2026", "11:00", "12:00"),
                 create("07-10-2026", "10:30", "11:30"), create("07-10-2026", "11:30", "12:30"),
@@ -171,16 +193,20 @@ public class AddAppointmentCommandTest {
     @Test
     public void execute_caseAndWhitespaceInPetName_matchesRegisteredPet() throws Exception {
         model.addPet(new PetBuilder(owner).withName("bubu   JUNIOR").build());
-        Appointment appointment = new Appointment(OWNER_PHONE, "  BuBu   Junior  ", VALID_APPOINTMENT.getDate(),
+        Appointment appointment = createAppointment(OWNER_PHONE, "  BuBu   Junior  ", VALID_APPOINTMENT.getDate(),
                 VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM);
         command(appointment).execute(model);
-        assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
+        Appointment saved = model.getBubuBook().getAppointmentList().get(0);
+        assertEquals("bubu   JUNIOR", saved.getPet().getName().value);
+        assertSame(model.getBubuBook().getPetList().get(1), saved.getPet());
     }
 
     @Test
     public void constructorAndExecute_nullArguments_rejected() {
-        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null));
-        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(VALID_APPOINTMENT, null));
+        assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null, "BuBu",
+                VALID_APPOINTMENT.getDate(), VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(),
+                Service.FULL_GROOM));
+        assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT, null));
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
@@ -196,26 +222,55 @@ public class AddAppointmentCommandTest {
     }
 
     @Test
+    public void equals_oneDifferentBookingField_notEqual() {
+        AddAppointmentCommand original = command(VALID_APPOINTMENT);
+        Appointment[] differentAppointments = {
+            createAppointment(new Phone("81234567"), "BuBu", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM),
+            createAppointment(OWNER_PHONE, "Mochi", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM),
+            create("08-10-2026", "10:30", "11:00"),
+            create("07-10-2026", "10:00", "11:00"),
+            create("07-10-2026", "10:30", "11:30"),
+            createAppointment(OWNER_PHONE, "BuBu", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.NAIL_TRIM)
+        };
+
+        for (Appointment appointment : differentAppointments) {
+            AddAppointmentCommand different = command(appointment);
+            assertNotEquals(original, different);
+            assertNotEquals(different, original);
+        }
+    }
+
+    @Test
     public void toString_includesAppointment() {
-        assertEquals(AddAppointmentCommand.class.getCanonicalName() + "{toSchedule=" + VALID_APPOINTMENT + "}",
-                command(VALID_APPOINTMENT).toString());
+        assertEquals(AddAppointmentCommand.class.getCanonicalName()
+                + "{ownerPhone=91234567, petName=BuBu, date=07-10-2026, "
+                + "startTime=10:30, endTime=11:00, service=Full groom}", command(VALID_APPOINTMENT).toString());
     }
 
     private AddAppointmentCommand command(Appointment appointment) {
-        return new AddAppointmentCommand(appointment, CLOCK);
+        return command(appointment, CLOCK);
+    }
+
+    private AddAppointmentCommand command(Appointment appointment, Clock clock) {
+        return new AddAppointmentCommand(appointment.getOwnerPhone(), appointment.getPetName().value,
+                appointment.getDate(), appointment.getStartTime(), appointment.getEndTime(),
+                appointment.getService(), clock);
     }
 
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
         BubuBook before = new BubuBook(model.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
-                new AddAppointmentCommand(appointment, clock).execute(model));
+                command(appointment, clock).execute(model));
         assertEquals(message, exception.getMessage());
         assertEquals(before, model.getBubuBook());
         return exception;
     }
 
     private static Appointment create(String date, String start, String end) {
-        return new Appointment(OWNER_PHONE, "BuBu", new AppointmentDate(date),
+        return createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
 

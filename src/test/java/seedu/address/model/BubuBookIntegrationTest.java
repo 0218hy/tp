@@ -3,6 +3,7 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.BENSON;
 
@@ -25,7 +26,7 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class BubuBookIntegrationTest {
-    private final Appointment appointment = new Appointment(ALICE.getPhone(), "Milo",
+    private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
     @Test
@@ -82,6 +83,87 @@ public class BubuBookIntegrationTest {
 
         assertSame(editedAlice, book.getPetList().get(0).getOwner());
         assertEquals(List.of(appointment), book.getAppointmentList());
+    }
+
+    @Test
+    public void setClient_changedPhoneThenRemoveClient_removesAppointments() {
+        BubuBook book = populatedBook();
+        Client editedAlice = new ClientBuilder(ALICE).withPhone("81234567").build();
+
+        book.setClient(ALICE, editedAlice);
+        book.removeClient(editedAlice);
+
+        assertEquals(List.of(), book.getClientList());
+        assertEquals(List.of(), book.getPetList());
+        assertEquals(List.of(), book.getAppointmentList());
+    }
+
+    @Test
+    public void removePet_removesRelatedAppointmentsAndRetainsOtherRecords() {
+        BubuBook book = populatedBook();
+        book.addClient(BENSON);
+        Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
+        book.addPet(bensonPet);
+        Appointment bensonAppointment = new Appointment(BENSON, bensonPet,
+                new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
+                Service.NAIL_TRIM);
+        book.addAppointment(bensonAppointment);
+
+        Pet alicePet = book.getPetList().get(0);
+        book.removePet(alicePet);
+
+        assertEquals(List.of(ALICE, BENSON), book.getClientList());
+        assertEquals(List.of(bensonPet), book.getPetList());
+        assertEquals(List.of(bensonAppointment), book.getAppointmentList());
+    }
+
+    @Test
+    public void removePet_matchesBothOwnerAndNameWhenRemovingAppointments() {
+        BubuBook book = new BubuBook();
+        book.addClient(ALICE);
+        book.addClient(BENSON);
+        Pet aliceMilo = new PetBuilder(ALICE).build();
+        Pet bensonMilo = new PetBuilder(BENSON).build();
+        Pet aliceCoco = new PetBuilder(ALICE).withName("Coco").build();
+        book.addPet(aliceMilo);
+        book.addPet(bensonMilo);
+        book.addPet(aliceCoco);
+
+        Appointment aliceMiloAppointment = new Appointment(ALICE, aliceMilo,
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        Appointment bensonMiloAppointment = new Appointment(BENSON, bensonMilo,
+                new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
+                Service.NAIL_TRIM);
+        Appointment aliceCocoAppointment = new Appointment(ALICE, aliceCoco,
+                new AppointmentDate("01-01-2000"), new StartTime("12:00"), new EndTime("13:00"),
+                Service.BATH_AND_BRUSH);
+        book.addAppointment(aliceMiloAppointment);
+        book.addAppointment(bensonMiloAppointment);
+        book.addAppointment(aliceCocoAppointment);
+
+        book.removePet(aliceMilo);
+
+        assertEquals(List.of(bensonMilo, aliceCoco), book.getPetList());
+        assertEquals(List.of(bensonMiloAppointment, aliceCocoAppointment), book.getAppointmentList());
+    }
+
+    @Test
+    public void removeClient_removesOwnedPetsAndAppointments() {
+        BubuBook book = populatedBook();
+        book.addClient(BENSON);
+        Pet bensonPet = new PetBuilder(BENSON).withName("Coco").build();
+        book.addPet(bensonPet);
+        Appointment bensonAppointment = new Appointment(BENSON, bensonPet,
+                new AppointmentDate("01-01-2000"), new StartTime("11:00"), new EndTime("12:00"),
+                Service.NAIL_TRIM);
+        book.addAppointment(bensonAppointment);
+
+        book.removeClient(ALICE);
+
+        assertEquals(List.of(BENSON), book.getClientList());
+        assertEquals(List.of(bensonPet), book.getPetList());
+        assertEquals(List.of(bensonAppointment), book.getAppointmentList());
     }
 
     @Test
