@@ -30,6 +30,7 @@ public class CommandBoxTest {
             });
             TextField commandTextField = getCommandTextField(commandBox);
 
+            submit(commandTextField, "");
             commandTextField.setText("draft command");
             KeyEvent upEvent = press(commandTextField, KeyCode.UP);
             KeyEvent downEvent = press(commandTextField, KeyCode.DOWN);
@@ -54,6 +55,8 @@ public class CommandBoxTest {
             submit(commandTextField, "list-pets");
             submit(commandTextField, "help");
             submit(commandTextField, "list-pets");
+            press(commandTextField, KeyCode.LEFT);
+            assertCommandText(commandTextField, "");
 
             press(commandTextField, KeyCode.UP);
             assertCommandText(commandTextField, "list-pets");
