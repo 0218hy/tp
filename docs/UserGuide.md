@@ -344,6 +344,33 @@ Appointments are included until their end time, using Singapore time. Completed 
 but are excluded from this list. If none remain, the command displays `No ongoing or future appointments.`
 This command currently takes no parameters; the optional `d/` date filter is not yet supported.
 
+### Editing an appointment: `edit-appointment`
+
+Edits a saved appointment identified by its current date and start time, or by its displayed appointment-list index.
+
+Formats:
+
+```text
+edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/END_TIME] [s/SERVICE]
+edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/END_TIME] [s/SERVICE]
+```
+
+* `d/` and `st/` identify the existing appointment. Identifier-based edits search all saved appointments.
+* `INDEX` refers to the one-based position in the currently displayed appointment list, so run `list-appointments`
+  first when using this form.
+* Provide either the date/start-time identifiers or an index, but not both. Replacement fields can be combined with
+  either identification form.
+* Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
+* The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
+  appointment.
+
+Examples:
+
+* `edit-appointment d/18-09-2027 st/10:00 s/Full groom` changes the service for the appointment starting at 10:00.
+* `edit-appointment d/18-09-2027 st/10:00 nd/19-09-2027 nst/11:00 et/12:00` moves the appointment to a new date
+  and time and changes its end time.
+* `edit-appointment 1 et/12:00` changes the end time of the first appointment in the displayed appointment list.
+
 ### Deleting an appointment: `delete-appointment`
 
 Deletes a saved grooming appointment using either its displayed appointment-list index or a date and time within the appointment.

@@ -49,6 +49,8 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 `ListPetsCommand` and `ListAppointmentsCommand` prepare the corresponding filtered views.
 `DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
 appointment deletion also accepts a date/time pair.
+`EditAppointmentCommand` and `EditAppointmentCommandParser` accept either a date/start-time identifier or a displayed
+appointment index, with `nd/` and `nst/` prefixes reserved for replacement date and start time values.
 `EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
 phone-identified client-edit flow.
 

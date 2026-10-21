@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_END_TIME;
+import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_NEW_DATE;
+import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_NEW_START_TIME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_OWNER_IDENTIFIER;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_SERVICE;
@@ -42,22 +44,28 @@ import seedu.address.model.pet.PetName;
 public class EditAppointmentCommand extends Command {
 
     public static final String COMMAND_WORD = "edit-appointment";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the appointment identified by the index "
-            + "number used in the displayed appointment list. Existing values will be overwritten by the input "
-            + "values.\nParameters: INDEX (must be a positive integer) "
-            + "[" + PREFIX_OWNER_IDENTIFIER + "OWNER_PHONE] "
-            + "[" + PREFIX_PET_NAME + "PET_NAME] "
-            + "[" + PREFIX_DATE + "DD-MM-YYYY] "
-            + "[" + PREFIX_START_TIME + "HH:mm] "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits an appointment identified by its date and "
+            + "start time, or by the index in the displayed appointment list. Existing values will be overwritten "
+            + "by the input values.\nParameters: " + PREFIX_DATE + "CURRENT_DATE "
+            + PREFIX_START_TIME + "CURRENT_START_TIME, or INDEX "
+            + "[" + PREFIX_OWNER_IDENTIFIER + "NEW_OWNER_PHONE] "
+            + "[" + PREFIX_PET_NAME + "NEW_PET_NAME] "
+            + "[" + PREFIX_NEW_DATE + "NEW_DATE] "
+            + "[" + PREFIX_NEW_START_TIME + "NEW_START_TIME] "
             + "[" + PREFIX_END_TIME + "HH:mm] "
             + "[" + PREFIX_SERVICE + "SERVICE]\n"
-            + "Example: " + COMMAND_WORD + " 1 " + PREFIX_START_TIME + "11:00 " + PREFIX_END_TIME + "12:00";
+            + "Example: " + COMMAND_WORD + " d/18-09-2027 st/10:00 "
+            + PREFIX_END_TIME + "12:00";
 
     public static final String MESSAGE_SUCCESS = "Edited appointment: %1$s";
     public static final String MESSAGE_EDIT_APPOINTMENT_SUCCESS = MESSAGE_SUCCESS;
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is invalid.";
+    public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
+            "No appointment was found for the specified date and start time.";
+    public static final String MESSAGE_INDEX_AND_DATE_TIME =
+            "An appointment index cannot be combined with date and start-time identifiers.";
     public static final String MESSAGE_OWNER_NOT_FOUND = AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND;
     public static final String MESSAGE_PET_NOT_FOUND = AddAppointmentCommand.MESSAGE_PET_NOT_FOUND;
     public static final String MESSAGE_PAST_START = AddAppointmentCommand.MESSAGE_PAST_START;
@@ -67,37 +75,87 @@ public class EditAppointmentCommand extends Command {
     private static final Logger logger = LogsCenter.getLogger(EditAppointmentCommand.class);
 
     private final Index index;
+    private final AppointmentDate targetDate;
+    private final StartTime targetStartTime;
     private final EditAppointmentDescriptor editAppointmentDescriptor;
     private final Clock clock;
 
-    /** Creates a command using the real clock in Singapore. */
+    /**
+     * Creates an index-based edit command using the real clock in Singapore.
+     *
+     * @param index displayed one-based appointment index to edit
+     * @param editAppointmentDescriptor requested replacement fields
+     */
     public EditAppointmentCommand(Index index, EditAppointmentDescriptor editAppointmentDescriptor) {
         this(index, editAppointmentDescriptor, Clock.system(SINGAPORE_ZONE));
     }
 
-    /** Creates a command with a supplied clock, which keeps time-sensitive tests deterministic. */
+    /**
+     * Creates an index-based edit command with a supplied clock.
+     *
+     * @param index displayed one-based appointment index to edit
+     * @param editAppointmentDescriptor requested replacement fields
+     * @param clock clock used for the future-start validation
+     */
     public EditAppointmentCommand(Index index, EditAppointmentDescriptor editAppointmentDescriptor, Clock clock) {
         requireAllNonNull(index, editAppointmentDescriptor, clock);
         this.index = index;
+        this.targetDate = null;
+        this.targetStartTime = null;
         this.editAppointmentDescriptor = new EditAppointmentDescriptor(editAppointmentDescriptor);
         this.clock = clock.withZone(SINGAPORE_ZONE);
     }
 
-    @Override
-    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
-        return Optional.of(CommandResult.DisplayType.APPOINTMENTS);
+    /**
+     * Creates an identifier-based edit command using the real clock in Singapore.
+     *
+     * @param targetDate current date of the appointment to edit
+     * @param targetStartTime current start time of the appointment to edit
+     * @param editAppointmentDescriptor requested replacement fields
+     */
+    public EditAppointmentCommand(AppointmentDate targetDate, StartTime targetStartTime,
+                                  EditAppointmentDescriptor editAppointmentDescriptor) {
+        this(targetDate, targetStartTime, editAppointmentDescriptor, Clock.system(SINGAPORE_ZONE));
     }
 
+    /**
+     * Creates an identifier-based edit command with a supplied clock.
+     *
+     * @param targetDate current date of the appointment to edit
+     * @param targetStartTime current start time of the appointment to edit
+     * @param editAppointmentDescriptor requested replacement fields
+     * @param clock clock used for the future-start validation
+     */
+    public EditAppointmentCommand(AppointmentDate targetDate, StartTime targetStartTime,
+                                  EditAppointmentDescriptor editAppointmentDescriptor, Clock clock) {
+        requireAllNonNull(targetDate, targetStartTime, editAppointmentDescriptor, clock);
+        this.index = null;
+        this.targetDate = targetDate;
+        this.targetStartTime = targetStartTime;
+        this.editAppointmentDescriptor = new EditAppointmentDescriptor(editAppointmentDescriptor);
+        this.clock = clock.withZone(SINGAPORE_ZONE);
+    }
+
+    /** Returns the appointment display requirement for index-based edits. */
+    @Override
+    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
+        return index == null
+                ? Optional.empty()
+                : Optional.of(CommandResult.DisplayType.APPOINTMENTS);
+    }
+
+    /**
+     * Finds and edits the selected appointment, validating participants, timing, and overlap constraints.
+     *
+     * @param model model containing the appointment and participant records
+     * @return the result message describing the edited appointment
+     * @throws CommandException if the target or participants cannot be found, the start is not in the future,
+     *                          or the edited appointment overlaps another appointment
+     */
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Appointment> displayedAppointments = model.getFilteredAppointmentList();
-        if (index.getZeroBased() >= displayedAppointments.size()) {
-            logger.fine("edit-appointment rejected: invalid displayed appointment index.");
-            throw new CommandException(MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX);
-        }
-
-        Appointment appointmentToEdit = displayedAppointments.get(index.getZeroBased());
+        Appointment appointmentToEdit = findAppointment(model);
         Appointment editedAppointment = createEditedAppointment(model, appointmentToEdit, editAppointmentDescriptor);
 
         LocalDateTime start = editedAppointment.getDate().value.atTime(editedAppointment.getStartTime().value);
@@ -130,6 +188,28 @@ public class EditAppointmentCommand extends Command {
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(editedAppointment)));
     }
 
+    /** Finds the target appointment using either the displayed index or date/start-time identifier. */
+    private Appointment findAppointment(Model model) throws CommandException {
+        if (index != null) {
+            List<Appointment> displayedAppointments = model.getFilteredAppointmentList();
+            if (index.getZeroBased() >= displayedAppointments.size()) {
+                logger.fine("edit-appointment rejected: invalid displayed appointment index.");
+                throw new CommandException(MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX);
+            }
+            return displayedAppointments.get(index.getZeroBased());
+        }
+
+        return model.getBubuBook().getAppointmentList().stream()
+                .filter(appointment -> appointment.getDate().equals(targetDate)
+                        && appointment.getStartTime().equals(targetStartTime))
+                .findFirst()
+                .orElseThrow(() -> {
+                    logger.fine("edit-appointment rejected: no appointment matches the date and start time.");
+                    return new CommandException(MESSAGE_APPOINTMENT_NOT_FOUND);
+                });
+    }
+
+    /** Creates a complete appointment by applying the descriptor to the existing appointment. */
     private static Appointment createEditedAppointment(Model model, Appointment appointmentToEdit,
                                                        EditAppointmentDescriptor descriptor) throws CommandException {
         assert appointmentToEdit != null;
@@ -165,6 +245,7 @@ public class EditAppointmentCommand extends Command {
         return new Appointment(owner, pet, date, startTime, endTime, service);
     }
 
+    /** Formats an appointment for the command result message. */
     private static String formatAppointment(Appointment appointment) {
         return appointment.getPetName() + "; Owner phone: " + appointment.getOwnerPhone()
                 + "; Date: " + appointment.getDate() + "; Time: " + appointment.getStartTime()
@@ -179,14 +260,23 @@ public class EditAppointmentCommand extends Command {
         if (!(other instanceof EditAppointmentCommand otherCommand)) {
             return false;
         }
-        return index.equals(otherCommand.index)
+        return Objects.equals(index, otherCommand.index)
+                && Objects.equals(targetDate, otherCommand.targetDate)
+                && Objects.equals(targetStartTime, otherCommand.targetStartTime)
                 && editAppointmentDescriptor.equals(otherCommand.editAppointmentDescriptor);
     }
 
     @Override
     public String toString() {
+        if (index != null) {
+            return new ToStringBuilder(this)
+                    .add("targetIndex", index)
+                    .add("editAppointmentDescriptor", editAppointmentDescriptor)
+                    .toString();
+        }
         return new ToStringBuilder(this)
-                .add("index", index)
+                .add("targetDate", targetDate)
+                .add("targetStartTime", targetStartTime)
                 .add("editAppointmentDescriptor", editAppointmentDescriptor)
                 .toString();
     }
@@ -200,9 +290,10 @@ public class EditAppointmentCommand extends Command {
         private EndTime endTime;
         private Service service;
 
+        /** Creates an empty descriptor with no requested changes. */
         public EditAppointmentDescriptor() {}
 
-        /** Copy constructor. */
+        /** Creates a defensive copy of the supplied descriptor. */
         public EditAppointmentDescriptor(EditAppointmentDescriptor toCopy) {
             requireNonNull(toCopy);
             setOwnerPhone(toCopy.ownerPhone);
@@ -213,59 +304,72 @@ public class EditAppointmentCommand extends Command {
             setService(toCopy.service);
         }
 
-        /** Returns true if at least one field is edited. */
+        /** Returns whether at least one replacement field has been supplied. */
         public boolean isAnyFieldEdited() {
             return CollectionUtil.isAnyNonNull(ownerPhone, petName, date, startTime, endTime, service);
         }
 
+        /** Sets the replacement owner phone number. */
         public void setOwnerPhone(Phone ownerPhone) {
             this.ownerPhone = ownerPhone;
         }
 
+        /** Returns the replacement owner phone number, if one was supplied. */
         public Optional<Phone> getOwnerPhone() {
             return Optional.ofNullable(ownerPhone);
         }
 
+        /** Sets the replacement pet name. */
         public void setPetName(PetName petName) {
             this.petName = petName;
         }
 
+        /** Parses and sets the replacement pet name from text. */
         public void setPetName(String petName) {
             this.petName = petName == null ? null : new PetName(petName);
         }
 
+        /** Returns the replacement pet name, if one was supplied. */
         public Optional<PetName> getPetName() {
             return Optional.ofNullable(petName);
         }
 
+        /** Sets the replacement appointment date. */
         public void setDate(AppointmentDate date) {
             this.date = date;
         }
 
+        /** Returns the replacement appointment date, if one was supplied. */
         public Optional<AppointmentDate> getDate() {
             return Optional.ofNullable(date);
         }
 
+        /** Sets the replacement appointment start time. */
         public void setStartTime(StartTime startTime) {
             this.startTime = startTime;
         }
 
+        /** Returns the replacement appointment start time, if one was supplied. */
         public Optional<StartTime> getStartTime() {
             return Optional.ofNullable(startTime);
         }
 
+        /** Sets the replacement appointment end time. */
         public void setEndTime(EndTime endTime) {
             this.endTime = endTime;
         }
 
+        /** Returns the replacement appointment end time, if one was supplied. */
         public Optional<EndTime> getEndTime() {
             return Optional.ofNullable(endTime);
         }
 
+        /** Sets the replacement grooming service. */
         public void setService(Service service) {
             this.service = service;
         }
 
+        /** Returns the replacement grooming service, if one was supplied. */
         public Optional<Service> getService() {
             return Optional.ofNullable(service);
         }

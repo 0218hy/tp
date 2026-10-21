@@ -40,6 +40,10 @@ Delete appointment
   delete-appointment INDEX
   delete-appointment d/DD-MM-YYYY t/HH:mm
 
+Edit appointment
+  edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/HH:mm] [s/SERVICE]
+  edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/HH:mm] [s/SERVICE]
+
 Clear all clients, pets, and appointments
   clear
 

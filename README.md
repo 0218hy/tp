@@ -14,7 +14,7 @@ BuBu provides one command-driven workflow for client records, pet profiles, and 
 
 * **Manage clients:** Add, list, search, and delete client records containing names, Singapore mobile numbers, email addresses, and service addresses.
 * **Keep pet profiles:** Add and edit owner-linked pet profiles with species, optional breed information, and grooming or care requirements. View all pets or filter by owner.
-* **Plan appointments:** Schedule grooming services for registered pets, view ongoing or future bookings in chronological order, and delete cancelled bookings. Overlapping appointments are rejected.
+* **Plan appointments:** Schedule grooming services for registered pets, view ongoing or future bookings in chronological order, and edit or delete bookings. Overlapping appointments are rejected.
 * **Switch record views:** The GUI displays one of the client, pet, or appointment lists at a time. List commands select the visible record type, while index-based deletions use the corresponding displayed list.
 
 ## Commands
@@ -23,7 +23,7 @@ BuBu provides one command-driven workflow for client records, pet profiles, and 
 | --- | --- |
 | Manage client records | `add-client`, `list-clients`, `delete-client` |
 | Manage pet profiles | `add-pet`, `list-pets`, `edit-pet`, `delete-pet` |
-| Manage grooming appointments | `add-appointment`, `list-appointments`, `delete-appointment` |
+| Manage grooming appointments | `add-appointment`, `list-appointments`, `edit-appointment`, `delete-appointment` |
 
 For example, `list-clients q/amelia` searches client records, `list-pets i/87438807` shows the pets owned by the client with that phone number, and `list-appointments` displays upcoming appointments in chronological order.
 
