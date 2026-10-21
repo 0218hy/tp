@@ -14,7 +14,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -55,6 +57,8 @@ public class EditClientCommand extends Command {
     public static final String MESSAGE_DUPLICATE_CLIENT =
             "A client with this phone number or email already exists.";
 
+    private static final Logger logger = LogsCenter.getLogger(EditClientCommand.class);
+
     private final Phone identifier;
     private final EditClientDescriptor editClientDescriptor;
 
@@ -76,17 +80,23 @@ public class EditClientCommand extends Command {
         Client clientToEdit = model.getBubuBook().getClientList().stream()
                 .filter(client -> client.getPhone().equals(identifier))
                 .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_CLIENT_NOT_FOUND));
+                .orElseThrow(() -> {
+                    logger.fine("edit-client rejected: no saved client matches the phone identifier.");
+                    return new CommandException(MESSAGE_CLIENT_NOT_FOUND);
+                });
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
         for (Client client : model.getBubuBook().getClientList()) {
             if (!client.equals(clientToEdit) && client.isSameClient(editedClient)) {
+                logger.fine("edit-client rejected: updated phone number or email belongs to another client.");
                 throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
             }
         }
 
         model.setClient(clientToEdit, editedClient);
         model.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
+        logger.info(() -> "edit-client: client updated in model; phone changed="
+                + !clientToEdit.getPhone().equals(editedClient.getPhone()) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
                 CommandResult.DisplayType.CLIENTS);
     }

@@ -7,6 +7,9 @@ import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 
+import java.util.logging.Logger;
+
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
@@ -40,6 +43,8 @@ public class AddClientCommand extends Command {
     public static final String MESSAGE_DUPLICATE_CLIENT =
             "A client with this phone number or email already exists.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddClientCommand.class);
+
     private final Client toAdd;
 
     /**
@@ -55,10 +60,12 @@ public class AddClientCommand extends Command {
         requireNonNull(model);
 
         if (model.hasClient(toAdd)) {
+            logger.fine("add-client rejected: phone number or email already belongs to a saved client.");
             throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
         }
 
         model.addClient(toAdd);
+        logger.info("add-client: client added to model; awaiting storage save.");
         return new CommandResult(String.format(
                 MESSAGE_SUCCESS, toAdd.getName(), toAdd.getPhone()));
     }
