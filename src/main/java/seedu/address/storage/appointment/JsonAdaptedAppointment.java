@@ -92,14 +92,13 @@ public class JsonAdaptedAppointment {
                     throw new IllegalValueException("Appointment fields must not be missing.");
                 }
                 Phone phone = new Phone(ownerPhone);
-                PetName name = new PetName(petName.trim().replaceAll("\\s+", " "));
+                PetName name = new PetName(petName);
                 List<Client> matches = clients.stream().filter(client -> client.getPhone().equals(phone)).toList();
                 if (matches.size() != 1) {
                     throw new IllegalValueException("Legacy appointment owner does not identify a registered client.");
                 }
                 modelOwner = matches.get(0);
-                modelPet = pets.stream().filter(candidate -> candidate.getOwner().equals(modelOwner)
-                        && candidate.getName().getNormalizedName().equals(name.getNormalizedName()))
+                modelPet = pets.stream().filter(candidate -> candidate.isSamePet(modelOwner, name))
                         .findFirst().orElseThrow(() -> new IllegalValueException(
                                 "Legacy appointment pet is not registered under its owner."));
             }

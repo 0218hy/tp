@@ -88,7 +88,18 @@ public class Pet {
             return true;
         }
 
-        return otherPet != null && isIdentifiedBy(otherPet.owner.getPhone(), otherPet.name);
+        return otherPet != null
+                && isSamePet(otherPet.owner, otherPet.name);
+    }
+
+    /**
+     * Returns whether the owner phone and normalized name identify this pet.
+     * Changes to the owner's other profile details do not affect pet identity.
+     */
+    public boolean isSamePet(Client otherOwner, PetName otherName) {
+        return otherOwner != null && otherName != null
+                && owner.getPhone().equals(otherOwner.getPhone())
+                && name.getNormalizedName().equals(otherName.getNormalizedName());
     }
 
     @Override

@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Comparator;
 import java.util.List;
 
 import seedu.address.logic.commands.Command;
@@ -21,13 +20,9 @@ public class ListAppointmentsCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Lists ongoing and future appointments in chronological order (Singapore time).\n"
             + "This command takes no parameters.\nExample: " + COMMAND_WORD;
-    public static final String MESSAGE_SUCCESS = "Ongoing and future appointments";
+    public static final String MESSAGE_SUCCESS = "Ongoing or future appointments found: %d.";
     public static final String MESSAGE_NO_APPOINTMENTS = "No ongoing or future appointments.";
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
-    private static final Comparator<Appointment> APPOINTMENT_ORDER = Comparator
-            .comparing((Appointment appointment) -> appointment.getDate().value)
-            .thenComparing(appointment -> appointment.getStartTime().value);
-
     private final Clock clock;
 
     /** Creates a command using the current time in Singapore. */
@@ -52,17 +47,7 @@ public class ListAppointmentsCommand extends Command {
             return new CommandResult(MESSAGE_NO_APPOINTMENTS, CommandResult.DisplayType.APPOINTMENTS);
         }
 
-        StringBuilder result = new StringBuilder(MESSAGE_SUCCESS);
-        for (Appointment appointment : appointments) {
-            result.append("\n").append(appointment.getDate())
-                    .append(" ").append(appointment.getStartTime()).append("-").append(appointment.getEndTime())
-                    .append("; Pet: ").append(appointment.getPetName())
-                    .append("; Owner: ").append(appointment.getOwner().getName())
-                    .append("; Owner phone: ").append(appointment.getOwnerPhone())
-                    .append("; Address: ").append(appointment.getOwner().getAddress())
-                    .append("; Care notes: ").append(appointment.getPet().getRequirement())
-                    .append("; Service: ").append(appointment.getService());
-        }
-        return new CommandResult(result.toString(), CommandResult.DisplayType.APPOINTMENTS);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, appointments.size()),
+                CommandResult.DisplayType.APPOINTMENTS);
     }
 }
