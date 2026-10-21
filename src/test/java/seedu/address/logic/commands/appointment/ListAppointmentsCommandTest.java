@@ -27,8 +27,6 @@ import seedu.address.testutil.PetBuilder;
 public class ListAppointmentsCommandTest {
     // 10:00 in Singapore, although the supplied clock uses UTC.
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-10-07T02:00:00Z"), ZoneOffset.UTC);
-    private static final String DETAILS = "; Pet: BuBu; Owner: Amy Bee; Owner phone: 91234567; "
-            + "Address: 123, Jurong West Ave 6, #08-111; Care notes: Daily walk; Service: Full groom";
     private final ModelManager model = new ModelManager();
 
     @Test
@@ -42,11 +40,7 @@ public class ListAppointmentsCommandTest {
         model.setAppointments(saved);
 
         CommandResult result = new ListAppointmentsCommand(CLOCK).execute(model);
-        assertEquals("Ongoing and future appointments\n"
-                + "07-10-2026 09:30-10:30" + DETAILS + "\n"
-                + "07-10-2026 12:00-13:00" + DETAILS + "\n"
-                + "08-10-2026 08:00-09:00" + DETAILS + "\n"
-                + "01-11-2026 08:00-09:00" + DETAILS,
+        assertEquals("Ongoing or future appointments found: 4.",
                 result.getFeedbackToUser());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
         assertEquals(saved, model.getBubuBook().getAppointmentList());
@@ -58,8 +52,7 @@ public class ListAppointmentsCommandTest {
         model.setAppointments(List.of(create("07-10-2026", "09:00", "10:00"),
                 create("07-10-2026", "10:00", "11:00")));
 
-        assertEquals("Ongoing and future appointments\n"
-                + "07-10-2026 10:00-11:00" + DETAILS,
+        assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(CLOCK).execute(model).getFeedbackToUser());
     }
 
@@ -84,13 +77,12 @@ public class ListAppointmentsCommandTest {
         model.setAppointments(List.of(create("07-10-2026", "19:00", "20:00"),
                 create("08-10-2026", "08:00", "09:00")));
 
-        assertEquals("Ongoing and future appointments\n"
-                + "08-10-2026 08:00-09:00" + DETAILS,
+        assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(midnight).execute(model).getFeedbackToUser());
     }
 
     @Test
-    public void execute_participantsRemoved_displaysSavedGroomingDetails() {
+    public void execute_participantsRemoved_keepsSavedAppointmentAvailable() {
         Client owner = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
                 .withAddress("123 Clementi Road, #04-56").build();
         Pet pet = new PetBuilder(owner).withName("Mochi")
@@ -105,9 +97,7 @@ public class ListAppointmentsCommandTest {
 
         CommandResult result = new ListAppointmentsCommand(CLOCK).execute(model);
 
-        assertEquals("Ongoing and future appointments\n08-10-2026 10:00-11:00; Pet: Mochi; Owner: Jane Tan; "
-                + "Owner phone: 81234567; Address: 123 Clementi Road, #04-56; "
-                + "Care notes: Sensitive skin; use fragrance-free shampoo and avoid the ears; Service: Nail trim",
+        assertEquals("Ongoing or future appointments found: 1.",
                 result.getFeedbackToUser());
         assertEquals(List.of(appointment), model.getFilteredAppointmentList());
     }
