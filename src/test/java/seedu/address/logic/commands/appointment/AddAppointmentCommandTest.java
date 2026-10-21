@@ -222,6 +222,28 @@ public class AddAppointmentCommandTest {
     }
 
     @Test
+    public void equals_oneDifferentBookingField_notEqual() {
+        AddAppointmentCommand original = command(VALID_APPOINTMENT);
+        Appointment[] differentAppointments = {
+            createAppointment(new Phone("81234567"), "BuBu", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM),
+            createAppointment(OWNER_PHONE, "Mochi", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.FULL_GROOM),
+            create("08-10-2026", "10:30", "11:00"),
+            create("07-10-2026", "10:00", "11:00"),
+            create("07-10-2026", "10:30", "11:30"),
+            createAppointment(OWNER_PHONE, "BuBu", VALID_APPOINTMENT.getDate(),
+                    VALID_APPOINTMENT.getStartTime(), VALID_APPOINTMENT.getEndTime(), Service.NAIL_TRIM)
+        };
+
+        for (Appointment appointment : differentAppointments) {
+            AddAppointmentCommand different = command(appointment);
+            assertNotEquals(original, different);
+            assertNotEquals(different, original);
+        }
+    }
+
+    @Test
     public void toString_includesAppointment() {
         assertEquals(AddAppointmentCommand.class.getCanonicalName()
                 + "{ownerPhone=91234567, petName=BuBu, date=07-10-2026, "
