@@ -9,6 +9,10 @@ Add client
 List clients
   list-clients [q/KEYWORD]
 
+Edit client
+  edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
+  i/ identifies the client; p/ changes their phone. Use the new number in i/ after a phone change.
+
 Delete client
   delete-client INDEX
   delete-client i/PHONE_NUMBER

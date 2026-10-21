@@ -50,7 +50,7 @@ client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` res
 `DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
 appointment deletion also accepts a date/time pair.
 `EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
-index-based client-edit flow.
+phone-identified client-edit flow.
 
 Replacing the BubuBook validates all collections before changing existing records and keeps
 observable list views connected to the model. Client edits update linked pet owners.
@@ -189,12 +189,28 @@ Index-based commands accept exactly one positive integer index:
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
-* Identifier forms such as `delete-client i/PHONE_NUMBER`, `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
+* Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
+  `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
   `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
 `LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
 list is not displayed. This prevents a deletion index from being interpreted against a different record type.
+
+#### Identifier-based client editing
+
+`BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser requires `i/CURRENT_PHONE` and at least
+one update field. `i/` selects the existing client; `p/` supplies a replacement phone number. Names, emails,
+addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is rejected.
+
+`EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
+or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
+`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and updates linked appointment phone numbers.
+After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
+
+Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
+records and restores the previous records if saving fails. No client-panel guard is needed because selection does
+not depend on a displayed index.
 
 #### Identifier-based pet editing
 
@@ -580,7 +596,7 @@ Use case ends.
 - The old appointment is removed only after Groomer confirms.
 - The new appointment does not overlap any existing appointment.
 
-*BuBu has no edit feature, so rescheduling is a deletion followed by a new booking.*
+*BuBu has no appointment-edit feature, so rescheduling is a deletion followed by a new booking.*
 
 **MSS:**
 
@@ -994,6 +1010,57 @@ testers are expected to do more *exploratory* testing.
 
    4. Test case: `list-clients zoe` or `list-clients n/Zoe`<br>
       Expected: The command is rejected with an invalid-command-format message and the command usage.
+
+### Editing a client
+
+1. Identifying a client independently of the displayed list
+
+   1. Prerequisites: A saved client uses phone `91234567`. Note their contact details and tags.
+
+   2. Test case: Run `list-pets`, then `edit-client i/91234567 n/Zoe Tan`.<br>
+      Expected: The client's name changes to Zoe Tan, with all other details unchanged. The status message
+      begins with `Edited client:` and the full client list is displayed.
+
+   3. Test case: Run `list-clients q/zzzznomatch` to hide the client, then `edit-client i/91234567 t/`.<br>
+      Expected: The same client's tags are cleared despite being hidden. The full client list is displayed again.
+
+   4. Test case: Run `list-appointments`, then `edit-client i/91234567 n/Zoe Lim`.<br>
+      Expected: The edit succeeds and the client list replaces the appointment panel.
+
+2. Rejecting invalid edits
+
+   1. Test case: `edit-client 1 n/Zoe Tan`, `edit-client n/Zoe Tan`, or `edit-client i/ n/Zoe Tan`<br>
+      Expected: No client changes. An invalid-command-format message and usage are shown.
+
+   2. Test case: `edit-client i/91234567`, `edit-client i/91234567 p/123`, or
+      `edit-client i/91234567 n/Zoe n/Amy`<br>
+      Expected: No client changes. The error reports a missing update, invalid phone number, or repeated field.
+
+   3. Test case: `edit-client i/89998888 n/Zoe Tan` when that phone number is not saved<br>
+      Expected: No client changes. The message is `No saved client has this phone number.`.
+
+   4. Test case: `edit-client i/91234567 i/82345678 n/Zoe Tan`<br>
+      Expected: No client changes. Repeated identifiers are rejected.
+
+   5. Prerequisites: Another saved client has phone `82345678` and email `other@example.com`.
+
+   6. Test case: `edit-client i/91234567 p/82345678` or `edit-client i/91234567 e/other@example.com`<br>
+      Expected: Both edits are rejected with `A client with this phone number or email already exists.`,
+      even when the other client is hidden by a search.
+
+3. Updating linked records and saving changes
+
+   1. Prerequisites: The client with phone `91234567` owns a pet and has an appointment. Phone `89998888` is unused.
+
+   2. Test case: `edit-client i/91234567 p/89998888`, then `list-pets i/89998888`<br>
+      Expected: The client's phone changes and the same pet appears under the new phone.
+      The linked appointment's owner phone also becomes `89998888`; its other booking details remain unchanged.
+
+   3. Test case: `edit-client i/91234567 n/Zoe Tan`, then `edit-client i/89998888 n/Zoe Tan`<br>
+      Expected: The old identifier is rejected as unknown. The new identifier succeeds.
+
+   4. Test case: Close and relaunch BuBu, then inspect the client, pet, and appointment.<br>
+      Expected: The updated phone and links persist after restart.
 
 ### Deleting a person
 
