@@ -65,17 +65,23 @@ public class AddPetCommand extends Command {
         Pet pet = new Pet(name, owner, species, breed, requirement);
         checkForDuplicate(model, pet);
         model.addPet(pet);
+        assert model.hasPet(pet) : "A successfully added pet must be present in the book";
         return new CommandResult(formatSuccessMessage(owner));
     }
 
     /**
      * Finds the registered client with the supplied phone number.
+     * Searches all saved clients, including those hidden by the current client filter.
+     *
+     * @throws CommandException if no registered client has that phone number.
      */
     private Client findOwner(Model model) throws CommandException {
-        return model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().value.equals(ownerPhone))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
+        for (Client client : model.getBubuBook().getClientList()) {
+            if (client.hasPhone(ownerPhone)) {
+                return client;
+            }
+        }
+        throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
     }
 
     /**
@@ -90,7 +96,7 @@ public class AddPetCommand extends Command {
     }
 
     /**
-     * Formats the success message, including the breed when it is known.
+     * Formats the success message, including the breed only when it is known.
      */
     private String formatSuccessMessage(Client owner) {
         return breed == null

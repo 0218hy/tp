@@ -45,6 +45,10 @@ public class Client {
         return phone;
     }
 
+    public boolean hasPhone(String phoneNumber) {
+        return phone.value.equals(phoneNumber);
+    }
+
     public Email getEmail() {
         return email;
     }

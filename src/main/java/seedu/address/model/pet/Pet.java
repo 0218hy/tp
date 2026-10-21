@@ -6,9 +6,10 @@ import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.Phone;
 
 /**
- * Represents a pet in the BuBu.
+ * Represents a pet in BuBu.
  * Its required details are non-null, while breed may be absent.
  * The profile is immutable.
  */
@@ -47,6 +48,15 @@ public class Pet {
 
     public Client getOwner() {
         return owner;
+    }
+
+    /**
+     * Returns whether this pet belongs to the client identified by {@code ownerPhone}.
+     * Ownership is determined by phone number, not by name or other client details.
+     * Returns false when {@code ownerPhone} is null.
+     */
+    public boolean isOwnedBy(Phone ownerPhone) {
+        return owner.getPhone().equals(ownerPhone);
     }
 
     public Species getSpecies() {

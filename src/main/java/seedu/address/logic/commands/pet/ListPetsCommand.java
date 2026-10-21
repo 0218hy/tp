@@ -17,7 +17,7 @@ import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
- * Updates the filtered pet list without changing the saved BubuBook or displayed client list.
+ * Selects the pet view without changing saved records or the client list's filter.
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
@@ -68,18 +68,23 @@ public class ListPetsCommand extends Command {
      * Returns the registered owner with the requested phone number.
      *
      * @param model The model whose registered owners are searched.
+     * @throws CommandException if no registered client has the requested phone number.
      */
     private Client findOwner(Model model) throws CommandException {
-        return model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().equals(predicate.getOwnerPhone()))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_OWNER_NOT_FOUND));
+        assert predicate != null : "Owner lookup is only needed for an owner-filtered listing";
+        for (Client client : model.getBubuBook().getClientList()) {
+            if (client.getPhone().equals(predicate.getOwnerPhone())) {
+                return client;
+            }
+        }
+        throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
     }
 
     /**
-     * Formats all saved profiles, grouped by owner.
+     * Formats profiles that the model has already ordered by owner and pet name.
+     * Consecutive pets belonging to the same owner share a heading.
      *
-     * @param savedPets The saved profiles to sort and display.
+     * @param savedPets The profiles in the model's display order; this method does not sort them.
      */
     private String formatAllPets(List<Pet> savedPets) {
         if (savedPets.isEmpty()) {
@@ -87,12 +92,11 @@ public class ListPetsCommand extends Command {
         }
 
         StringBuilder result = new StringBuilder(MESSAGE_ALL_PETS);
-        String previousOwnerPhone = null;
+        Client previousOwner = null;
         for (Pet pet : savedPets) {
-            String currentOwnerPhone = pet.getOwner().getPhone().value;
-            if (!currentOwnerPhone.equals(previousOwnerPhone)) {
-                result.append(GROUP_SEPARATOR).append(pet.getOwner().getName());
-                previousOwnerPhone = currentOwnerPhone;
+            if (previousOwner == null || !pet.isOwnedBy(previousOwner.getPhone())) {
+                previousOwner = pet.getOwner();
+                result.append(GROUP_SEPARATOR).append(previousOwner.getName());
             }
             result.append(LINE_SEPARATOR).append(formatPet(pet));
         }
@@ -112,23 +116,31 @@ public class ListPetsCommand extends Command {
 
         StringBuilder result = new StringBuilder(String.format(MESSAGE_OWNER_PETS, owner.getName()));
         for (Pet pet : pets) {
+            assert pet.isOwnedBy(owner.getPhone())
+                    : "An owner-filtered listing must contain only that owner's pets";
             result.append(LINE_SEPARATOR).append(formatPet(pet));
         }
         return result.toString();
     }
 
     /**
-     * Formats one pet's name, species, optional breed, and requirements.
-     *
-     * @param pet The profile to display.
+     * Formats one pet's name, species, optional breed, and care requirements on a single line.
      */
     private String formatPet(Pet pet) {
-        StringBuilder details = new StringBuilder(pet.getName().toString())
-                .append(DETAIL_SEPARATOR).append(pet.getSpecies().getDisplayName());
+        StringBuilder details = new StringBuilder(pet.getName().toString());
+        appendDetail(details, pet.getSpecies().getDisplayName());
         if (pet.getBreed() != null) {
-            details.append(DETAIL_SEPARATOR).append(pet.getBreed());
+            appendDetail(details, pet.getBreed().toString());
         }
-        return details.append(DETAIL_SEPARATOR).append(pet.getRequirement()).toString();
+        appendDetail(details, pet.getRequirement().toString());
+        return details.toString();
+    }
+
+    /**
+     * Appends a displayed field with a space separating it from the previous field.
+     */
+    private void appendDetail(StringBuilder details, String value) {
+        details.append(DETAIL_SEPARATOR).append(value);
     }
 
     @Override

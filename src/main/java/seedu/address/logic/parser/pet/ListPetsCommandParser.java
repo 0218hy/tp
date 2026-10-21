@@ -3,6 +3,7 @@ package seedu.address.logic.parser.pet;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.pet.ListPetsCommand;
@@ -53,7 +54,9 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
         // The tokenizer recognizes a prefix only when whitespace precedes it, including the first prefix.
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + input, PREFIX_OWNER_IDENTIFIER);
         validateStructure(input, fields);
-        return new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(parseOwnerPhone(fields)));
+        Phone ownerPhone = parseOwnerPhone(fields);
+        PetOwnerPhoneMatchesPredicate ownerFilter = new PetOwnerPhoneMatchesPredicate(ownerPhone);
+        return new ListPetsCommand(ownerFilter);
     }
 
     /**
@@ -79,6 +82,8 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
      * @throws ParseException if the phone number is invalid or followed by extra text.
      */
     private Phone parseOwnerPhone(ArgumentMultimap fields) throws ParseException {
+        assert fields.getAllValues(PREFIX_OWNER_IDENTIFIER).size() <= MAX_OWNER_FIELDS
+                : "Repeated owner identifiers must be rejected before parsing the phone";
         String phoneValue = fields.getValue(PREFIX_OWNER_IDENTIFIER)
                 .orElseThrow(() -> new ParseException(MESSAGE_INVALID_FORMAT));
         if (EXTRA_TEXT_AFTER_PHONE_PATTERN.matcher(phoneValue).matches()) {
@@ -96,8 +101,13 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
      * @param input The command arguments to inspect for unsupported prefixes.
      */
     private boolean hasUnknownPrefix(String input) {
-        return PREFIX_PATTERN.matcher(input).results()
-                .map(match -> match.group().trim())
-                .anyMatch(prefix -> !prefix.equals(PREFIX_OWNER_IDENTIFIER.toString()));
+        Matcher matcher = PREFIX_PATTERN.matcher(input);
+        while (matcher.find()) {
+            String prefix = matcher.group().trim();
+            if (!prefix.equals(PREFIX_OWNER_IDENTIFIER.toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

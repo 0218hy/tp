@@ -181,6 +181,7 @@ Index-based commands accept exactly one positive integer index:
 list is not displayed. This prevents a deletion index from being interpreted against a different record type.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
