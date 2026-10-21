@@ -46,14 +46,16 @@ public class EditAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "edit-appointment";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits an appointment identified by its date and "
             + "start time, or by the index in the displayed appointment list. Existing values will be overwritten "
-            + "by the input values.\nParameters: " + PREFIX_DATE + "CURRENT_DATE "
-            + PREFIX_START_TIME + "CURRENT_START_TIME, or INDEX "
+            + "by the input values.\nTarget: " + PREFIX_DATE + "CURRENT_DATE "
+            + PREFIX_START_TIME + "CURRENT_START_TIME, or INDEX\n"
+            + "Optional replacements: "
             + "[" + PREFIX_OWNER_IDENTIFIER + "NEW_OWNER_PHONE] "
             + "[" + PREFIX_PET_NAME + "NEW_PET_NAME] "
             + "[" + PREFIX_NEW_DATE + "NEW_DATE] "
             + "[" + PREFIX_NEW_START_TIME + "NEW_START_TIME] "
-            + "[" + PREFIX_END_TIME + "HH:mm] "
-            + "[" + PREFIX_SERVICE + "SERVICE]\n"
+            + "[" + PREFIX_END_TIME + "NEW_END_TIME] "
+            + "[" + PREFIX_SERVICE + "NEW_SERVICE]\n"
+            + "Date format: DD-MM-YYYY; time format: HH:mm.\n"
             + "Example: " + COMMAND_WORD + " d/18-09-2027 st/10:00 "
             + PREFIX_END_TIME + "12:00";
 

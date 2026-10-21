@@ -351,8 +351,8 @@ Edits a saved appointment identified by its current date and start time, or by i
 Formats:
 
 ```text
-edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/END_TIME] [s/SERVICE]
-edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/END_TIME] [s/SERVICE]
+edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
+edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
 ```
 
 * `d/` and `st/` identify the existing appointment. Identifier-based edits search all saved appointments.
@@ -360,6 +360,8 @@ edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/N
   first when using this form.
 * Provide either the date/start-time identifiers or an index, but not both. Replacement fields can be combined with
   either identification form.
+* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`; `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
+  `HH:mm`.
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
 * The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
   appointment.
