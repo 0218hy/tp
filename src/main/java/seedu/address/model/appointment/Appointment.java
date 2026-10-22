@@ -90,6 +90,14 @@ public class Appointment {
     }
 
     /**
+     * Returns a copy with the pet's current name, preserving the appointment's remaining snapshot details.
+     */
+    Appointment withPetName(PetName newPetName) {
+        requireNonNull(newPetName);
+        return new Appointment(owner, pet.withName(newPetName), date, startTime, endTime, service);
+    }
+
+    /**
      * Returns whether this appointment belongs to the given pet.
      * Pet names are compared using the same normalized form used when scheduling appointments.
      */

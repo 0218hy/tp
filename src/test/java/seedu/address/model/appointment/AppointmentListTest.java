@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 import seedu.address.testutil.ClientBuilder;
 
 public class AppointmentListTest {
@@ -49,6 +52,35 @@ public class AppointmentListTest {
 
         assertEquals(new Phone("99999999"), appointments.getAppointmentList().get(0).getOwnerPhone());
         assertEquals(new Phone("81234567"), appointments.getAppointmentList().get(1).getOwnerPhone());
+    }
+
+    @Test
+    public void updatePetName_updatesAllMatchingAppointmentsAndPreservesOthers() {
+        AppointmentList appointments = new AppointmentList();
+        Appointment firstMatch = create("10:00", "11:00");
+        Appointment secondMatch = create("11:00", "12:00");
+        Appointment otherPet = createAppointment(new Phone("81234567"), "Mochi",
+                new AppointmentDate("01-01-2020"), new StartTime("12:00"), new EndTime("13:00"),
+                Service.NAIL_TRIM);
+        appointments.setAppointments(List.of(firstMatch, secondMatch, otherPet));
+        Pet renamedPet = firstMatch.getPet().withName(new PetName("Rex"));
+
+        appointments.updatePetName(firstMatch.getPet(), renamedPet.getName());
+
+        assertEquals(new PetName("Rex"), appointments.getAppointmentList().get(0).getPetName());
+        assertEquals(new PetName("Rex"), appointments.getAppointmentList().get(1).getPetName());
+        assertTrue(appointments.getAppointmentList().get(0).isForPet(renamedPet));
+        assertTrue(appointments.getAppointmentList().get(1).isForPet(renamedPet));
+        assertEquals(new PetName("Mochi"), appointments.getAppointmentList().get(2).getPetName());
+    }
+
+    @Test
+    public void updatePetName_nullArguments_throwNullPointerException() {
+        AppointmentList appointments = new AppointmentList();
+        Pet pet = FIRST.getPet();
+
+        assertThrows(NullPointerException.class, () -> appointments.updatePetName(null, new PetName("Rex")));
+        assertThrows(NullPointerException.class, () -> appointments.updatePetName(pet, null));
     }
 
     private static Appointment create(String start, String end) {

@@ -100,7 +100,11 @@ public class BubuBook implements ReadOnlyBubuBook {
 
     public void setPet(Pet target, Pet editedPet) {
         requireAllNonNull(target, editedPet);
-        pets.setPet(target, editedPet.withOwner(findOwner(editedPet, getClientList())));
+        Pet resolvedPet = editedPet.withOwner(findOwner(editedPet, getClientList()));
+        pets.setPet(target, resolvedPet);
+        if (!target.getName().equals(resolvedPet.getName())) {
+            appointments.updatePetName(target, resolvedPet.getName());
+        }
     }
 
     /** Removes a pet and all appointments belonging to that pet. */

@@ -17,10 +17,16 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.exceptions.ClientNotFoundException;
 import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
@@ -116,6 +122,42 @@ public class BubuBookTest {
         bubuBook.setClient(ALICE, editedAlice);
 
         assertSame(editedAlice, bubuBook.getPetList().get(0).getOwner());
+    }
+
+    @Test
+    public void setPet_nameChange_updatesRelatedAppointmentsAndRetainsUnrelatedAppointments() {
+        bubuBook.addClient(ALICE);
+        Client otherOwner = new ClientBuilder().withPhone("81234567").withEmail("other@example.com").build();
+        bubuBook.addClient(otherOwner);
+        bubuBook.addPet(new PetBuilder(ALICE).withName("Milo").withRequirement("Original requirement").build());
+        bubuBook.addPet(new PetBuilder(otherOwner).withName("Mochi").build());
+        Pet milo = bubuBook.getPetList().get(0);
+        Pet mochi = bubuBook.getPetList().get(1);
+        Appointment miloAppointment = new Appointment(ALICE, milo, new AppointmentDate("01-01-2020"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        Appointment mochiAppointment = new Appointment(otherOwner, mochi, new AppointmentDate("01-01-2020"),
+                new StartTime("11:00"), new EndTime("12:00"), Service.NAIL_TRIM);
+        bubuBook.addAppointment(miloAppointment);
+        bubuBook.addAppointment(mochiAppointment);
+
+        // Non-name changes do not alter the appointment's historical pet snapshot.
+        Pet requirementOnlyEdit = new PetBuilder(milo).withRequirement("Updated requirement").build();
+        bubuBook.setPet(milo, requirementOnlyEdit);
+        assertSame(miloAppointment, bubuBook.getAppointmentList().get(0));
+
+        // A name change updates appointment identity while retaining its other snapshot details.
+        Pet renamedMilo = new PetBuilder(requirementOnlyEdit).withName("Rex").build();
+        bubuBook.setPet(requirementOnlyEdit, renamedMilo);
+        Pet savedRex = bubuBook.getPetList().get(0);
+
+        assertEquals(new PetName("Rex"), bubuBook.getAppointmentList().get(0).getPetName());
+        assertTrue(bubuBook.getAppointmentList().get(0).isForPet(savedRex));
+        assertEquals("Original requirement", bubuBook.getAppointmentList().get(0).getPet().getRequirement().toString());
+        assertSame(mochiAppointment, bubuBook.getAppointmentList().get(1));
+
+        // The renamed pet must still be associated with, and remove, its appointment.
+        bubuBook.removePet(savedRex);
+        assertEquals(List.of(mochiAppointment), bubuBook.getAppointmentList());
     }
 
     @Test

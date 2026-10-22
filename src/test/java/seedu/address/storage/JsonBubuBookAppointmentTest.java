@@ -28,6 +28,7 @@ import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 import seedu.address.storage.appointment.JsonAdaptedAppointment;
 import seedu.address.storage.client.JsonAdaptedClient;
 import seedu.address.storage.pet.JsonAdaptedPet;
@@ -80,7 +81,10 @@ public class JsonBubuBookAppointmentTest {
 
         var restored = storage.readBubuBook().orElseThrow();
         assertEquals(book, restored);
-        assertEquals(appointment, restored.getAppointmentList().get(0));
+        // Pet renames cascade to appointment identity, while the appointment retains its profile snapshot.
+        assertEquals(new Appointment(appointment.getOwner(), appointment.getPet().withName(new PetName("New name")),
+                appointment.getDate(), appointment.getStartTime(), appointment.getEndTime(), appointment.getService()),
+                restored.getAppointmentList().get(0));
         assertSame(restored.getAppointmentList().get(0).getOwner(),
                 restored.getAppointmentList().get(0).getPet().getOwner());
     }

@@ -11,6 +11,7 @@ import seedu.address.model.appointment.exceptions.OverlappingAppointmentExceptio
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
+import seedu.address.model.pet.PetName;
 
 /**
  * Stores appointments independently of owner records, rejecting nulls and overlaps.
@@ -86,6 +87,21 @@ public class AppointmentList {
             Appointment appointment = internalList.get(index);
             if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
                 internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+            }
+        }
+    }
+
+    /**
+     * Updates every appointment belonging to {@code currentPet} with its replacement name.
+     * Other appointment snapshot details remain unchanged.
+     */
+    public void updatePetName(Pet currentPet, PetName newPetName) {
+        requireNonNull(currentPet);
+        requireNonNull(newPetName);
+        for (int index = 0; index < internalList.size(); index++) {
+            Appointment appointment = internalList.get(index);
+            if (appointment.isForPet(currentPet)) {
+                internalList.set(index, appointment.withPetName(newPetName));
             }
         }
     }
