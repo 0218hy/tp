@@ -533,6 +533,35 @@ The command makes no changes when it cannot be completed.
 * Invalid command format — any argument is supplied.
 * `Unable to verify existing records. Please contact support.` — commands are blocked because the data file was invalid at startup.
 
+### Editing an appointment: `edit-appointment`
+
+Edits a saved appointment identified by its current date and start time, or by its displayed appointment-list index.
+
+Formats:
+
+```text
+edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
+edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
+```
+
+* `d/` and `st/` identify the existing appointment. Identifier-based edits search all saved appointments.
+* `INDEX` refers to the one-based position in the currently displayed appointment list, so run `list-appointments`
+  first when using this form.
+* Provide either the date/start-time identifiers or an index, but not both. Replacement fields can be combined with
+  either identification form.
+* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`; `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
+  `HH:mm`.
+* Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
+* The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
+  appointment.
+
+Examples:
+
+* `edit-appointment d/18-09-2027 st/10:00 s/Full groom` changes the service for the appointment starting at 10:00.
+* `edit-appointment d/18-09-2027 st/10:00 nd/19-09-2027 nst/11:00 et/12:00` moves the appointment to a new date
+  and time and changes its end time.
+* `edit-appointment 1 et/12:00` changes the end time of the first appointment in the displayed appointment list.
+
 ### Deleting an appointment: `delete-appointment`
 
 Deletes a booking by its displayed index or a date and time within it. Date-and-time lookup searches all saved appointments, including completed bookings hidden from the list.

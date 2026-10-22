@@ -1,0 +1,60 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+title Editing an appointment by date/start time or displayed index
+
+Participant ":LogicManager" as logic LOGIC_COLOR
+Participant ":BuBuParser" as parser LOGIC_COLOR
+Participant ":EditAppointmentCommandParser" as ecp LOGIC_COLOR
+Participant "command:EditAppointmentCommand" as command LOGIC_COLOR
+Participant "model:Model" as model MODEL_COLOR
+Participant "result:CommandResult" as result LOGIC_COLOR
+
+[-> logic : execute(commandText)
+activate logic
+logic -> parser ++: parseCommand(commandText)
+create ecp
+parser -> ecp ++: parse(arguments)
+create command
+ecp -> command ++: target, editAppointmentDescriptor
+command --> ecp --
+ecp --> parser --: command
+parser --> logic --: command
+
+logic -> command ++: execute(model)
+note right of logic
+  Index-based execution first requires
+  the appointment list to be the current display.
+end note
+alt index-based target
+    command -> model ++: getFilteredAppointmentList()
+    model --> command --: displayed appointments
+    command -> command : select appointment at index
+else date/start-time target
+    command -> model ++: getBubuBook().getAppointmentList()
+    model --> command --: saved appointments
+    command -> command : find exact date and start time
+end
+
+command -> model ++: get saved clients and pets
+model --> command --: participant records
+command -> command : apply optional replacement fields
+note right of command
+  Validate the owner and pet,
+  future start time, duration, and overlap.
+end note
+command -> model ++: setAppointments(replacement)
+model --> command --: replacement accepted
+command -> model : updateFilteredAppointmentList(SHOW_ALL)
+
+create result
+command -> result ++: create(success message)
+result --> command --
+command --> logic --: result
+note right of logic
+  LogicManager saves the updated BubuBook
+  after successful command execution.
+end note
+[<-- logic : commandResult
+deactivate logic
+@enduml
