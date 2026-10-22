@@ -227,6 +227,10 @@ corresponding record list is not displayed. This prevents an index from being in
 
 #### Identifier-based client editing
 
+The following sequence diagram shows editing a client using their current phone number:
+
+![Sequence diagram for editing a client by phone number](images/EditClientSequenceDiagram.png)
+
 `BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser requires `i/CURRENT_PHONE` and at least
 one update field. `i/` selects the existing client; `p/` supplies a replacement phone number. Names, emails,
 addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is rejected.
