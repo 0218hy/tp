@@ -157,11 +157,16 @@ starts a new history and avoids storing commands that may contain client informa
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
-<img src="images/LogicClassDiagram.png" width="550"/>
+<img src="images/LogicClassDiagram.png" width="900" alt="Logic interfaces, command execution, and display selection" />
+
+`LogicManager` implements `Logic` and holds one `BuBuParser`, `Model`, and `Storage` reference.
+The diagram shows `EditClientCommand`, `EditPetCommand`, and `EditAppointmentCommand` as examples of concrete
+`Command` subclasses; other commands are omitted. `Command.execute(Model)` returns a `CommandResult`, whose
+`DisplayType` identifies the list to show or requests that the current selection remain unchanged.
 
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete-client 1")` API call as an example.
 
@@ -175,32 +180,50 @@ The appointment command flows are shown separately because both commands support
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to a `BuBuParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
-2. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
-3. The command can communicate with the `Model` when it is executed (e.g. to delete a client, pet, or appointment).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-4. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. `LogicManager` passes the input to `BuBuParser.parseCommand`. For feature commands, `BuBuParser` creates the
+   matching parser (e.g., `DeleteClientCommandParser`) and calls `parse(arguments)`. It creates `ClearCommand`,
+   `HelpCommand`, and `ExitCommand` directly.
+2. Before executing the returned `Command`, `LogicManager` rejects commands if the saved book was unreadable at
+   startup and checks any display requirement declared by `Command.getRequiredDisplayType()`.
+3. The command executes against `Model` and returns a `CommandResult`. `ListPetsCommand` and
+   `ListAppointmentsCommand` skip saving. For all other commands, the current implementation takes a book snapshot
+   before execution and saves the book afterwards; if saving fails, it restores the snapshot and throws a
+   `CommandException` instead of returning success.
+4. After successful execution and any required save, `LogicManager` updates its current display type from the
+   result and returns it to the UI. `UNCHANGED` preserves the previously selected list.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The following partial diagram expands the parser structure using one edit-command parser from each feature.
+Helper dependencies are expanded only for `EditAppointmentCommandParser` to keep the diagram readable;
+the other parsers also use shared helpers as required.
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="800" alt="Feature command parsers, prefix definitions, and shared parsing helpers" />
 
 How the parsing works:
-* When called upon to parse a user command, the `BuBuParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddClientCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddClientCommand`). The `BuBuParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddClientCommandParser` and `DeleteClientCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
+  Each feature parser implements `Parser<T>` for its command type: for example, `EditPetCommandParser`
+  implements `Parser<EditPetCommand>`. Its `parse` method validates the arguments and constructs the command,
+  which `BuBuParser` returns as a `Command`.
+* Prefix constants belong to `ClientCliSyntax`, `PetCliSyntax`, or `AppointmentCliSyntax` in the corresponding
+  feature package. `ArgumentTokenizer` uses the supplied `Prefix` objects to produce an `ArgumentMultimap`,
+  which stores argument values by prefix.
+* `ParserUtil` parses positive indices; it does not define or depend on prefixes. `ClientParserUtil` parses
+  client fields, including owner phone numbers used by pet and appointment commands. `PetParserUtil` parses
+  pet names. For example, `EditAppointmentCommandParser` uses all three utilities because it supports an index,
+  an owner phone number, and a pet name.
 
 Index-based commands accept exactly one positive integer index:
 
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
+* `edit-appointment INDEX ...` uses the currently displayed appointment list.
 * Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
   `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
   `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
-`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
-list is not displayed. This prevents a deletion index from being interpreted against a different record type.
+`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion or appointment edit when the
+corresponding record list is not displayed. This prevents an index from being interpreted against a different record type.
 
 #### Identifier-based client editing
 
