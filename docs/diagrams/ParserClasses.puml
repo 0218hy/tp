@@ -1,38 +1,61 @@
 @startuml
+!pragma layout smetana
 !include style.puml
+skinparam dpi 150
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
 
-Class "{abstract}\nCommand" as Command
-Class XYZCommand
+class BuBuParser
+class "<<interface>>\nParser" as Parser
 
-package "Parser classes"{
-Class "<<interface>>\nParser" as Parser
-Class BuBuParser
-Class XYZCommandParser
-Class CliSyntax
-Class ParserUtil
-Class ArgumentMultimap
-Class ArgumentTokenizer
-Class Prefix
+together {
+    class EditClientCommandParser
+    class EditPetCommandParser
+    class EditAppointmentCommandParser
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> BuBuParser
+together {
+    class ClientCliSyntax
+    class PetCliSyntax
+    class AppointmentCliSyntax
+}
 
-BuBuParser .down.> XYZCommandParser: <<create>>
+class ClientParserUtil
+class PetParserUtil
+class ParserUtil
+class ArgumentTokenizer
+class ArgumentMultimap
+class Prefix
 
-XYZCommandParser ..> XYZCommand : <<create>>
-BuBuParser ..> Command : <<use>>
-XYZCommandParser .up.|> Parser
-XYZCommandParser ..> ArgumentMultimap
-XYZCommandParser ..> ArgumentTokenizer
-ArgumentTokenizer .left.> ArgumentMultimap
-XYZCommandParser ..> CliSyntax
-CliSyntax ..> Prefix
-XYZCommandParser ..> ParserUtil
-ParserUtil .down.> Prefix
-ArgumentTokenizer .down.> Prefix
-XYZCommand -up-|> Command
+BuBuParser ..> EditClientCommandParser : <<create>>
+BuBuParser ..> EditPetCommandParser : <<create>>
+BuBuParser ..> EditAppointmentCommandParser : <<create>>
+EditClientCommandParser .up.|> Parser
+EditPetCommandParser .up.|> Parser
+EditAppointmentCommandParser .up.|> Parser
+
+EditClientCommandParser ..> ClientCliSyntax
+EditPetCommandParser ..> PetCliSyntax
+EditAppointmentCommandParser ..> AppointmentCliSyntax
+ClientCliSyntax ..> Prefix
+PetCliSyntax ..> Prefix
+AppointmentCliSyntax ..> Prefix
+
+' Helper dependencies are expanded only for the appointment-edit example.
+EditAppointmentCommandParser ..> ClientParserUtil
+EditAppointmentCommandParser ..> PetParserUtil
+EditAppointmentCommandParser ..> ParserUtil
+EditAppointmentCommandParser ..> ArgumentTokenizer
+EditAppointmentCommandParser ..> ArgumentMultimap
+ArgumentTokenizer ..> ArgumentMultimap : <<create>>
+ArgumentTokenizer ..> Prefix
+ArgumentMultimap --> "*" Prefix : keys
+
+legend bottom
+  Partial diagram: one example parser per feature.
+  Each implements Parser for its matching command type.
+  Command classes and other feature parsers are omitted.
+  Helper dependencies are expanded only for EditAppointmentCommandParser.
+endlegend
 @enduml

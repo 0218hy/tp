@@ -1,25 +1,56 @@
 @startuml
-!include style.puml
+' Use the model colors and class styling from style.puml without sequence-only settings.
+!define MODEL_COLOR #9D0012
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam class {
+    FontColor #FFFFFF
+    FontSize 15
+    BorderThickness 1
+    BorderColor #FFFFFF
+    StereotypeFontColor #FFFFFF
+    FontName Arial
+}
+skinparam package {
+    BackgroundColor #FFFFFF
+    BorderThickness 1
+    FontSize 16
+}
+skinparam DefaultTextAlignment center
+skinparam packageStyle Rectangle
+skinparam Shadowing false
+left to right direction
 
-title Core model records used by client and appointment commands
+title Core model records and ownership
 
-BubuBook *-right-> "1" UniqueClientList
-BubuBook *-down-> "1" UniquePetList
-BubuBook *-left-> "1" AppointmentList
+package "BubuBook and collections" {
+    class BubuBook
+    class UniqueClientList
+    class UniquePetList
+    class AppointmentList
+}
 
-UniqueClientList -right-> "*" Client
-UniquePetList -right-> "*" Pet
-AppointmentList -right-> "*" Appointment
+package "Domain records" {
+    class Client
+    class Pet
+    class Appointment
+}
+
+BubuBook *--> "1" UniqueClientList
+BubuBook *--> "1" UniquePetList
+BubuBook *--> "1" AppointmentList
+UniqueClientList *--> "*" Client
+UniquePetList *--> "*" Pet
+AppointmentList *--> "*" Appointment
 
 Pet --> "1 owner" Client
-Appointment --> "1 owner" Client
-Appointment --> "1 pet" Pet
+Appointment --> "1 owner snapshot" Client
+Appointment --> "1 pet snapshot" Pet
 
-note right of BubuBook
-  Removing a client also removes
-  its pets and appointments.
+note bottom of BubuBook
+  Clients are unique by phone or email; pets are unique by owner phone and normalized name.
+  Overlapping appointments are rejected, but adjacent slots are allowed.
+  Client or pet removal cascades to related records; a pet rename updates appointment names.
 end note
 @enduml

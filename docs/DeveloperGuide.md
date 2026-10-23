@@ -176,11 +176,16 @@ starts a new history and avoids storing commands that may contain client informa
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
-<img src="images/LogicClassDiagram.png" width="550"/>
+<img src="images/LogicClassDiagram.png" width="900" alt="Logic interfaces, command execution, and display selection" />
+
+`LogicManager` implements `Logic` and holds one `BuBuParser`, `Model`, and `Storage` reference.
+The diagram shows `EditClientCommand`, `EditPetCommand`, and `EditAppointmentCommand` as examples of concrete
+`Command` subclasses; other commands are omitted. `Command.execute(Model)` returns a `CommandResult`, whose
+`DisplayType` identifies the list to show or requests that the current selection remain unchanged.
 
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete-client 1")` API call as an example.
 
@@ -194,34 +199,56 @@ The appointment command flows are shown separately because both commands support
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to a `BuBuParser` object, which in turn creates a parser that matches the command (e.g., `DeleteClientCommandParser`) and uses it to parse the command.
-2. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteClientCommand`) which is executed by the `LogicManager`.
-3. The command can communicate with the `Model` when it is executed (e.g. to delete a client, pet, or appointment).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-4. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. `LogicManager` passes the input to `BuBuParser.parseCommand`. For feature commands, `BuBuParser` creates the
+   matching parser (e.g., `DeleteClientCommandParser`) and calls `parse(arguments)`. It creates `ClearCommand`,
+   `HelpCommand`, and `ExitCommand` directly.
+2. Before executing the returned `Command`, `LogicManager` rejects commands if the saved book was unreadable at
+   startup and checks any display requirement declared by `Command.getRequiredDisplayType()`.
+3. The command executes against `Model` and returns a `CommandResult`. `ListPetsCommand` and
+   `ListAppointmentsCommand` skip saving. For all other commands, the current implementation takes a book snapshot
+   before execution and saves the book afterwards; if saving fails, it restores the snapshot and throws a
+   `CommandException` instead of returning success.
+4. After successful execution and any required save, `LogicManager` updates its current display type from the
+   result and returns it to the UI. `UNCHANGED` preserves the previously selected list.
 
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
+The following partial diagram expands the parser structure using one edit-command parser from each feature.
+Helper dependencies are expanded only for `EditAppointmentCommandParser` to keep the diagram readable;
+the other parsers also use shared helpers as required.
 
-<img src="images/ParserClasses.png" width="600"/>
+<img src="images/ParserClasses.png" width="800" alt="Feature command parsers, prefix definitions, and shared parsing helpers" />
 
 How the parsing works:
-* When called upon to parse a user command, the `BuBuParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddClientCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddClientCommand`). The `BuBuParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddClientCommandParser` and `DeleteClientCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
+  Each feature parser implements `Parser<T>` for its command type: for example, `EditPetCommandParser`
+  implements `Parser<EditPetCommand>`. Its `parse` method validates the arguments and constructs the command,
+  which `BuBuParser` returns as a `Command`.
+* Prefix constants belong to `ClientCliSyntax`, `PetCliSyntax`, or `AppointmentCliSyntax` in the corresponding
+  feature package. `ArgumentTokenizer` uses the supplied `Prefix` objects to produce an `ArgumentMultimap`,
+  which stores argument values by prefix.
+* `ParserUtil` parses positive indices; it does not define or depend on prefixes. `ClientParserUtil` parses
+  client fields, including owner phone numbers used by pet and appointment commands. `PetParserUtil` parses
+  pet names. For example, `EditAppointmentCommandParser` uses all three utilities because it supports an index,
+  an owner phone number, and a pet name.
 
 Index-based commands accept exactly one positive integer index:
 
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
+* `edit-appointment INDEX ...` uses the currently displayed appointment list.
 * Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
   `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
   `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
-`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion when the corresponding record
-list is not displayed. This prevents a deletion index from being interpreted against a different record type.
+`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion or appointment edit when the
+corresponding record list is not displayed. This prevents an index from being interpreted against a different record type.
 
 #### Identifier-based client editing
+
+The following sequence diagram shows editing a client using their current phone number:
+
+![Sequence diagram for editing a client by phone number](images/EditClientSequenceDiagram.png)
 
 `BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser requires `i/CURRENT_PHONE` and at least
 one update field. `i/` selects the existing client; `p/` supplies a replacement phone number. Names, emails,
@@ -229,7 +256,8 @@ addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is reject
 
 `EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
 or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
-`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and updates linked appointment phone numbers.
+`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and propagates a changed phone number to linked
+appointment owner snapshots while retaining their other saved owner details.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
 Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
@@ -255,8 +283,10 @@ The execution flow is:
    record panel or a pet filter.
 4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
-5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. The command then
-   resets the pet filter to show all pets and returns a success `CommandResult`.
+5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. If the pet name
+   changed, `BubuBook` also updates that pet's name in matching appointment snapshots; the other appointment snapshot
+   details remain unchanged. The command then resets the pet filter to show all pets and returns a success
+   `CommandResult`.
 6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
    failed write does not leave an in-memory edit that was not persisted.
 
@@ -268,29 +298,46 @@ field, which makes transferring a pet impossible through this command by design.
 
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="450" />
+<img src="images/ModelClassDiagram.png" width="850" alt="ModelManager, BubuBook collections, domain record fields, and interfaces" />
 
 
 The `Model` component,
 
-* stores clients in `UniqueClientList`, pets in `UniquePetList`, and appointments in `AppointmentList` inside one
+* defines its API in `Model`. `ModelManager` implements that API and owns a copy of the supplied `BubuBook` and
+  `UserPrefs`; callers access the book through `ReadOnlyBubuBook` and preferences through `ReadOnlyUserPrefs`.
+  `BubuBook` is the aggregate that stores clients, pets, and appointments in `UniqueClientList`, `UniquePetList`, and
+  `AppointmentList` respectively.
+* represents clients as immutable `Client` records with a name, phone, email, address, and tags. A client is considered
+  a duplicate when another client has the same phone number or email address.
+* represents pets as immutable `Pet` records with a name, owner, species, optional breed, and grooming requirements.
+  Each pet refers to its owning `Client`; when the book adds or replaces a pet, it resolves that owner to the matching
+  client stored in the book. Pet identity is the owner's phone number and normalized pet name, so names are unique per
+  owner and letter case or leading, trailing, and repeated whitespace do not affect matching.
+* represents appointments as immutable records containing owner and pet snapshots, date, start and end times, and
+  service. An appointment must use a pet belonging to its owner and last at least 30 minutes. `AppointmentList`
+  rejects overlapping time slots regardless of owner or pet, while permitting adjacent appointments. Past appointments
+  can remain in the schedule as historical records; scheduling commands enforce that new appointments start in the
+  future.
+* keeps linked records consistent when they are edited or removed. Replacing a client updates its pets' owner
+  references; if the phone changes, appointment snapshots receive the new phone while retaining their other saved
+  owner details. Renaming a pet updates the pet name in its existing appointment snapshots while preserving the other
+  appointment snapshot details; other pet-field edits do not rewrite those snapshots. Removing a client also removes
+  that client's pets and appointments; removing a pet removes its appointments. Clearing the book removes all three
+  record types.
+* validates replacement data before applying it to the live book. This applies when loading or replacing the book and
+  when replacing its client, pet, or appointment lists. The observable list instances remain connected to the model so
+  existing UI views continue to receive changes.
+* maintains observable display views for clients, pets, and appointments by filtering and sorting the book's lists.
+  Pets are ordered by owner name (case-insensitive), owner phone, and normalized pet name; appointments are ordered by
+  date and start time. Clients can be sorted by name on request. Display ordering does not reorder the saved lists in
   `BubuBook`.
-* represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
-  to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
-  `BubuBook.setPet` also resolves the edited pet's owner against the saved client list before replacing the record.
-* rejects duplicate clients and duplicate pet names for the same owner, using the owner's phone number and a normalized
-  pet name (case-insensitive with leading, trailing, and repeated whitespace ignored). `AppointmentList` rejects any appointment that
-  overlaps an existing appointment, while allowing back-to-back appointments and retaining historical appointments.
-* maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
-  observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
-* orders pets by owner name (case-insensitive), owner phone number, and normalized pet name. It orders appointments by
-  date and start time. The saved list order in `BubuBook` is not changed by these display orderings.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+* stores GUI preferences in `UserPrefs`, which is exposed through the read-only preferences interface.
+* has no dependency on the `Logic`, `UI`, or `Storage` components. Those components use the model API to interact with
+  the domain data.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The simplified model diagram below focuses on the record collections and ownership relationships used by client, pet, and appointment commands.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The model diagram below shows the API and coordination classes, the collections owned by `BubuBook`, and the relationships between client, pet, and appointment records.<br>
 
-<img src="images/BetterModelClassDiagram.png" width="450" />
+<img src="images/BetterModelClassDiagram.png" width="850" alt="BubuBook record collections, ownership, and cascading relationships" />
 
 </div>
 
