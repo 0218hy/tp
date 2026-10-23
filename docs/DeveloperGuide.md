@@ -237,7 +237,8 @@ addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is reject
 
 `EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
 or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
-`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and updates linked appointment phone numbers.
+`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and propagates a changed phone number to linked
+appointment owner snapshots while retaining their other saved owner details.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
 Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
@@ -263,8 +264,10 @@ The execution flow is:
    record panel or a pet filter.
 4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
-5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. The command then
-   resets the pet filter to show all pets and returns a success `CommandResult`.
+5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. If the pet name
+   changed, `BubuBook` also updates that pet's name in matching appointment snapshots; the other appointment snapshot
+   details remain unchanged. The command then resets the pet filter to show all pets and returns a success
+   `CommandResult`.
 6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
    failed write does not leave an in-memory edit that was not persisted.
 
@@ -276,29 +279,46 @@ field, which makes transferring a pet impossible through this command by design.
 
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="450" />
+<img src="images/ModelClassDiagram.png" width="850" alt="ModelManager, BubuBook collections, domain record fields, and interfaces" />
 
 
 The `Model` component,
 
-* stores clients in `UniqueClientList`, pets in `UniquePetList`, and appointments in `AppointmentList` inside one
+* defines its API in `Model`. `ModelManager` implements that API and owns a copy of the supplied `BubuBook` and
+  `UserPrefs`; callers access the book through `ReadOnlyBubuBook` and preferences through `ReadOnlyUserPrefs`.
+  `BubuBook` is the aggregate that stores clients, pets, and appointments in `UniqueClientList`, `UniquePetList`, and
+  `AppointmentList` respectively.
+* represents clients as immutable `Client` records with a name, phone, email, address, and tags. A client is considered
+  a duplicate when another client has the same phone number or email address.
+* represents pets as immutable `Pet` records with a name, owner, species, optional breed, and grooming requirements.
+  Each pet refers to its owning `Client`; when the book adds or replaces a pet, it resolves that owner to the matching
+  client stored in the book. Pet identity is the owner's phone number and normalized pet name, so names are unique per
+  owner and letter case or leading, trailing, and repeated whitespace do not affect matching.
+* represents appointments as immutable records containing owner and pet snapshots, date, start and end times, and
+  service. An appointment must use a pet belonging to its owner and last at least 30 minutes. `AppointmentList`
+  rejects overlapping time slots regardless of owner or pet, while permitting adjacent appointments. Past appointments
+  can remain in the schedule as historical records; scheduling commands enforce that new appointments start in the
+  future.
+* keeps linked records consistent when they are edited or removed. Replacing a client updates its pets' owner
+  references; if the phone changes, appointment snapshots receive the new phone while retaining their other saved
+  owner details. Renaming a pet updates the pet name in its existing appointment snapshots while preserving the other
+  appointment snapshot details; other pet-field edits do not rewrite those snapshots. Removing a client also removes
+  that client's pets and appointments; removing a pet removes its appointments. Clearing the book removes all three
+  record types.
+* validates replacement data before applying it to the live book. This applies when loading or replacing the book and
+  when replacing its client, pet, or appointment lists. The observable list instances remain connected to the model so
+  existing UI views continue to receive changes.
+* maintains observable display views for clients, pets, and appointments by filtering and sorting the book's lists.
+  Pets are ordered by owner name (case-insensitive), owner phone, and normalized pet name; appointments are ordered by
+  date and start time. Clients can be sorted by name on request. Display ordering does not reorder the saved lists in
   `BubuBook`.
-* represents each `Pet` using a name, owner, species, optional breed, and grooming requirement. A pet holds a reference
-  to its owning `Client`; when a client is replaced, any pets owned by that client are updated to reference the replacement.
-  `BubuBook.setPet` also resolves the edited pet's owner against the saved client list before replacing the record.
-* rejects duplicate clients and duplicate pet names for the same owner, using the owner's phone number and a normalized
-  pet name (case-insensitive with leading, trailing, and repeated whitespace ignored). `AppointmentList` rejects any appointment that
-  overlaps an existing appointment, while allowing back-to-back appointments and retaining historical appointments.
-* maintains filtered views for clients, pets, and appointments. `ModelManager` exposes each view as an unmodifiable,
-  observable list backed by a `SortedList`, so the UI updates automatically when records or predicates change.
-* orders pets by owner name (case-insensitive), owner phone number, and normalized pet name. It orders appointments by
-  date and start time. The saved list order in `BubuBook` is not changed by these display orderings.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+* stores GUI preferences in `UserPrefs`, which is exposed through the read-only preferences interface.
+* has no dependency on the `Logic`, `UI`, or `Storage` components. Those components use the model API to interact with
+  the domain data.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The simplified model diagram below focuses on the record collections and ownership relationships used by client, pet, and appointment commands.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The model diagram below shows the API and coordination classes, the collections owned by `BubuBook`, and the relationships between client, pet, and appointment records.<br>
 
-<img src="images/BetterModelClassDiagram.png" width="450" />
+<img src="images/BetterModelClassDiagram.png" width="850" alt="BubuBook record collections, ownership, and cascading relationships" />
 
 </div>
 
