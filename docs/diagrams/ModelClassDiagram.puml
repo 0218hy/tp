@@ -1,66 +1,98 @@
 @startuml
-!include style.puml
+' Use the model colors and class styling from style.puml without sequence-only settings.
+!define MODEL_COLOR #9D0012
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam class {
+    FontColor #FFFFFF
+    FontSize 15
+    BorderThickness 1
+    BorderColor #FFFFFF
+    StereotypeFontColor #FFFFFF
+    FontName Arial
+    AttributeFontColor #FFFFFF
+    AttributeFontSize 13
+    AttributeFontName Arial
+}
+skinparam package {
+    BackgroundColor #FFFFFF
+    BorderThickness 1
+    FontSize 16
+}
+skinparam DefaultTextAlignment center
+skinparam packageStyle Rectangle
+skinparam Shadowing false
 
-Package Model as ModelPackage <<Rectangle>>{
-Class "<<interface>>\nReadOnlyBubuBook" as ReadOnlyBubuBook
-Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
-Class "<<interface>>\nModel" as Model
-Class BubuBook
-Class ModelManager
-Class UserPrefs
+title Model component: API, collections, and records
 
-Class UniquePersonList
-Class UniquePetList
-Class Person
-Class Pet
-Class Address
-Class Email
-Class Name
-Class Phone
-Class Tag
-Class PetName
-Class Species
-Class Requirement
-
-Class I #FFFFFF
+package "Model API and coordination" {
+    interface Model
+    interface ReadOnlyBubuBook
+    interface ReadOnlyUserPrefs
+    class ModelManager
+    class UserPrefs
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Model
+package "Shared book and collections" {
+    class BubuBook
+    class UniqueClientList
+    class UniquePetList
+    class AppointmentList
+}
 
-BubuBook .up.|> ReadOnlyBubuBook
+package "Domain records" {
+    class Client {
+        ClientName name
+        Phone phone
+        Email email
+        Address address
+        Set<Tag> tags
+    }
 
-ModelManager .up.|> Model
-Model .right.> ReadOnlyUserPrefs
-Model .left.> ReadOnlyBubuBook
-ModelManager -left-> "1" BubuBook
-ModelManager -right-> "1" UserPrefs
-UserPrefs .up.|> ReadOnlyUserPrefs
+    class Pet {
+        PetName name
+        Species species
+        Breed breed [optional]
+        Requirement groomingRequirements
+    }
 
-BubuBook *--> "1" UniquePersonList
+    class Appointment {
+        AppointmentDate date
+        StartTime startTime
+        EndTime endTime
+        Service service
+    }
+}
+
+ModelManager ..|> Model
+BubuBook ..|> ReadOnlyBubuBook
+UserPrefs ..|> ReadOnlyUserPrefs
+Model ..> ReadOnlyBubuBook : exposes
+Model ..> ReadOnlyUserPrefs : exposes
+ModelManager *--> "1" BubuBook
+ModelManager *--> "1" UserPrefs
+
+BubuBook *--> "1" UniqueClientList
 BubuBook *--> "1" UniquePetList
-UniquePersonList --> "~* all" Person
-UniquePetList --> "~* all" Pet
-Person *--> Name
-Person *--> Phone
-Person *--> Email
-Person *--> Address
-Person *--> "*" Tag
-Pet *--> PetName
-Pet *--> Species
-Pet *--> Requirement
-Pet --> "1 owner" Person
+BubuBook *--> "1" AppointmentList
+UniqueClientList *--> "*" Client : unique by phone or email
+UniquePetList *--> "*" Pet : unique per owner phone and normalized name
+AppointmentList *--> "*" Appointment : rejects overlap; allows adjacent slots
 
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
+Pet --> "1 owner" Client
+Appointment --> "1 owner snapshot" Client
+Appointment --> "1 pet snapshot" Pet
 
-Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
+note right of ModelManager
+  Maintains filtered and sorted
+  observable display views.
+end note
 
-ModelManager --> "~* filtered" Person
-ModelManager --> "~* filtered" Pet
+note bottom of BubuBook
+  Replacements are validated before application.
+  Client edits refresh pet owners and propagate changed phones
+  to appointment snapshots. Pet renames update appointment names.
+  Removing a client or pet removes its related records.
+end note
 @enduml
