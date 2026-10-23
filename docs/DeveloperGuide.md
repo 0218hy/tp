@@ -77,11 +77,14 @@ commands so the saved file cannot be overwritten with an empty book.
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
 
+Between components, an arrow points from a component to another component that it depends on.
+
 The following provides a quick overview of the main components and their interactions.
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -96,9 +99,25 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete-client 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues
+the command `delete-client 1`. It focuses on how a command is executed, saved, and rolled back if saving fails. The
+client panel is assumed to be selected and index 1 is assumed to be valid. Lower-level parsing and deletion details
+are omitted from the diagram.
 
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
+<img src="images/ArchitectureSequenceDiagram.png" width="100%" alt="Command execution with save success and in-memory rollback after a save failure" />
+
+How the command is executed and saved:
+
+1. `Logic` parses and validates the command.
+2. `Logic` retrieves the current data from `Model` and creates a backup copy.
+3. `Logic` applies the validated command to `Model`.
+4. `Logic` asks `Storage` to save the updated data.
+5. If saving succeeds, the UI displays the command's success message.
+6. If saving fails, `Logic` restores the backup copy in `Model` and the UI displays a storage error.
+
+The rollback restores client, pet, and appointment records in memory, but does not restore UI selection or filters.
+Parse and command validation failures occur before saving. Read-only commands such as `list-pets` and
+`list-appointments` do not trigger a save.
 
 Each of the four main components (also shown in the diagram above),
 
@@ -325,18 +344,53 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<img src="images/StorageClassDiagram.png" width="550" />
+<img src="images/StorageClassDiagram.png" width="100%" alt="Storage interface, concrete storage classes and JSON record adapters" />
 
 The `Storage` component:
 
 * saves the complete BubuBook in `data/bububook.json`, with user preferences in `preferences.json`.
 * is implemented by `StorageManager`, which delegates to `JsonBubuBookStorage` and `JsonUserPrefsStorage`.
-* uses `JsonSerializableBubuBook` to load and save the three record lists together.
-* uses `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` in their respective feature packages.
-  A saved pet records its owner's name and phone, plus an optional breed. Loading resolves the owner by phone
-  when available, or by name for records without a phone.
+* represents the complete saved data with `JsonSerializableBubuBook`, which contains lists of
+  `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` records. Each client record can contain
+  multiple `JsonAdaptedTag` records.
+* represents pets with `JsonAdaptedPet`, which stores each owner's name and phone. It uses these identifiers to
+  resolve the registered client when the data is loaded, and stores an optional breed when present.
+* represents appointments with `JsonAdaptedAppointment`, which stores client and pet snapshots so appointments
+  can be reconstructed independently of the current registered records. Legacy appointment records identify their
+  participants using `ownerPhone` and `petName` instead of snapshots.
+
+Therefore, an appointment contains participant snapshots, while a pet refers to its owner using identifiers. This
+is why the appointment adapter is associated with the participant adapters in the class diagram, while the pet
+adapter is not associated with the client adapter.
+
+#### Loading data
+
+Storage reconstructs the saved data in the following order:
+
+1. Clients and their tags are loaded.
+2. Pets are loaded and their owners are resolved against the loaded clients.
+3. Appointments and their participant snapshots are loaded.
+
+Loading fails if required lists or fields are missing, records are invalid, clients or pets are duplicated, or
+appointments overlap. If the data file is missing, BuBu starts with sample data. If it is unreadable, BuBu starts
+with an empty in-memory book and blocks commands to prevent that empty book from overwriting the file. User
+preferences are loaded separately.
+
+#### Saving and rollback
+
+When saving data:
+
+* `JsonBubuBookStorage` serializes the complete book and writes it to a temporary file.
+* It replaces `data/bububook.json` only after the temporary file has been written successfully.
+* `LogicManager` copies the current book before executing a command.
+* If saving throws an `IOException`, `LogicManager` restores that copy and reports a storage error.
+
+The rollback restores the in-memory records. It does not restore a previous version of the data file.
+
+The record path is relative to the working directory used to launch BuBu. Preferences are saved separately in
+`preferences.json` and do not use the shared-book rollback path.
 
 #### Pet-profile persistence
 
@@ -346,9 +400,8 @@ Pet edits are persisted through the same shared-book path as other record-changi
 
 `Pet` is immutable, so an edit replaces one complete profile rather than mutating individual fields. The optional
 breed is serialized only when present; clearing a breed with `b/` therefore removes the stored breed value for that
-pet on the next successful save. `LogicManager` takes a copy of the complete BubuBook before executing the command.
-If storage throws an `IOException`, it restores that copy before reporting the failure. This applies equally to an
-edit that changes a pet's name, species, breed, or requirements.
+pet on the next successful save. This applies equally to an edit that changes a pet's name, species, breed, or
+requirements.
 
 #### Appointment persistence
 
@@ -369,9 +422,8 @@ The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointm
 `BubuBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
 Client deletion flows through `DeleteClientCommand` → `ModelManager.deleteClient()` →
 `BubuBook.removeClient()`, which removes the client, its pets, and its related appointments.
-`LogicManager` reports success only after saving. If saving fails, it restores the previous book and reports
-an error. `clear` removes all clients, pets, and appointments, including historical and future bookings,
-and saves the empty BubuBook in the same file.
+Appointment changes use the saving and rollback process described above. `clear` removes all clients, pets, and
+appointments, including historical and future bookings, and saves the empty BubuBook in the same file.
 
 At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
 schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.

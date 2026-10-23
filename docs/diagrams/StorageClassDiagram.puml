@@ -1,38 +1,42 @@
 @startuml
 !include style.puml
+!pragma layout smetana
+set namespaceSeparator none
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam nodesep 90
+skinparam ranksep 85
+skinparam ArrowFontStyle plain
 
-package Storage as StoragePackage {
+package "seedu.address.storage" {
+    class "<<interface>>\nStorage" as Storage
+    class StorageManager
+    class JsonUserPrefsStorage
+    class JsonBubuBookStorage
+    class JsonSerializableBubuBook
+    class JsonAdaptedTag
 
-Class "<<interface>>\nStorage" as Storage
-Class StorageManager
-
-package "UserPrefs Storage" #F4F6F6{
-Class JsonUserPrefsStorage
+    class "client.JsonAdaptedClient" as JsonAdaptedClient
+    class "pet.JsonAdaptedPet" as JsonAdaptedPet
+    class "appointment.JsonAdaptedAppointment" as JsonAdaptedAppointment
 }
-
-package "BubuBook Storage" #F4F6F6{
-Class JsonBubuBookStorage
-Class JsonSerializableBubuBook
-Class JsonAdaptedPerson
-Class JsonAdaptedPet
-Class JsonAdaptedTag
-}
-
-}
-
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Storage
 
 StorageManager .up.|> Storage
-StorageManager -down-> "1" JsonUserPrefsStorage
-StorageManager -down-> "1" JsonBubuBookStorage
+StorageManager --> "1" JsonUserPrefsStorage : userPrefsStorage
+StorageManager --> "1" JsonBubuBookStorage : bubuBookStorage
 
-JsonBubuBookStorage ..> JsonSerializableBubuBook
-JsonSerializableBubuBook --> "*" JsonAdaptedPerson
-JsonSerializableBubuBook --> "*" JsonAdaptedPet
-JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonBubuBookStorage ..> JsonSerializableBubuBook : converts through
+JsonSerializableBubuBook -down-> "0..*" JsonAdaptedClient : clients
+JsonSerializableBubuBook -down-> "0..*" JsonAdaptedPet : pets
+JsonSerializableBubuBook -down-> "0..*" JsonAdaptedAppointment : appointments
+JsonAdaptedClient --> "0..*" JsonAdaptedTag : tags
+JsonAdaptedAppointment -left-> "0..1" JsonAdaptedClient : owner
+JsonAdaptedAppointment -right-> "0..1" JsonAdaptedPet : pet
 
+note bottom of JsonAdaptedAppointment
+  New records contain both owner and pet snapshots.
+  Legacy records identify participants using
+  ownerPhone and petName instead of snapshots.
+end note
 @enduml

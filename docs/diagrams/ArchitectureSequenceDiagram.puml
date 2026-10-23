@@ -1,39 +1,54 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-title Architecture flow for delete-client
+skinparam ParticipantFontColor #FFFFFF
+title Command execution: saving and rollback for delete-client 1
 
-Actor User as user USER_COLOR
-Participant ":UI" as ui UI_COLOR
-Participant ":Logic" as logic LOGIC_COLOR
-Participant ":Model" as model MODEL_COLOR
-Participant ":Storage" as storage STORAGE_COLOR
+actor User as user USER_COLOR
+participant "ui:UI" as ui UI_COLOR
+participant "logic:Logic" as logic LOGIC_COLOR
+participant "model:Model" as model MODEL_COLOR
+participant "storage:Storage" as storage STORAGE_COLOR
 
-user -[USER_COLOR]> ui : "delete-client 1"
+user -> ui : submit "delete-client 1"
 activate ui UI_COLOR
-
-ui -[UI_COLOR]> logic : execute("delete-client 1")
+ui -> logic : execute("delete-client 1")
 activate logic LOGIC_COLOR
 
-logic -[LOGIC_COLOR]> model : deleteClient(clientToDelete)
+logic -> model : retrieve current data
 activate model MODEL_COLOR
-note right of model
-  The model removes the client and
-  cascades removal to owned pets and
-  related appointments.
-end note
-model -[MODEL_COLOR]-> logic
+model --> logic : current data
 deactivate model
 
-logic -[LOGIC_COLOR]> storage : saveBubuBook(bubuBook)
-activate storage STORAGE_COLOR
-storage -[STORAGE_COLOR]> storage : save to file
-storage --[STORAGE_COLOR]> logic
-deactivate storage
-
-logic --[LOGIC_COLOR]> ui : CommandResult
+logic -> logic : copy current data
+activate logic LOGIC_COLOR_T1
+logic --> logic : backup copy
 deactivate logic
 
-ui -[UI_COLOR]> user : success message
+logic -> model : apply validated command
+activate model MODEL_COLOR
+model --> logic : model updated
+deactivate model
+
+logic -> model : retrieve updated data
+activate model MODEL_COLOR
+model --> logic : updated data
+deactivate model
+
+logic -> storage : save updated data
+activate storage STORAGE_COLOR
+storage --> logic : save completed / save failed
+deactivate storage
+
+opt save failed
+    logic -> model : restore backup copy
+    activate model MODEL_COLOR
+    model --> logic : previous data restored
+    deactivate model
+end
+
+logic --> ui : command outcome
+deactivate logic
+ui --> user : success / storage error feedback
 deactivate ui
 @enduml
