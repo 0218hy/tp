@@ -113,6 +113,20 @@ public class EditPetCommandTest {
     }
 
     @Test
+    public void execute_updatedNameMatchesOwnNormalizedIdentity_allowsEdit() {
+        // Equivalence partition: a normalized name matching the pet itself is not a duplicate of another pet.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("  mIlO  "));
+        Pet editedPet = new PetBuilder(milo).withName("  mIlO  ").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+        assertTrue(model.hasPet(editedPet));
+    }
+
+    @Test
     public void execute_petDoesNotExist_throwsCommandException() {
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
         descriptor.setRequirement(new Requirement("Needs a short walk"));
