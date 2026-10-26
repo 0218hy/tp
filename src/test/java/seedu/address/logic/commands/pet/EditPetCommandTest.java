@@ -70,6 +70,36 @@ public class EditPetCommandTest {
     }
 
     @Test
+    public void execute_minimumLengthNameAndRequirement_acceptsBoundaryValues() {
+        // Boundary value analysis: the minimum valid name (1 char) and requirement (5 chars) are accepted.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("N"));
+        descriptor.setRequirement(new Requirement("Brush"));
+        Pet editedPet = new PetBuilder(milo).withName("N").withRequirement("Brush").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_maximumLengthNameAndRequirement_acceptsBoundaryValues() {
+        // Boundary value analysis: the maximum valid name (40 chars) and requirement (240 chars) are accepted.
+        String maximumName = "N".repeat(40);
+        String maximumRequirement = "R".repeat(240);
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName(maximumName));
+        descriptor.setRequirement(new Requirement(maximumRequirement));
+        Pet editedPet = new PetBuilder(milo).withName(maximumName).withRequirement(maximumRequirement).build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+    }
+
+    @Test
     public void execute_nameChange_updatesRelatedAppointmentName() {
         Appointment appointment = new Appointment(ALICE, milo, new AppointmentDate("01-01-2020"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
