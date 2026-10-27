@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 
 import java.time.LocalTime;
 
@@ -38,9 +37,8 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_missingArguments_failure() {
-        String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteAppointmentCommand.MESSAGE_USAGE);
         for (String args : new String[]{"", "d/01-01-2020", "t/10:30"}) {
-            assertParseFailure(parser, args, usage);
+            assertParseFailure(parser, args, DeleteAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
         }
     }
 
@@ -60,7 +58,8 @@ public class DeleteAppointmentCommandParserTest {
     @Test
     public void parse_invalidDate_reportsDateConstraints() {
         for (String date : new String[]{"31-02-2020", "29-02-2027", "1-01-2020", ""}) {
-            assertParseFailure(parser, "d/" + date + " t/10:30", AppointmentDate.MESSAGE_CONSTRAINTS);
+            assertParseFailure(parser, "d/" + date + " t/10:30",
+                    DeleteAppointmentCommandParser.MESSAGE_INVALID_DATE);
         }
     }
 
@@ -75,7 +74,7 @@ public class DeleteAppointmentCommandParserTest {
     @Test
     public void parse_invalidIndex_reportsIndexConstraints() {
         for (String index : new String[]{"0", "-1", "1.5", "2147483648", "unexpected"}) {
-            assertParseFailure(parser, index, MESSAGE_INVALID_INDEX);
+            assertParseFailure(parser, index, DeleteAppointmentCommandParser.MESSAGE_INVALID_INDEX);
         }
     }
 
@@ -99,5 +98,11 @@ public class DeleteAppointmentCommandParserTest {
     @Test
     public void parse_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_unknownParameter_failure() {
+        assertParseFailure(parser, "1 st/10:30",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteAppointmentCommand.MESSAGE_USAGE));
     }
 }

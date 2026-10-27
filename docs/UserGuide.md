@@ -607,7 +607,8 @@ delete-appointment d/DD-MM-YYYY t/HH:mm
 
 * `INDEX` — a positive integer referring to the appointment's one-based position in the current appointment list. Run `list-appointments` first.
 * `d/DD-MM-YYYY` — alternatively, a real calendar date; it need not be in the future.
-* `t/HH:mm` — required with `d/`; a valid 24-hour time from `00:00` to `23:59`. It matches a booking at or after its start and strictly before its end; half-hour increments are not required.
+* `t/HH:mm` — required with `d/`; use a valid 24-hour time from `00:00` to `23:59`. Any minute is allowed. It
+  matches a booking at or after its start and strictly before its end.
 * Provide an index or both date and time, not both formats. Each prefix may appear only once.
 
 #### Examples
@@ -625,12 +626,18 @@ delete-appointment d/DD-MM-YYYY t/HH:mm
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format or duplicate prefix — a target is missing or incomplete, or `d/` or `t/` is repeated.
-* Invalid date, time or index — a supplied value does not meet the rules above.
-* `An appointment index cannot be combined with date/time identifiers.` — both target formats are supplied.
-* `The appointment index provided is invalid.` — the index is outside the current appointment list.
-* `No appointment was found for the specified date and time.` — no booking contains that date and time.
-* Wrong displayed list — index-based deletion requires the matching record panel; run the corresponding list command first.
+* `Choose an appointment index, or provide both d/DATE (DD-MM-YYYY) and t/TIME (HH:mm).` — the target is missing or
+  incomplete.
+* Invalid command format — a parameter is unsupported, a prefix is repeated, or the command structure is invalid;
+  the command usage is shown.
+* `Appointment index must be a positive whole number.` — the index is malformed or not positive.
+* Invalid appointment date — use `DD-MM-YYYY`, such as `18-09-2027`, and enter a real calendar date.
+* Invalid appointment time — use `HH:mm`, such as `10:30`, from `00:00` to `23:59`; any minute is allowed.
+* `Choose either an appointment index or a date and time, not both.` — both target formats are supplied.
+* `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
+* `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
+  using an index.
+* `No appointment contains the specified date and time.` — no booking contains that date and time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`

@@ -39,10 +39,10 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
     public static final String MESSAGE_INVALID_DATE =
             "Invalid appointment date. Use DD-MM-YYYY and enter a real calendar date.";
     public static final String MESSAGE_INVALID_START_TIME =
-            "Invalid start time. Use HH:mm (for example, 10:00); allowed times are 08:00 to 19:30 "
+            "Invalid start time. Use HH:mm; allowed times are 08:00 to 19:30 "
                     + "in 30-minute intervals.";
     public static final String MESSAGE_INVALID_END_TIME =
-            "Invalid end time. Use HH:mm (for example, 11:00); allowed times are 08:30 to 20:00 "
+            "Invalid end time. Use HH:mm; allowed times are 08:30 to 20:00 "
                     + "in 30-minute intervals.";
 
     private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!\\S)([A-Za-z]+/)");
