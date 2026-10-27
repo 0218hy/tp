@@ -40,6 +40,7 @@ public class AppointmentCard extends UiPart<Region> {
     @FXML
     private Label careNotes;
 
+    // @@author xinyu-zxy
     /** Creates an {@code AppointmentCard} with the given appointment and displayed index. */
     public AppointmentCard(Appointment appointment, int displayedIndex) {
         this(appointment, displayedIndex, true);
@@ -49,7 +50,7 @@ public class AppointmentCard extends UiPart<Region> {
      * Creates an appointment card with an optional date heading.
      *
      * @param appointment Appointment to display.
-     * @param displayedIndex One-based index in the displayed list.
+     * @param displayedIndex Index to display; callers are expected to supply a one-based value.
      * @param showDateHeading Whether to show the heading; the panel determines date-group boundaries.
      */
     public AppointmentCard(Appointment appointment, int displayedIndex, boolean showDateHeading) {
@@ -67,4 +68,5 @@ public class AppointmentCard extends UiPart<Region> {
         address.setText(String.format(ADDRESS_FORMAT, appointment.getOwner().getAddress()));
         careNotes.setText(String.format(CARE_NOTES_FORMAT, appointment.getPet().getRequirement()));
     }
+    // @@author
 }

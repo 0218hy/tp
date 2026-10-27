@@ -25,6 +25,7 @@ public class PetListPanel extends UiPart<Region> {
         petList.addListener((ListChangeListener<Pet>) change -> petListView.refresh());
     }
 
+    // @@author xinyu-zxy
     /** Custom cell that displays one pet using a {@link PetCard}. */
     class PetListViewCell extends ListCell<Pet> {
         PetListViewCell() {
@@ -46,7 +47,10 @@ public class PetListPanel extends UiPart<Region> {
             setGraphic(card.getRoot());
         }
 
-        /** Uses phone numbers to distinguish owners, including those with the same name. */
+        /**
+         * Returns whether this pet starts a new owner group in the displayed list.
+         * Owners are distinguished by phone number, and out-of-range indices are treated as group starts.
+         */
         private boolean startsOwnerGroup(Pet pet, int index) {
             ObservableList<Pet> pets = petListView.getItems();
             // Virtualised cells can temporarily have an index outside the current list.
@@ -59,4 +63,5 @@ public class PetListPanel extends UiPart<Region> {
             return !currentOwner.getPhone().equals(previousOwner.getPhone());
         }
     }
+    // @@author
 }

@@ -18,14 +18,22 @@ import seedu.address.testutil.ClientBuilder;
 
 public class ClientTest {
 
+    // @@author xinyu-zxy
     @Test
     public void hasPhone_matchesExactStoredNumber() {
         String phone = ALICE.getPhone().value;
+
+        // EP: exact phone-number match
         assertTrue(ALICE.hasPhone(phone));
+
+        // EP: non-matching phone-number text
         assertFalse(ALICE.hasPhone(" " + phone));
         assertFalse(ALICE.hasPhone(""));
+
+        // EP: null phone-number input
         assertFalse(ALICE.hasPhone(null));
     }
+    // @@author
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {

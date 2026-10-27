@@ -25,6 +25,7 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 
+// @@author xinyu-zxy
 /**
  * Parses add-pet arguments into a command.
  * Owner lookup and duplicate checks are performed when the command executes.
@@ -54,6 +55,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     /**
      * Parses and validates the supplied pet fields, including the optional breed.
      *
+     * @param args The text following the {@code add-pet} command word.
      * @throws ParseException if the command structure or a field value is invalid.
      */
     @Override
@@ -78,6 +80,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     /**
      * Rejects unknown text or prefixes and repeated pet fields.
      * An invalid requirements value takes precedence over an unknown-prefix error.
+     *
+     * @throws ParseException if the structure or a supplied requirement is invalid.
      */
     private void validateStructure(String args, ArgumentMultimap fields) throws ParseException {
         if (!fields.getPreamble().isEmpty()) {
@@ -95,6 +99,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     /**
      * Checks non-empty requirements before unknown-prefix and duplicate-field errors.
      * Missing or empty requirements are reported later by {@link #getRequiredValue}.
+     *
+     * @throws ParseException if a non-empty requirement is invalid.
      */
     private void validateRequirementsIfPresent(ArgumentMultimap fields) throws ParseException {
         String requirements = fields.getValue(PREFIX_REQUIREMENTS).orElse("");
@@ -105,6 +111,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Validates the pet name before creating its model value.
+     *
+     * @throws ParseException if the pet name is invalid.
      */
     private PetName parsePetName(String value) throws ParseException {
         if (!PetName.isValidName(value)) {
@@ -115,6 +123,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Validates the phone number's format; the command checks whether the owner exists.
+     *
+     * @throws ParseException if the phone number is invalid.
      */
     private String parseOwnerPhone(String value) throws ParseException {
         if (!Phone.isValidPhone(value)) {
@@ -125,6 +135,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Validates the care requirements before creating their model value.
+     *
+     * @throws ParseException if the care requirements are invalid.
      */
     private Requirement parseRequirement(String value) throws ParseException {
         if (!Requirement.isValidRequirement(value)) {
@@ -163,6 +175,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     /**
      * Parses any supported species without regard to letter case.
      * Spaces and underscores are both accepted between words in a species name.
+     *
+     * @throws ParseException if the species is unsupported.
      */
     private Species parseSpecies(String value) throws ParseException {
         try {

@@ -45,15 +45,18 @@ public class PetCardTest {
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void constructor_sameOwner_hidesHeadingWithoutResettingIndex() {
         JavaFxTestUtils.runAndWait(() -> {
+            // EP: pet does not start a new owner group
             PetCard card = new PetCard(new PetBuilder(ALICE).build(), 2, false);
             assertFalse(getLabel(card, "owner").isVisible());
             assertFalse(getLabel(card, "owner").isManaged());
             assertEquals("2. ", getLabel(card, "id").getText());
         });
     }
+    // @@author
 
     private static Label getLabel(PetCard card, String fieldName) {
         try {

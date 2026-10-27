@@ -15,14 +15,24 @@ import seedu.address.testutil.PetBuilder;
 
 public class PetTest {
 
+    // @@author xinyu-zxy
     @Test
     public void isOwnedBy_matchesPhoneRatherThanClientName() {
         Pet pet = new PetBuilder(ALICE).build();
+
+        // EP: matching owner phone
         assertTrue(pet.isOwnedBy(ALICE.getPhone()));
+
+        // EP: matching owner phone with different non-identifying client details
         assertTrue(pet.isOwnedBy(new ClientBuilder(ALICE).withName("Another Name").build().getPhone()));
+
+        // EP: non-matching owner phone
         assertFalse(pet.isOwnedBy(BOB.getPhone()));
+
+        // EP: null owner phone
         assertFalse(pet.isOwnedBy(null));
     }
+    // @@author
 
     @Test
     public void isSamePet() {

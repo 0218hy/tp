@@ -28,14 +28,15 @@ public class Requirement {
         value = requirement;
     }
 
+    // @@author xinyu-zxy
     /**
-     * Returns whether the text is a valid pet care requirement.
-     * Requirements must fit the length limit and cannot contain a slash.
+     * Returns whether the text is non-null, non-blank, 5-240 characters, and contains no slash.
      */
     public static boolean isValidRequirement(String test) {
         return test != null && !test.isBlank() && test.length() >= MIN_LENGTH
                 && test.length() <= MAX_LENGTH && !test.contains(UNSUPPORTED_CHARACTER);
     }
+    // @@author
 
     @Override
     public String toString() {

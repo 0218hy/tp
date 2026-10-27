@@ -21,6 +21,7 @@ public class Pet {
     private final Breed breed;
     private final Requirement requirement;
 
+    // @@author xinyu-zxy
     /**
      * Creates a pet without a recorded breed.
      * All supplied fields must be non-null.
@@ -41,6 +42,7 @@ public class Pet {
         this.breed = breed;
         this.requirement = requirement;
     }
+    // @@author
 
     public PetName getName() {
         return name;
@@ -50,6 +52,7 @@ public class Pet {
         return owner;
     }
 
+    // @@author xinyu-zxy
     /**
      * Returns whether this pet belongs to the client identified by {@code ownerPhone}.
      * Ownership is determined by phone number, not by name or other client details.
@@ -58,6 +61,7 @@ public class Pet {
     public boolean isOwnedBy(Phone ownerPhone) {
         return owner.getPhone().equals(ownerPhone);
     }
+    // @@author
 
     public Species getSpecies() {
         return species;

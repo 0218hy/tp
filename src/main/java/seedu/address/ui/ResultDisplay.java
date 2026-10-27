@@ -32,12 +32,21 @@ public class ResultDisplay extends UiPart<Region> {
         super(FXML);
     }
 
-    /** Displays successful command feedback and clears any previous error styling. */
+    // @@author xinyu-zxy
+    /**
+     * Displays successful command feedback and clears any previous error styling.
+     *
+     * @param feedbackToUser Feedback to display.
+     */
     public void setFeedbackToUser(String feedbackToUser) {
         showFeedback(feedbackToUser, false);
     }
 
-    /** Displays failed command feedback and clears any previous success styling. */
+    /**
+     * Displays failed command feedback and clears any previous success styling.
+     *
+     * @param feedbackToUser Feedback to display.
+     */
     public void setErrorFeedbackToUser(String feedbackToUser) {
         showFeedback(feedbackToUser, true);
     }
@@ -55,6 +64,7 @@ public class ResultDisplay extends UiPart<Region> {
         resultDisplay.pseudoClassStateChanged(ERROR, isError);
         resultDisplay.setText(feedbackToUser);
     }
+    // @@author
 
     /**
      * Displays the command reference with visually distinct command names and formats.

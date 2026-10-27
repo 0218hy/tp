@@ -34,6 +34,7 @@ public class PetCard extends UiPart<Region> {
     @FXML
     private Label requirement;
 
+    // @@author xinyu-zxy
     /** Creates a {@code PetCard} with the given pet and displayed index. */
     public PetCard(Pet pet, int displayedIndex) {
         this(pet, displayedIndex, true);
@@ -43,7 +44,7 @@ public class PetCard extends UiPart<Region> {
      * Creates a pet card with an optional owner heading.
      *
      * @param pet Pet to display.
-     * @param displayedIndex One-based index in the displayed list.
+     * @param displayedIndex Index to display; callers are expected to supply a one-based value.
      * @param showOwnerHeading Whether to show the heading; the panel determines owner-group boundaries.
      */
     public PetCard(Pet pet, int displayedIndex, boolean showOwnerHeading) {
@@ -58,4 +59,5 @@ public class PetCard extends UiPart<Region> {
         breed.setText(String.format(BREED_FORMAT, pet.getBreed() == null ? UNRECORDED_BREED : pet.getBreed()));
         requirement.setText(String.format(REQUIREMENT_FORMAT, pet.getRequirement()));
     }
+    // @@author
 }

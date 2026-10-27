@@ -220,7 +220,10 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
-    /** Keeps the count in sync with filtering, additions and deletions in the visible list. */
+    // @@author xinyu-zxy
+    /**
+     * Updates the heading and keeps its count synchronized with the visible list.
+     */
     private void updateRecordHeading(String title, ObservableList<?> records) {
         recordTitle.setText(title);
         recordCount.textProperty().unbind();
@@ -231,6 +234,7 @@ public class MainWindow extends UiPart<Stage> {
         String format = count == 1 ? SINGLE_RECORD_FORMAT : MULTIPLE_RECORDS_FORMAT;
         return String.format(format, count);
     }
+    // @@author
 
     private static void setListVisibility(Region listRoot, boolean visible) {
         listRoot.setVisible(visible);

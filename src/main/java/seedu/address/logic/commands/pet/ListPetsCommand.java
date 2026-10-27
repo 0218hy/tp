@@ -13,6 +13,7 @@ import seedu.address.model.Model;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
 
+// @@author xinyu-zxy
 /**
  * Lists saved pet profiles, optionally restricting the result to one owner.
  * Selects the pet view without changing saved records or the client list's filter.
@@ -62,6 +63,7 @@ public class ListPetsCommand extends Command {
 
     /**
      * Returns the registered owner with the requested phone number.
+     * This method is called only for an owner-filtered listing.
      *
      * @param model The model whose registered owners are searched.
      * @throws CommandException if no registered client has the requested phone number.

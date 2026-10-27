@@ -25,6 +25,7 @@ public class AppointmentListPanel extends UiPart<Region> {
         appointmentList.addListener((ListChangeListener<Appointment>) change -> appointmentListView.refresh());
     }
 
+    // @@author xinyu-zxy
     /** Custom cell that displays one appointment using an {@link AppointmentCard}. */
     class AppointmentListViewCell extends ListCell<Appointment> {
         AppointmentListViewCell() {
@@ -60,4 +61,5 @@ public class AppointmentListPanel extends UiPart<Region> {
             return !appointment.getDate().equals(previousAppointment.getDate());
         }
     }
+    // @@author
 }
