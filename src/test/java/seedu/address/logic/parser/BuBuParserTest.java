@@ -148,9 +148,7 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand("list-appointments") instanceof ListAppointmentsCommand);
         assertTrue(parser.parseCommand("  list-appointments  \t") instanceof ListAppointmentsCommand);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void parseCommand_listAppointmentsWithArguments_throwsParseException() {
         for (String arguments : List.of("d/18-09-2026", "unexpected", "18-09-2026", "i/91234567")) {
@@ -158,9 +156,7 @@ public class BuBuParserTest {
             assertThrows(ParseException.class, message, () -> parser.parseCommand("list-appointments " + arguments));
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void parseCommand_listPets() throws Exception {
         assertEquals(new ListPetsCommand(null), parser.parseCommand(ListPetsCommand.COMMAND_WORD));

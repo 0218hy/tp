@@ -83,9 +83,7 @@ public class ListAppointmentsCommandTest {
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(midnight).execute(model).getFeedbackToUser());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_participantsRemoved_excludesRelatedAppointments() {
         Client owner = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
@@ -105,17 +103,13 @@ public class ListAppointmentsCommandTest {
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredAppointmentList());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructorAndExecute_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(null));
         assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(CLOCK).execute(null));
     }
-    //@@author
 
-    //@@author 0218hy
     private static Appointment create(String date, String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);

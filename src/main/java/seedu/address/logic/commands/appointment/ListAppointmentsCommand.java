@@ -30,9 +30,7 @@ public class ListAppointmentsCommand extends Command {
     public ListAppointmentsCommand() {
         this(Clock.system(SINGAPORE_ZONE));
     }
-    //@@author
 
-    //@@author 0218hy
     /** Creates a command with a supplied clock for deterministic time-based tests. */
     public ListAppointmentsCommand(Clock clock) {
         this.clock = requireNonNull(clock).withZone(SINGAPORE_ZONE);

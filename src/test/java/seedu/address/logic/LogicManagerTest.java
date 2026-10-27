@@ -183,9 +183,7 @@ public class LogicManagerTest {
         assertEquals(1, model.getBubuBook().getAppointmentList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_listPets_readsProfilesWithoutSaving() throws Exception {
         model.addClient(ALICE);

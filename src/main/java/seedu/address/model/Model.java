@@ -44,14 +44,10 @@ public interface Model {
     //@@author 0218hy
     /** Replaces the appointment schedule after validating all slots. */
     void setAppointments(List<Appointment> appointments);
-    //@@author
 
-    //@@author 0218hy
     /** Clears all clients, pets, and appointments. */
     void clearBubuBook();
-    //@@author
 
-    //@@author 0218hy
     /**
      * Adds an appointment that does not overlap an existing appointment.
      * Participant and future-start checks are performed by the scheduling command.

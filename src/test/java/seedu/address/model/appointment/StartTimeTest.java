@@ -23,9 +23,7 @@ public class StartTimeTest {
             assertEquals(inputs[i], time.toString());
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_invalidTimes_rejectsFormatsAndOutOfRangeValues() {
         String[] invalidTimes = {"", " ", "8:00", "08:0", "08.00", "08:00:00", "08:00 ",
@@ -38,17 +36,13 @@ public class StartTimeTest {
             assertEquals(StartTime.MESSAGE_CONSTRAINTS, error.getMessage());
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertFalse(StartTime.isValidStartTime(null));
         assertThrows(NullPointerException.class, () -> new StartTime(null));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equalsAndHashCode_compareTimeValues() {
         StartTime time = new StartTime("10:30");

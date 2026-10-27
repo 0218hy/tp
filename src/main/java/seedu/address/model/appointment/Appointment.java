@@ -49,51 +49,35 @@ public class Appointment {
         this.endTime = endTime;
         this.service = service;
     }
-    //@@author
 
-    //@@author 0218hy
     public Client getOwner() {
         return owner;
     }
-    //@@author
 
-    //@@author 0218hy
     public Pet getPet() {
         return pet;
     }
-    //@@author
 
-    //@@author 0218hy
     public Phone getOwnerPhone() {
         return owner.getPhone();
     }
-    //@@author
 
-    //@@author 0218hy
     public PetName getPetName() {
         return pet.getName();
     }
-    //@@author
 
-    //@@author 0218hy
     public AppointmentDate getDate() {
         return date;
     }
-    //@@author
 
-    //@@author 0218hy
     public StartTime getStartTime() {
         return startTime;
     }
-    //@@author
 
-    //@@author 0218hy
     public EndTime getEndTime() {
         return endTime;
     }
-    //@@author
 
-    //@@author 0218hy
     public Service getService() {
         return service;
     }
@@ -137,9 +121,7 @@ public class Appointment {
                 && date.equals(otherAppointment.date)
                 && startTime.equals(otherAppointment.startTime));
     }
-    //@@author
 
-    //@@author 0218hy
     /**
      * Returns whether appointments overlap on the same date, regardless of owner or pet.
      * Back-to-back appointments do not overlap.
@@ -150,9 +132,7 @@ public class Appointment {
                 && startTime.value.isBefore(otherAppointment.endTime.value)
                 && endTime.value.isAfter(otherAppointment.startTime.value);
     }
-    //@@author
 
-    //@@author 0218hy
     /**
      * Returns whether this appointment contains the requested date and time for deletion.
      * Includes the start and excludes the end. The query time need not be on a half-hour boundary.
@@ -163,9 +143,7 @@ public class Appointment {
                 && !queryTime.isBefore(startTime.value)
                 && queryTime.isBefore(endTime.value);
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -181,16 +159,12 @@ public class Appointment {
                 && endTime.equals(otherAppointment.endTime)
                 && service == otherAppointment.service;
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public int hashCode() {
         return Objects.hash(owner, pet, date, startTime, endTime, service);
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public String toString() {
         return new ToStringBuilder(this)

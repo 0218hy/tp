@@ -41,17 +41,13 @@ public class AppointmentTest {
         assertEquals(Service.FULL_GROOM, appointment.getService());
         assertEquals(new EndTime("20:00"), create("19:30", "20:00").getEndTime());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_invalidDuration_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> create("10:30", "10:30"));
         assertThrows(IllegalArgumentException.class, () -> create("10:30", "10:00"));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_nullField_throwsNullPointerException() {
         StartTime start = new StartTime("10:30");
@@ -64,18 +60,14 @@ public class AppointmentTest {
         assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, null, service));
         assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, end, null));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_petBelongsToDifferentOwner_rejected() {
         Client otherOwner = new ClientBuilder().withPhone("81234567").build();
         assertThrows(IllegalArgumentException.class, () -> new Appointment(otherOwner, PET, DATE,
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equals_participantProfileDetailsParticipateInEquality() {
         Appointment original = create("10:30", "12:00");
@@ -90,9 +82,7 @@ public class AppointmentTest {
         assertTrue(original.isSameAppointment(changedOwner));
         assertTrue(original.isSameAppointment(changedPet));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void overlaps_intersectionsDetectedAndAdjacentSlotsAllowed() {
         Appointment appointment = create("10:30", "12:00");
@@ -112,9 +102,7 @@ public class AppointmentTest {
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
         assertFalse(appointment.overlaps(nextDay));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void matches_includesStartAndInteriorButExcludesEnd() {
         Appointment appointment = create("10:30", "12:00");
@@ -189,9 +177,7 @@ public class AppointmentTest {
         assertTrue(appointment.isSameAppointment(otherService));
         assertNotEquals(appointment, otherService);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_petName_acceptsLengthBoundariesAndAllowedCharacters() {
         for (String name : new String[]{"A", "a".repeat(40), "Mr. O'Malley-2", "小白", "Café"}) {
@@ -200,9 +186,7 @@ public class AppointmentTest {
             assertEquals(new PetName(name), appointment.getPetName());
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void isSameAppointment_comparesDateAndStartRatherThanPet() {
         Appointment appointment = create("10:30", "12:00");
@@ -214,9 +198,7 @@ public class AppointmentTest {
                 new StartTime("10:30"), new EndTime("12:00"), Service.NAIL_TRIM);
         assertTrue(appointment.isSameAppointment(differentPet));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equals_eachFieldParticipatesInEquality() {
         Appointment appointment = create("10:30", "12:00");
@@ -240,9 +222,7 @@ public class AppointmentTest {
             assertFalse(different.equals(appointment));
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void overlapAndMatching_nullArguments_rejected() {
         Appointment appointment = create("10:30", "12:00");
@@ -250,9 +230,7 @@ public class AppointmentTest {
         assertThrows(NullPointerException.class, () -> appointment.matches(null, LocalTime.of(11, 0)));
         assertThrows(NullPointerException.class, () -> appointment.matches(DATE, null));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void toString_includesAppointmentDetails() {
         String expected = Appointment.class.getCanonicalName()
@@ -260,9 +238,7 @@ public class AppointmentTest {
                 + "startTime=10:30, endTime=12:00, service=Full groom}";
         assertEquals(expected, create("10:30", "12:00").toString());
     }
-    //@@author
 
-    //@@author 0218hy
     private Appointment create(String start, String end) {
         return new Appointment(OWNER, PET, DATE,
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);

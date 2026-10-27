@@ -48,9 +48,7 @@ public class AddAppointmentCommandTest {
         model.addClient(owner);
         model.addPet(pet);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_validAppointment_addsToModelAndReturnsDetails() throws Exception {
         CommandResult result = command(VALID_APPOINTMENT).execute(model);
@@ -63,25 +61,19 @@ public class AddAppointmentCommandTest {
         assertFalse(result.isExit());
         assertFalse(result.isShowHelp());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_missingOwner_noMutation() {
         model.clearBubuBook();
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_petNotRegisteredForOwner_noMutation() {
         model.deletePet(pet);
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_ownerRemovedBeforeExecution_rejectsAppointment() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
@@ -90,9 +82,7 @@ public class AddAppointmentCommandTest {
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_petBelongsToDifferentOwner_noMutation() {
         model.deletePet(pet);
@@ -101,9 +91,7 @@ public class AddAppointmentCommandTest {
         model.addPet(new PetBuilder(otherOwner).withName("BuBu").build());
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_filteredOutParticipants_usesAllSavedRecords() throws Exception {
         model.updateFilteredClientList(client -> false);
@@ -113,9 +101,7 @@ public class AddAppointmentCommandTest {
         assertTrue(model.getFilteredClientList().isEmpty());
         assertTrue(model.getFilteredPetList().isEmpty());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_petRemovedBeforeExecution_rejectsAppointment() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
@@ -124,9 +110,7 @@ public class AddAppointmentCommandTest {
         assertEquals(AddAppointmentCommand.MESSAGE_PET_NOT_FOUND, exception.getMessage());
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_participantDetailsEditedBeforeExecution_usesLatestObjects() throws Exception {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
@@ -143,9 +127,7 @@ public class AddAppointmentCommandTest {
         assertSame(model.getBubuBook().getPetList().get(0), saved.getPet());
         assertEquals(editedPet, saved.getPet());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_ownerPhoneEdited_usesUpdatedPetOwner() throws Exception {
         Client editedOwner = new ClientBuilder(owner).withPhone("81234567").build();
@@ -156,9 +138,7 @@ public class AddAppointmentCommandTest {
         command(appointment).execute(model);
         assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_pastDateEarlierTodayAndExactNow_noMutation() {
         for (Appointment appointment : List.of(create("06-10-2026", "19:30", "20:00"),
@@ -166,27 +146,21 @@ public class AddAppointmentCommandTest {
             assertFailure(appointment, CLOCK, AddAppointmentCommand.MESSAGE_PAST_START);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_futureDateWithEarlierTimeOfDay_success() throws Exception {
         Appointment tomorrow = create("08-10-2026", "08:00", "08:30");
         command(tomorrow).execute(model);
         assertEquals(List.of(tomorrow), model.getBubuBook().getAppointmentList());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_clockInDifferentZone_usesSingaporeDate() {
         // UTC still reads 7 October, but Singapore has reached 8 October.
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
         assertFailure(create("07-10-2026", "19:30", "20:00"), midnight, AddAppointmentCommand.MESSAGE_PAST_START);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_overlapForDifferentOwnerAndPet_noMutation() {
         model.addAppointment(createAppointment(new Phone("81234567"), "Mochi", new AppointmentDate("07-10-2026"),
@@ -198,9 +172,7 @@ public class AddAppointmentCommandTest {
             assertTrue(exception.getCause() instanceof OverlappingAppointmentException);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_backToBackAndDifferentDate_success() throws Exception {
         model.addAppointment(create("07-10-2026", "11:00", "12:00"));
@@ -210,9 +182,7 @@ public class AddAppointmentCommandTest {
         }
         assertEquals(4, model.getBubuBook().getAppointmentList().size());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_repeatedCommand_rejectsDuplicate() throws Exception {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
@@ -220,9 +190,7 @@ public class AddAppointmentCommandTest {
         assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
         assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void execute_caseAndWhitespaceInPetName_matchesRegisteredPet() throws Exception {
         model.addPet(new PetBuilder(owner).withName("bubu   JUNIOR").build());
@@ -233,9 +201,7 @@ public class AddAppointmentCommandTest {
         assertEquals("bubu   JUNIOR", saved.getPet().getName().value);
         assertSame(model.getBubuBook().getPetList().get(1), saved.getPet());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructorAndExecute_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> new AddAppointmentCommand(null, "BuBu",
@@ -245,9 +211,7 @@ public class AddAppointmentCommandTest {
         assertThrows(NullPointerException.class, () -> command(VALID_APPOINTMENT).execute(null));
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equals_comparesAppointmentDetails() {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
@@ -257,9 +221,7 @@ public class AddAppointmentCommandTest {
         assertNotEquals(command, null);
         assertNotEquals(command, "schedule");
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equals_oneDifferentBookingField_notEqual() {
         AddAppointmentCommand original = command(VALID_APPOINTMENT);
@@ -281,32 +243,24 @@ public class AddAppointmentCommandTest {
             assertNotEquals(different, original);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void toString_includesAppointment() {
         assertEquals(AddAppointmentCommand.class.getCanonicalName()
                 + "{ownerPhone=91234567, petName=BuBu, date=07-10-2026, "
                 + "startTime=10:30, endTime=11:00, service=Full groom}", command(VALID_APPOINTMENT).toString());
     }
-    //@@author
 
-    //@@author 0218hy
     private AddAppointmentCommand command(Appointment appointment) {
         return command(appointment, CLOCK);
     }
-    //@@author
 
-    //@@author 0218hy
     private AddAppointmentCommand command(Appointment appointment, Clock clock) {
         return new AddAppointmentCommand(appointment.getOwnerPhone(), appointment.getPetName().value,
                 appointment.getDate(), appointment.getStartTime(), appointment.getEndTime(),
                 appointment.getService(), clock);
     }
-    //@@author
 
-    //@@author 0218hy
     private CommandException assertFailure(Appointment appointment, Clock clock, String message) {
         BubuBook before = new BubuBook(model.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
@@ -315,9 +269,7 @@ public class AddAppointmentCommandTest {
         assertEquals(before, model.getBubuBook());
         return exception;
     }
-    //@@author
 
-    //@@author 0218hy
     private static Appointment create(String date, String start, String end) {
         return createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);

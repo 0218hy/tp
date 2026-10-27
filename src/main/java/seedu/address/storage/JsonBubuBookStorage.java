@@ -22,22 +22,16 @@ public class JsonBubuBookStorage {
     public JsonBubuBookStorage(Path filePath) {
         this.filePath = requireNonNull(filePath);
     }
-    //@@author
 
-    //@@author 0218hy
     public Path getBubuBookFilePath() {
         return filePath;
     }
-    //@@author
 
-    //@@author 0218hy
     /** Reads all grooming records, or returns empty when the file does not exist. */
     public Optional<ReadOnlyBubuBook> readBubuBook() throws DataLoadingException {
         return readBubuBook(filePath);
     }
-    //@@author
 
-    //@@author 0218hy
     /** Reads the complete book at the given path. */
     public Optional<ReadOnlyBubuBook> readBubuBook(Path path) throws DataLoadingException {
         requireNonNull(path);
@@ -55,16 +49,12 @@ public class JsonBubuBookStorage {
             throw new DataLoadingException(e);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     /** Saves all clients, pets, and appointments together. */
     public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
         saveBubuBook(bubuBook, filePath);
     }
-    //@@author
 
-    //@@author 0218hy
     /** Finishes writing before replacing the previous file to avoid truncating saved records on failure. */
     public void saveBubuBook(ReadOnlyBubuBook bubuBook, Path path) throws IOException {
         requireNonNull(bubuBook);

@@ -63,9 +63,7 @@ public class DeleteAppointmentCommandParserTest {
             assertParseFailure(parser, "d/" + date + " t/10:30", AppointmentDate.MESSAGE_CONSTRAINTS);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void parse_invalidTime_reportsTimeConstraints() {
         for (String time : new String[]{"25:00", "24:00", "10:60", "10:3", "10:30:00", ""}) {
@@ -73,18 +71,14 @@ public class DeleteAppointmentCommandParserTest {
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_TIME);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void parse_invalidIndex_reportsIndexConstraints() {
         for (String index : new String[]{"0", "-1", "1.5", "2147483648", "unexpected"}) {
             assertParseFailure(parser, index, MESSAGE_INVALID_INDEX);
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void parse_validTimeBoundariesAndNonHalfHour_success() {
         for (String time : new String[]{"00:00", "23:59", "10:17"}) {

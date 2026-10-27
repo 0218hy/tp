@@ -23,16 +23,12 @@ public class AppointmentDateTest {
             assertEquals(dates[i], date.toString());
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_pastDate_allowsHistoricalRecords() {
         assertEquals(LocalDate.of(2000, 1, 1), new AppointmentDate("01-01-2000").value);
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_invalidDate_rejectsInvalidCalendarDatesAndFormats() {
         String[] invalidDates = {"", " ", "1-01-2026", "01-1-2026", "01-01-26", "2026-01-01",
@@ -46,17 +42,13 @@ public class AppointmentDateTest {
             assertEquals(AppointmentDate.MESSAGE_CONSTRAINTS, error.getMessage());
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertFalse(AppointmentDate.isValidDate(null));
         assertThrows(NullPointerException.class, () -> new AppointmentDate(null));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void equalsAndHashCode_compareDateValues() {
         AppointmentDate date = new AppointmentDate("18-09-2026");

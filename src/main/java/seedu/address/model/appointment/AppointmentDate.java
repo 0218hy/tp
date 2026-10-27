@@ -29,9 +29,7 @@ public class AppointmentDate {
         }
         value = LocalDate.parse(date, FORMATTER);
     }
-    //@@author
 
-    //@@author 0218hy
     /**
      * Returns whether the input is a real date with a four-digit positive year.
      */
@@ -45,24 +43,18 @@ public class AppointmentDate {
             return false;
         }
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public String toString() {
         return value.format(FORMATTER);
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         return other == this
                 || (other instanceof AppointmentDate otherDate && value.equals(otherDate.value));
     }
-    //@@author
 
-    //@@author 0218hy
     @Override
     public int hashCode() {
         return value.hashCode();
