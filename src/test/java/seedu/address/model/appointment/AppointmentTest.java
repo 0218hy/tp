@@ -104,10 +104,10 @@ public class AppointmentTest {
     }
 
     @Test
-    public void matches_includesStartAndInteriorButExcludesEnd() {
+    public void matches_exactStartTimeOnly() {
         Appointment appointment = create("10:30", "12:00");
         assertTrue(appointment.matches(DATE, LocalTime.of(10, 30)));
-        assertTrue(appointment.matches(DATE, LocalTime.of(10, 50)));
+        assertFalse(appointment.matches(DATE, LocalTime.of(10, 50)));
         assertFalse(appointment.matches(DATE, LocalTime.of(10, 29)));
         assertFalse(appointment.matches(DATE, LocalTime.of(12, 0)));
         assertFalse(appointment.matches(new AppointmentDate("19-09-2026"), LocalTime.of(10, 30)));

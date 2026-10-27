@@ -594,27 +594,27 @@ The command makes no changes when it cannot be completed.
 
 ### Deleting an appointment: `delete-appointment`
 
-Deletes a booking by its displayed index or a date and time within it. Date-and-time lookup searches all saved appointments, including completed bookings hidden from the list.
+Deletes a booking by its displayed index or its date and start time. Date-and-start-time lookup searches all saved appointments, including completed bookings hidden from the list.
 
 #### Format
 
 ```text
 delete-appointment INDEX
-delete-appointment d/DD-MM-YYYY t/HH:mm
+delete-appointment d/DD-MM-YYYY st/HH:mm
 ```
 
 #### Parameters and validation
 
 * `INDEX` — a positive integer referring to the appointment's one-based position in the current appointment list. Run `list-appointments` first.
 * `d/DD-MM-YYYY` — alternatively, a real calendar date; it need not be in the future.
-* `t/HH:mm` — required with `d/`; use a valid 24-hour time from `00:00` to `23:59`. Any minute is allowed. It
-  matches a booking at or after its start and strictly before its end.
+* `st/HH:mm` — required with `d/`; use the appointment's exact start time, from `08:00` to `19:30` in 30-minute
+  intervals.
 * Provide an index or both date and time, not both formats. Each prefix may appear only once.
 
 #### Examples
 
 * `delete-appointment 1` — deletes the first displayed appointment.
-* `delete-appointment d/18-09-2027 t/10:30` — deletes the booking containing 10:30 on that date, if one exists.
+* `delete-appointment d/18-09-2027 st/10:30` — deletes the booking starting at 10:30 on that date, if one exists.
 
 #### Success and other behavior
 
@@ -626,18 +626,18 @@ delete-appointment d/DD-MM-YYYY t/HH:mm
 
 The command makes no changes when it cannot be completed.
 
-* `Choose an appointment index, or provide both d/DATE (DD-MM-YYYY) and t/TIME (HH:mm).` — the target is missing or
+* `Choose an appointment index, or provide both d/DATE (DD-MM-YYYY) and st/START_TIME (HH:mm).` — the target is missing or
   incomplete.
 * Invalid command format — a parameter is unsupported, a prefix is repeated, or the command structure is invalid;
   the command usage is shown.
 * `Appointment index must be a positive whole number.` — the index is malformed or not positive.
 * Invalid appointment date — use `DD-MM-YYYY`, such as `18-09-2027`, and enter a real calendar date.
-* Invalid appointment time — use `HH:mm`, such as `10:30`, from `00:00` to `23:59`; any minute is allowed.
+* Invalid appointment start time — use `HH:mm`, such as `10:30`, from `08:00` to `19:30` in 30-minute intervals.
 * `Choose either an appointment index or a date and time, not both.` — both target formats are supplied.
 * `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
 * `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
   using an index.
-* `No appointment contains the specified date and time.` — no booking contains that date and time.
+* `No appointment starts at the specified date and time.` — no booking starts at that date and time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`
@@ -765,7 +765,7 @@ Action | Format, Examples
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 t/10:30`
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY st/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 st/10:30`
 **Clear** | `clear`
 **Help** | `help`
 **Exit** | `exit`

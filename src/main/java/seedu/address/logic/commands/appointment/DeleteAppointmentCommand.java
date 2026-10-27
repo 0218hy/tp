@@ -26,16 +26,16 @@ public class DeleteAppointmentCommand extends Command {
     public static final String COMMAND_WORD = "delete-appointment";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes an appointment by a date and a time within it, or by displayed index.\n"
-            + "Parameters: d/DD-MM-YYYY t/HH:mm, or INDEX (must be a positive integer)\n"
-            + "Date format: DD-MM-YYYY; time format: HH:mm (00:00 to 23:59; any minute).\n"
-            + "Examples: " + COMMAND_WORD + " d/18-09-2027 t/10:30\n"
+            + ": Deletes an appointment by its date and start time, or by displayed index.\n"
+            + "Parameters: d/DD-MM-YYYY st/HH:mm, or INDEX (must be a positive integer)\n"
+            + "Date format: DD-MM-YYYY; start time format: HH:mm (08:00 to 19:30 in 30-minute intervals).\n"
+            + "Examples: " + COMMAND_WORD + " d/18-09-2027 st/10:30\n"
             + "          " + COMMAND_WORD + " 1";
 
     public static final String MESSAGE_SUCCESS = "Deleted appointment: %1$s";
     public static final String MESSAGE_DELETE_APPOINTMENT_SUCCESS = MESSAGE_SUCCESS;
     public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
-            "No appointment contains the specified date and time.";
+            "No appointment starts at the specified date and time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is not in the displayed appointment list.";
     private static final Logger logger = LogsCenter.getLogger(DeleteAppointmentCommand.class);

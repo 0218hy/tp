@@ -73,7 +73,7 @@ public class BuBuParserTest {
     @Test
     public void parseCommand_deleteAppointmentByDateAndTime() throws Exception {
         DeleteAppointmentCommand command = (DeleteAppointmentCommand) parser.parseCommand(
-                DeleteAppointmentCommand.COMMAND_WORD + " d/01-01-2020 t/10:30");
+                DeleteAppointmentCommand.COMMAND_WORD + " d/01-01-2020 st/10:30");
         assertEquals(new DeleteAppointmentCommand(new AppointmentDate("01-01-2020"), LocalTime.of(10, 30)),
                 command);
     }

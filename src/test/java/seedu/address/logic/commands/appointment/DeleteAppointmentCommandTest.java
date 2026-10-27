@@ -54,19 +54,25 @@ public class DeleteAppointmentCommandTest {
     }
 
     @Test
-    public void execute_validDateAndTime_deletesContainingAppointment() {
+    public void execute_validDateAndStartTime_deletesAppointment() {
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteAppointment(APPOINTMENT);
 
-        assertCommandSuccess(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)), model,
+        assertCommandSuccess(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 0)), model,
                 successMessage(APPOINTMENT), expectedModel);
     }
 
     @Test
-    public void execute_startTime_deletesAppointment() throws CommandException {
-        new DeleteAppointmentCommand(DATE, LocalTime.of(10, 0)).execute(model);
+    public void execute_interiorTime_doesNotMatchAppointment() {
+        assertCommandFailure(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)), model,
+                DeleteAppointmentCommand.MESSAGE_APPOINTMENT_NOT_FOUND);
+    }
 
-        assertEquals(List.of(ADJACENT_APPOINTMENT), model.getBubuBook().getAppointmentList());
+    @Test
+    public void execute_startTime_deletesAppointment() throws CommandException {
+        new DeleteAppointmentCommand(DATE, LocalTime.of(11, 0)).execute(model);
+
+        assertEquals(List.of(APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
 
     @Test

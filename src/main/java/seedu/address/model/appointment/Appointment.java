@@ -133,15 +133,11 @@ public class Appointment {
                 && endTime.value.isAfter(otherAppointment.startTime.value);
     }
 
-    /**
-     * Returns whether this appointment contains the requested date and time for deletion.
-     * Includes the start and excludes the end. The query time need not be on a half-hour boundary.
-     */
+    /** Returns whether this appointment starts at the requested date and time. */
     public boolean matches(AppointmentDate queryDate, LocalTime queryTime) {
         requireAllNonNull(queryDate, queryTime);
         return date.equals(queryDate)
-                && !queryTime.isBefore(startTime.value)
-                && queryTime.isBefore(endTime.value);
+                && startTime.value.equals(queryTime);
     }
 
     @Override
