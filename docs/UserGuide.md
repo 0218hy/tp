@@ -551,6 +551,8 @@ edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/N
   either identification form.
 * `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`; `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
   `HH:mm`.
+* Start times must be from `08:00` to `19:30` in 30-minute intervals. End times must be from `08:30` to `20:00`
+  in 30-minute intervals and at least 30 minutes after the appointment start time.
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
 * The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
   appointment.
@@ -561,6 +563,34 @@ Examples:
 * `edit-appointment d/18-09-2027 st/10:00 nd/19-09-2027 nst/11:00 et/12:00` moves the appointment to a new date
   and time and changes its end time.
 * `edit-appointment 1 et/12:00` changes the end time of the first appointment in the displayed appointment list.
+
+#### Error handling
+
+The command makes no changes when it cannot be completed.
+
+* `Choose an appointment index, or provide both d/CURRENT_DATE (DD-MM-YYYY) and st/CURRENT_START_TIME (HH:mm).` —
+  the target is missing or incomplete.
+* Invalid command format — a parameter is unsupported, a prefix is repeated, or the command structure is invalid;
+  the command usage is shown.
+* `Appointment index must be a positive whole number.` — the index is malformed or not positive.
+* `Choose either an appointment index or a date and start time, not both.` — both target formats are supplied.
+* `Specify at least one appointment detail to change using i/NEW_OWNER_PHONE, p/NEW_PET_NAME, nd/NEW_DATE,
+  nst/NEW_START_TIME, et/NEW_END_TIME or s/NEW_SERVICE.` — no replacement field is supplied.
+* Invalid appointment date — use `DD-MM-YYYY`, such as `18-09-2027`, and enter a real calendar date.
+* Invalid start or end time — use `HH:mm`, such as `10:00`, and follow the allowed appointment time ranges.
+* Invalid owner phone, pet name or service — follow the field constraints shown in the error message.
+* `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
+* `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
+  using an index.
+* `No appointment starts at the specified date and start time.` — no matching appointment exists.
+* `No registered owner matches the specified phone number.` — the replacement owner cannot be found.
+* `This pet is not registered under the specified owner.` — the replacement pet cannot be found for that owner.
+* `No changes were made. The appointment already has these details.` — all requested values match the existing
+  appointment.
+* `End time must be at least 30 minutes after the appointment start time.` — the edited time range is too short.
+* `The updated appointment must start in the future (Singapore time).` — the new start has passed.
+* `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
+  with an existing appointment.
 
 ### Deleting an appointment: `delete-appointment`
 

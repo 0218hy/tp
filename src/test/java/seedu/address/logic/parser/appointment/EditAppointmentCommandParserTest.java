@@ -5,7 +5,6 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_END_TIME;
 
 import org.junit.jupiter.api.Test;
@@ -58,12 +57,11 @@ public class EditAppointmentCommandParserTest {
 
     @Test
     public void parse_missingTargetOrEditField_failure() {
-        assertParseFailure(parser, "s/Full groom",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditAppointmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "s/Full groom", EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
         assertParseFailure(parser, "d/18-09-2027 s/Full groom",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditAppointmentCommand.MESSAGE_USAGE));
+                EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
         assertParseFailure(parser, "st/10:00 s/Full groom",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditAppointmentCommand.MESSAGE_USAGE));
+                EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
         assertParseFailure(parser, "1", EditAppointmentCommand.MESSAGE_NOT_EDITED);
         assertParseFailure(parser, "d/18-09-2027 st/10:00", EditAppointmentCommand.MESSAGE_NOT_EDITED);
     }
@@ -76,7 +74,7 @@ public class EditAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidIndex_failure() {
-        assertParseFailure(parser, "0 s/Full groom", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "0 s/Full groom", EditAppointmentCommandParser.MESSAGE_INVALID_INDEX);
     }
 
     @Test
@@ -87,19 +85,19 @@ public class EditAppointmentCommandParserTest {
     @Test
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, "d/31-02-2027 st/10:00 et/12:00",
-                AppointmentDate.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommandParser.MESSAGE_INVALID_DATE);
         assertParseFailure(parser, "d/18-09-2027 st/07:00 et/12:00",
-                StartTime.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommandParser.MESSAGE_INVALID_START_TIME);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 et/10:15",
-                EndTime.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommandParser.MESSAGE_INVALID_END_TIME);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 i/1234 et/12:00",
                 Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 p/* et/12:00",
                 PetName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 nd/31-02-2027 et/12:00",
-                AppointmentDate.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommandParser.MESSAGE_INVALID_DATE);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 nst/07:00 et/12:00",
-                StartTime.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommandParser.MESSAGE_INVALID_START_TIME);
         assertParseFailure(parser, "d/18-09-2027 st/10:00 s/Unknown et/12:00",
                 Service.MESSAGE_CONSTRAINTS);
     }
@@ -112,6 +110,12 @@ public class EditAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidPreamble_failure() {
-        assertParseFailure(parser, "not-an-index s/Full groom", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "not-an-index s/Full groom", EditAppointmentCommandParser.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_unknownParameter_failure() {
+        assertParseFailure(parser, "1 t/10:00",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditAppointmentCommand.MESSAGE_USAGE));
     }
 }

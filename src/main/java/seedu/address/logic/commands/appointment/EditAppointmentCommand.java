@@ -56,22 +56,33 @@ public class EditAppointmentCommand extends Command {
             + "[" + PREFIX_END_TIME + "NEW_END_TIME] "
             + "[" + PREFIX_SERVICE + "NEW_SERVICE]\n"
             + "Date format: DD-MM-YYYY; time format: HH:mm.\n"
+            + "Start time: 08:00-19:30 in 30-minute intervals; end time: 08:30-20:00 in 30-minute intervals, "
+            + "at least 30 minutes after the start.\n"
             + "Example: " + COMMAND_WORD + " d/18-09-2027 st/10:00 "
             + PREFIX_END_TIME + "12:00";
 
     public static final String MESSAGE_SUCCESS = "Edited appointment: %1$s";
     public static final String MESSAGE_EDIT_APPOINTMENT_SUCCESS = MESSAGE_SUCCESS;
-    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    public static final String MESSAGE_NOT_EDITED =
+            "Specify at least one appointment detail to change using i/NEW_OWNER_PHONE, p/NEW_PET_NAME, "
+                    + "nd/NEW_DATE, nst/NEW_START_TIME, et/NEW_END_TIME or s/NEW_SERVICE.";
+    public static final String MESSAGE_NO_CHANGES =
+            "No changes were made. The appointment already has these details.";
+    public static final String MESSAGE_INVALID_DURATION =
+            "End time must be at least 30 minutes after the appointment start time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
-            "The appointment index provided is invalid.";
+            "The appointment index provided is not in the displayed appointment list.";
     public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
-            "No appointment was found for the specified date and start time.";
+            "No appointment starts at the specified date and start time.";
     public static final String MESSAGE_INDEX_AND_DATE_TIME =
-            "An appointment index cannot be combined with date and start-time identifiers.";
-    public static final String MESSAGE_OWNER_NOT_FOUND = AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND;
+            "Choose either an appointment index or a date and start time, not both.";
+    public static final String MESSAGE_OWNER_NOT_FOUND =
+            "No registered owner matches the specified phone number.";
     public static final String MESSAGE_PET_NOT_FOUND = AddAppointmentCommand.MESSAGE_PET_NOT_FOUND;
-    public static final String MESSAGE_PAST_START = AddAppointmentCommand.MESSAGE_PAST_START;
-    public static final String MESSAGE_OVERLAP = AddAppointmentCommand.MESSAGE_OVERLAP;
+    public static final String MESSAGE_PAST_START =
+            "The updated appointment must start in the future (Singapore time).";
+    public static final String MESSAGE_OVERLAP =
+            "The updated appointment overlaps another appointment. Choose an available time slot.";
 
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
     private static final Logger logger = LogsCenter.getLogger(EditAppointmentCommand.class);
@@ -160,6 +171,11 @@ public class EditAppointmentCommand extends Command {
         Appointment appointmentToEdit = findAppointment(model);
         Appointment editedAppointment = createEditedAppointment(model, appointmentToEdit, editAppointmentDescriptor);
 
+        if (appointmentToEdit.equals(editedAppointment)) {
+            logger.fine("edit-appointment rejected: the requested details match the existing appointment.");
+            throw new CommandException(MESSAGE_NO_CHANGES);
+        }
+
         LocalDateTime start = editedAppointment.getDate().value.atTime(editedAppointment.getStartTime().value);
         if (!start.isAfter(LocalDateTime.now(clock))) {
             logger.fine("edit-appointment rejected: appointment start is not in the future.");
@@ -242,6 +258,11 @@ public class EditAppointmentCommand extends Command {
         if (pet == null) {
             logger.fine("edit-appointment rejected: pet is not registered under the specified owner.");
             throw new CommandException(MESSAGE_PET_NOT_FOUND);
+        }
+
+        if (!endTime.isAtLeastThirtyMinutesAfter(startTime)) {
+            logger.fine("edit-appointment rejected: end time is less than 30 minutes after the start time.");
+            throw new CommandException(MESSAGE_INVALID_DURATION);
         }
 
         return new Appointment(owner, pet, date, startTime, endTime, service);
