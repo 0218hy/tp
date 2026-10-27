@@ -87,6 +87,8 @@ public class EditAppointmentCommandParserTest {
     public void parse_indexAndDateTime_failure() {
         assertParseFailure(parser, "1 d/18-09-2027 st/10:00",
                 EditAppointmentCommand.MESSAGE_INDEX_AND_DATE_TIME);
+        assertParseFailure(parser, "1 st/10:00 s/Full groom",
+                EditAppointmentCommand.MESSAGE_INDEX_AND_DATE_TIME);
     }
 
     @Test

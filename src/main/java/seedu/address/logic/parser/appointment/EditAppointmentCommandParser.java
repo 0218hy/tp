@@ -85,15 +85,15 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         if (hasIndex && (hasTargetDate || hasTargetStartTime)) {
             throw new ParseException(EditAppointmentCommand.MESSAGE_INDEX_AND_DATE_TIME);
         }
+        if (!hasIndex && !hasTargetDate && !hasTargetStartTime) {
+            throw new ParseException(MESSAGE_TARGET_REQUIRED);
+        }
         if (!hasIndex && hasTargetDate != hasTargetStartTime) {
             String missingParameter = hasTargetDate
                     ? "st/CURRENT_START_TIME (HH:mm)"
                     : "d/CURRENT_DATE (DD-MM-YYYY)";
             throw new ParseException(Messages.getErrorMessageForMissingParameter(
                     missingParameter, EditAppointmentCommand.MESSAGE_USAGE));
-        }
-        if (!hasIndex && !hasTargetDate && !hasTargetStartTime) {
-            throw new ParseException(MESSAGE_TARGET_REQUIRED);
         }
 
         EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor();

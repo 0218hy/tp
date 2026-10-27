@@ -67,13 +67,13 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
             Index index = parseIndex(arguments.getPreamble());
             return new DeleteAppointmentCommand(index);
         }
+        if (!hasDate && !hasTime) {
+            throw new ParseException(MESSAGE_TARGET_REQUIRED);
+        }
         if (hasDate != hasTime) {
             String missingParameter = hasDate ? "st/START_TIME (HH:mm)" : "d/DATE (DD-MM-YYYY)";
             throw new ParseException(Messages.getErrorMessageForMissingParameter(
                     missingParameter, DeleteAppointmentCommand.MESSAGE_USAGE));
-        }
-        if (!hasDate && !hasTime) {
-            throw new ParseException(MESSAGE_TARGET_REQUIRED);
         }
         AppointmentDate date = parseDate(arguments.getValue(PREFIX_DATE).orElseThrow());
         StartTime startTime = parseStartTime(arguments.getValue(PREFIX_START_TIME).orElseThrow());
