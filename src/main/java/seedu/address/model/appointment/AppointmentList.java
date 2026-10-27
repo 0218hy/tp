@@ -76,6 +76,7 @@ public class AppointmentList {
         internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
     }
 
+    //@@author chunghean
     /** Updates appointments when their owner's client record is replaced. */
     public void updateOwner(Client currentOwner, Client editedOwner) {
         requireNonNull(currentOwner);
@@ -90,6 +91,7 @@ public class AppointmentList {
             }
         }
     }
+    //@@author
 
     /**
      * Updates every appointment belonging to {@code currentPet} with its replacement name.

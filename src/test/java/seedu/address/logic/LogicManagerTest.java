@@ -268,11 +268,13 @@ public class LogicManagerTest {
         assertEquals(expectedModel.getBubuBook(), savedBubuBook);
     }
 
+    //@@author khangsian0412
     @Test
     public void execute_deletePetWithNoMatch_throwsCommandException() {
         assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
                 DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
+    //@@author
 
     @Test
     public void execute_editPet_updatesAndSavesProfile() throws Exception {

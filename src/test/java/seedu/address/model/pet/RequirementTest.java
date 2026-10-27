@@ -49,6 +49,18 @@ public class RequirementTest {
     }
 
     @Test
+    public void isValidRequirement_boundaryLengths() {
+        // BVA: check values immediately below, at, and above the 5- and 240-char limits.
+        assertFalse(Requirement.isValidRequirement("R".repeat(4)));
+        assertTrue(Requirement.isValidRequirement("R".repeat(5)));
+        assertTrue(Requirement.isValidRequirement("R".repeat(6)));
+
+        assertTrue(Requirement.isValidRequirement("R".repeat(239)));
+        assertTrue(Requirement.isValidRequirement("R".repeat(240)));
+        assertFalse(Requirement.isValidRequirement("R".repeat(241)));
+    }
+
+    @Test
     public void equals() {
         Requirement requirement = new Requirement("Daily brushing");
 

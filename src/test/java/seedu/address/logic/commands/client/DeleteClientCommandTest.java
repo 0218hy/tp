@@ -95,12 +95,14 @@ public class DeleteClientCommandTest {
         assertCommandSuccess(deleteClientCommand, model, expectedMessage, expectedModel);
     }
 
+    //@@author chunghean
     @Test
     public void execute_unknownPhoneNumber_throwsCommandException() {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(new Phone("81111112"));
 
         assertCommandFailure(deleteClientCommand, model, "No person with the given phone number exists.");
     }
+    //@@author
 
     @Test
     public void getRequiredDisplayType_dependsOnTarget() {

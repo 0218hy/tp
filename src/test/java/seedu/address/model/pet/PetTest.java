@@ -2,6 +2,7 @@ package seedu.address.model.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -78,6 +79,18 @@ public class PetTest {
         assertThrows(NullPointerException.class, () -> new Pet(pet.getName(), pet.getOwner(), null,
                 pet.getRequirement()));
         assertThrows(NullPointerException.class, () -> new Pet(pet.getName(), pet.getOwner(), pet.getSpecies(), null));
+    }
+
+    @Test
+    public void constructor_withoutBreed_createsPetWithOptionalBreedAbsent() {
+        // EP: breed may be omitted while all compulsory pet fields are present.
+        Pet pet = new Pet(new PetName("Milo"), ALICE, Species.DOG, new Requirement("Daily brushing"));
+
+        assertEquals(new PetName("Milo"), pet.getName());
+        assertSame(ALICE, pet.getOwner());
+        assertEquals(Species.DOG, pet.getSpecies());
+        assertNull(pet.getBreed());
+        assertEquals(new Requirement("Daily brushing"), pet.getRequirement());
     }
 
     @Test
