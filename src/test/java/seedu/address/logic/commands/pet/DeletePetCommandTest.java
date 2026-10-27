@@ -56,6 +56,7 @@ public class DeletePetCommandTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void execute_validIndex_deletesPetFromFilteredList() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
@@ -65,6 +66,7 @@ public class DeletePetCommandTest {
         assertCommandSuccess(deletePetCommand, model,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
+    //@@author
 
     //@@author khangsian0412
     @Test

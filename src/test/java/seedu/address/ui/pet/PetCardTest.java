@@ -19,6 +19,7 @@ import seedu.address.ui.JavaFxTestUtils;
 @EnabledOnOs(OS.LINUX)
 public class PetCardTest {
 
+    //@@author chunghean
     @Test
     public void constructor_withoutBreed_displaysPetDetails() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -44,6 +45,7 @@ public class PetCardTest {
             assertEquals("Breed: Golden retriever", getLabel(card, "breed").getText());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test

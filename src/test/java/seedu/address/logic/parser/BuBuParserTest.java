@@ -65,6 +65,7 @@ public class BuBuParserTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void parseCommand_deleteAppointmentByIndex() throws Exception {
         DeleteAppointmentCommand command = (DeleteAppointmentCommand) parser.parseCommand(
@@ -109,6 +110,7 @@ public class BuBuParserTest {
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD + " i/12"));
     }
+    //@@author
 
     //@@author 0218hy
     @Test

@@ -59,6 +59,7 @@ public class PetTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void isIdentifiedBy_matchesOwnerAndNormalizedName() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -69,6 +70,7 @@ public class PetTest {
         assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(null, pet.getName()));
         assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(ALICE.getPhone(), null));
     }
+    //@@author
 
     //@@author khangsian0412
     @Test

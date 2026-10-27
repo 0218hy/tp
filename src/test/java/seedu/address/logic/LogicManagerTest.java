@@ -199,6 +199,7 @@ public class LogicManagerTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {
         Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
@@ -255,6 +256,7 @@ public class LogicManagerTest {
                 + "Time: 10:00-11:00; Service: Full groom", result.getFeedbackToUser());
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
+    //@@author
 
     //@@author khangsian0412
     @Test
@@ -364,6 +366,7 @@ public class LogicManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredClientList().remove(0));
     }
 
+    //@@author chunghean
     @Test
     public void accessors_delegateToModel() {
         assertSame(model.getFilteredClientList(), logic.getFilteredClientList());
@@ -376,6 +379,7 @@ public class LogicManagerTest {
         assertSame(guiSettings, model.getGuiSettings());
         assertSame(guiSettings, logic.getGuiSettings());
     }
+    //@@author
 
     /**
      * Executes the command and confirms that

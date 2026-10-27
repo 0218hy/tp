@@ -133,6 +133,7 @@ public class ModelManagerTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void deleteAppointment_appointmentInBubuBook_removesAppointment() {
         Appointment appointment = createAppointment(new Phone("91234567"), "BuBu",
@@ -182,6 +183,7 @@ public class ModelManagerTest {
 
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredAppointmentList().remove(0));
     }
+    //@@author
 
     @Test
     public void getFilteredPetList_modifyList_throwsUnsupportedOperationException() {

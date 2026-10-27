@@ -10,6 +10,7 @@ import seedu.address.model.Model;
  */
 public abstract class Command {
 
+    //@@author chunghean
     /**
      * Returns the display type required before this command can resolve an index.
      * Commands that do not use an index are independent of the current displayed list.
@@ -17,6 +18,7 @@ public abstract class Command {
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return Optional.empty();
     }
+    //@@author
 
     /**
      * Executes the command and returns the result message.

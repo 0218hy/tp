@@ -102,7 +102,6 @@ public class DeleteClientCommandTest {
 
         assertCommandFailure(deleteClientCommand, model, "No person with the given phone number exists.");
     }
-    //@@author
 
     @Test
     public void getRequiredDisplayType_dependsOnTarget() {
@@ -112,6 +111,7 @@ public class DeleteClientCommandTest {
                 new DeleteClientCommand(model.getBubuBook().getClientList().get(0).getPhone())
                         .getRequiredDisplayType());
     }
+    //@@author
 
     @Test
     public void equals() {

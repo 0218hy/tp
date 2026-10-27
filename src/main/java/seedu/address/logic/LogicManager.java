@@ -89,6 +89,7 @@ public class LogicManager implements Logic {
         return commandResult;
     }
 
+    //@@author chunghean
     /**
      * Rejects index-based commands when their required record list is not displayed.
      */
@@ -107,6 +108,7 @@ public class LogicManager implements Logic {
             currentDisplayType = commandResult.getDisplayType();
         }
     }
+    //@@author
 
     /**
      * Saves the completed command and restores its previous data if saving fails.

@@ -23,6 +23,7 @@ import seedu.address.model.pet.PetName;
 public class EditAppointmentCommandParserTest {
     private final EditAppointmentCommandParser parser = new EditAppointmentCommandParser();
 
+    //@@author chunghean
     @Test
     public void parse_byDateAndStartTime_success() {
         EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor();
@@ -114,4 +115,5 @@ public class EditAppointmentCommandParserTest {
     public void parse_invalidPreamble_failure() {
         assertParseFailure(parser, "not-an-index s/Full groom", MESSAGE_INVALID_INDEX);
     }
+    //@@author
 }

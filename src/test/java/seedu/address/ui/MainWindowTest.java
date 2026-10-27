@@ -65,6 +65,7 @@ public class MainWindowTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void executeCommand_displayTypeSwitchesVisibleListPanel() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -93,6 +94,7 @@ public class MainWindowTest {
             assertTrue(appointmentListPanel.getRoot().isVisible());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test

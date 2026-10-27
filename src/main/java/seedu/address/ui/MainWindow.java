@@ -238,10 +238,12 @@ public class MainWindow extends UiPart<Stage> {
     }
     // @@author
 
+    //@@author chunghean
     private static void setListVisibility(Region listRoot, boolean visible) {
         listRoot.setVisible(visible);
         listRoot.setManaged(visible);
     }
+    //@@author
 
     /**
      * Executes the command and returns the result.
