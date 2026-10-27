@@ -44,6 +44,7 @@ public class DeleteClientCommand extends Command {
         this.phoneNumber = null;
     }
 
+    //@@author chunghean
     /**
      * Creates a {@code DeleteClientCommand} to delete the client with the given phone number.
      *
@@ -53,13 +54,16 @@ public class DeleteClientCommand extends Command {
         this.phoneNumber = requireNonNull(phoneNumber);
         this.targetIndex = null;
     }
+    //@@author
 
+    //@@author chunghean
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null
                 ? Optional.empty()
                 : Optional.of(CommandResult.DisplayType.CLIENTS);
     }
+    //@@author
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -76,10 +80,12 @@ public class DeleteClientCommand extends Command {
         } else {
             //TODO: use SLAP
             clientToDelete = model.getBubuBook().getClientList().stream()
+                    //@@author chunghean
                     .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
                     .orElseThrow(() -> new CommandException(
                             "No person with the given phone number exists."));
+            //@@author
         }
 
         model.deleteClient(clientToDelete);

@@ -11,6 +11,7 @@ import seedu.address.logic.commands.client.ListClientsCommand;
 public class ListClientsCommandParserTest {
     private final ListClientsCommandParser parser = new ListClientsCommandParser();
 
+    //@@author anderschow
     @Test
     public void parse_validQuery_success() {
         assertParseSuccess(parser, "  ", new ListClientsCommand());
@@ -18,7 +19,9 @@ public class ListClientsCommandParserTest {
             assertParseSuccess(parser, " q/" + keyword + "  ", new ListClientsCommand(keyword));
         }
     }
+    //@@author
 
+    //@@author anderschow
     @Test
     public void parse_invalidQuery_failure() {
         for (String keyword : new String[]{"", "   ", "a".repeat(61), "a_b", "a/b", "a!", "é", "a\tb"}) {
@@ -31,4 +34,5 @@ public class ListClientsCommandParserTest {
         assertParseFailure(parser, "n/amelia", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
                 ListClientsCommand.MESSAGE_USAGE));
     }
+    //@@author
 }

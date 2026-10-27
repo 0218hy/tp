@@ -31,6 +31,7 @@ public class Appointment {
     private final EndTime endTime;
     private final Service service;
 
+    //@@author 0218hy
     /**
      * Constructs an appointment with non-null fields and a duration of at least 30 minutes.
      * The supplied pet must belong to the supplied owner.
@@ -48,6 +49,7 @@ public class Appointment {
         this.endTime = endTime;
         this.service = service;
     }
+    //@@author
 
     public Client getOwner() {
         return owner;
@@ -84,9 +86,11 @@ public class Appointment {
     /** Returns a copy with the new owner phone, preserving the remaining participant details. */
     Appointment withOwnerPhone(Phone newOwnerPhone) {
         requireNonNull(newOwnerPhone);
+        //@@author 0218hy
         Client updatedOwner = new Client(owner.getName(), newOwnerPhone, owner.getEmail(),
                 owner.getAddress(), owner.getTags());
         return new Appointment(updatedOwner, pet.withOwner(updatedOwner), date, startTime, endTime, service);
+        //@@author
     }
 
     /**
@@ -117,6 +121,7 @@ public class Appointment {
                 && startTime.equals(otherAppointment.startTime));
     }
 
+    //@@author 0218hy
     /**
      * Returns whether appointments overlap on the same date, regardless of owner or pet.
      * Back-to-back appointments do not overlap.
@@ -127,7 +132,9 @@ public class Appointment {
                 && startTime.value.isBefore(otherAppointment.endTime.value)
                 && endTime.value.isAfter(otherAppointment.startTime.value);
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Returns whether this appointment contains the requested date and time for deletion.
      * Includes the start and excludes the end. The query time need not be on a half-hour boundary.
@@ -138,6 +145,7 @@ public class Appointment {
                 && !queryTime.isBefore(startTime.value)
                 && queryTime.isBefore(endTime.value);
     }
+    //@@author
 
     @Override
     public boolean equals(Object other) {

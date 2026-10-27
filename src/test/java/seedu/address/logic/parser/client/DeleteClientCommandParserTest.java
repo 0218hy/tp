@@ -26,10 +26,12 @@ public class DeleteClientCommandParserTest {
         assertParseSuccess(parser, "1", new DeleteClientCommand(INDEX_FIRST_CLIENT));
     }
 
+    //@@author chunghean
     @Test
     public void parse_validPhoneIdentifier_returnsDeleteCommand() {
         assertParseSuccess(parser, "i/91234567", new DeleteClientCommand(new Phone("91234567")));
     }
+    //@@author
 
     @Test
     public void parse_invalidArgs_throwsParseException() {
@@ -37,9 +39,11 @@ public class DeleteClientCommandParserTest {
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE));
     }
 
+    //@@author chunghean
     @Test
     public void parse_indexAndPhoneIdentifier_throwsParseException() {
         assertParseFailure(parser, "1 i/91234567",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE));
     }
+    //@@author
 }

@@ -64,6 +64,7 @@ public class DeletePetCommandTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
 
+    //@@author khangsian0412
     @Test
     public void execute_lastValidIndex_deletesLastDisplayedPet() {
         // BVA: the list-size index is the last valid index (n), while n + 1 is invalid.
@@ -75,7 +76,9 @@ public class DeletePetCommandTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, miloWithDifferentOwner.getName()),
                 expectedModel);
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_indexTargetsFirstPetInFilteredList_notFirstPetInAllPets() {
         // EP: index deletion uses the visible filtered list, not the full pet list.
@@ -91,7 +94,9 @@ public class DeletePetCommandTest {
         assertTrue(model.hasPet(milo));
         assertFalse(model.hasPet(miloWithDifferentOwner));
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_matchingNameWithDifferentOwner_deletesOnlyMatchingPet() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
@@ -101,21 +106,27 @@ public class DeletePetCommandTest {
         assertFalse(model.hasPet(milo));
         assertTrue(model.hasPet(miloWithDifferentOwner));
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_petDoesNotExist_throwsCommandException() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(new PetName("Luna"), ALICE.getPhone());
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_matchingNameWithWrongOwnerPhone_throwsCommandException() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), new Phone("81111112"));
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_emptyPetList_throwsCommandException() {
         Model emptyModel = new ModelManager();
@@ -123,12 +134,15 @@ public class DeletePetCommandTest {
 
         assertCommandFailure(deletePetCommand, emptyModel, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void execute_invalidIndex_throwsCommandException() {
         assertCommandFailure(new DeletePetCommand(Index.fromOneBased(3)), model,
                 DeletePetCommand.MESSAGE_INVALID_PET_DISPLAYED_INDEX);
     }
+    //@@author
 
     @Test
     public void execute_petHiddenByFilter_deletesPet() {
@@ -142,6 +156,7 @@ public class DeletePetCommandTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
 
+    //@@author khangsian0412
     @Test
     public void execute_deletedPetAgain_throwsCommandException() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
@@ -150,6 +165,7 @@ public class DeletePetCommandTest {
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
+    //@@author
 
     @Test
     public void constructor_nullArguments_throwsNullPointerException() {
@@ -158,6 +174,7 @@ public class DeletePetCommandTest {
         assertThrows(NullPointerException.class, () -> new DeletePetCommand(milo.getName(), null));
     }
 
+    //@@author chunghean
     @Test
     public void getRequiredDisplayType_dependsOnTarget() {
         assertEquals(java.util.Optional.of(CommandResult.DisplayType.PETS),
@@ -165,6 +182,7 @@ public class DeletePetCommandTest {
         assertEquals(java.util.Optional.empty(),
                 new DeletePetCommand(milo.getName(), ALICE.getPhone()).getRequiredDisplayType());
     }
+    //@@author
 
     @Test
     public void equals() {
