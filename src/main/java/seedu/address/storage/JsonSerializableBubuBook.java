@@ -31,6 +31,7 @@ class JsonSerializableBubuBook {
     private final List<JsonAdaptedPet> pets;
     private final List<JsonAdaptedAppointment> appointments;
 
+    //@@author 0218hy
     /** Constructs a complete serialized BubuBook. */
     @JsonCreator
     public JsonSerializableBubuBook(@JsonProperty("clients") List<JsonAdaptedClient> clients,
@@ -40,6 +41,7 @@ class JsonSerializableBubuBook {
         this.pets = pets == null ? null : new ArrayList<>(pets);
         this.appointments = appointments == null ? null : new ArrayList<>(appointments);
     }
+    //@@author
 
     /**
      * Converts a given {@code ReadOnlyBubuBook} into this class for Jackson use.

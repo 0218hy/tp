@@ -171,6 +171,7 @@ public class LogicManagerTest {
                 .readBubuBook().orElseThrow());
     }
 
+    //@@author 0218hy
     @Test
     public void execute_listAppointments_readsScheduleWithoutSaving() throws Exception {
         model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-2000"),
@@ -194,6 +195,7 @@ public class LogicManagerTest {
         assertEquals(1, model.getBubuBook().getPetList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
+    //@@author
 
     @Test
     public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {

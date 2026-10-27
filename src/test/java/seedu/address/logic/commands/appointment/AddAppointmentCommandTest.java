@@ -42,6 +42,7 @@ public class AddAppointmentCommandTest {
     private final Client owner = new ClientBuilder().withPhone(OWNER_PHONE.value).build();
     private final Pet pet = new PetBuilder(owner).withName("BuBu").build();
 
+    //@@author 0218hy
     @BeforeEach
     public void setUp() {
         model.addClient(owner);
@@ -273,5 +274,6 @@ public class AddAppointmentCommandTest {
         return createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class ServiceTest {
+    //@@author 0218hy
     @Test
     public void fromString_supportedServices_returnsMatchingEnum() {
         assertEquals(Service.BATH_AND_BRUSH, Service.fromString("Bath and brush"));
@@ -43,4 +44,5 @@ public class ServiceTest {
         assertEquals("Nail trim", Service.NAIL_TRIM.toString());
         assertEquals("Other", Service.OTHER.toString());
     }
+    //@@author
 }

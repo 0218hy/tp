@@ -23,6 +23,7 @@ public class AppointmentList {
     private final ObservableList<Appointment> unmodifiableAppointments =
             FXCollections.unmodifiableObservableList(internalList);
 
+    //@@author 0218hy
     /**
      * Replaces the appointments, preserving their order.
      * Validates the entire replacement before changing the current list.
@@ -58,6 +59,7 @@ public class AppointmentList {
         }
         internalList.add(appointment);
     }
+    //@@author
 
     /**
      * Removes the equivalent appointment from the list.
@@ -114,6 +116,7 @@ public class AppointmentList {
         internalList.removeIf(appointment -> appointment.isForPet(pet));
     }
 
+    //@@author 0218hy
     public ObservableList<Appointment> getAppointmentList() {
         return unmodifiableAppointments;
     }
@@ -128,6 +131,7 @@ public class AppointmentList {
     public int hashCode() {
         return internalList.hashCode();
     }
+    //@@author
 
     @Override
     public String toString() {

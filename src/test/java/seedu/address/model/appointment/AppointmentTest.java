@@ -41,7 +41,6 @@ public class AppointmentTest {
         assertEquals(Service.FULL_GROOM, appointment.getService());
         assertEquals(new EndTime("20:00"), create("19:30", "20:00").getEndTime());
     }
-    //@@author
 
     @Test
     public void constructor_invalidDuration_throwsIllegalArgumentException() {
@@ -49,7 +48,6 @@ public class AppointmentTest {
         assertThrows(IllegalArgumentException.class, () -> create("10:30", "10:00"));
     }
 
-    //@@author 0218hy
     @Test
     public void constructor_nullField_throwsNullPointerException() {
         StartTime start = new StartTime("10:30");
@@ -62,7 +60,6 @@ public class AppointmentTest {
         assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, null, service));
         assertThrows(NullPointerException.class, () -> new Appointment(OWNER, PET, DATE, start, end, null));
     }
-    //@@author
 
     @Test
     public void constructor_petBelongsToDifferentOwner_rejected() {
@@ -86,7 +83,6 @@ public class AppointmentTest {
         assertTrue(original.isSameAppointment(changedPet));
     }
 
-    //@@author 0218hy
     @Test
     public void overlaps_intersectionsDetectedAndAdjacentSlotsAllowed() {
         Appointment appointment = create("10:30", "12:00");
@@ -106,9 +102,7 @@ public class AppointmentTest {
                 new StartTime("10:30"), new EndTime("12:00"), Service.FULL_GROOM);
         assertFalse(appointment.overlaps(nextDay));
     }
-    //@@author
 
-    //@@author 0218hy
     @Test
     public void matches_includesStartAndInteriorButExcludesEnd() {
         Appointment appointment = create("10:30", "12:00");
@@ -132,6 +126,7 @@ public class AppointmentTest {
         assertThrows(NullPointerException.class, () -> appointment.isForPet(null));
     }
 
+    //@@author 0218hy
     @Test
     public void withOwnerPhone_preservesSnapshotsAndUpdatesBothParticipants() {
         Appointment original = create("10:30", "12:00");
@@ -147,6 +142,7 @@ public class AppointmentTest {
         assertSame(PET, original.getPet());
         assertThrows(NullPointerException.class, () -> original.withOwnerPhone(null));
     }
+    //@@author
 
     @Test
     public void withPetName_preservesAppointmentSnapshotDetails() {
@@ -164,6 +160,7 @@ public class AppointmentTest {
         assertThrows(NullPointerException.class, () -> original.withPetName(null));
     }
 
+    //@@author 0218hy
     @Test
     public void equalsAndIdentity_distinguishSlotFromFullDetails() {
         Appointment appointment = create("10:30", "12:00");
@@ -246,4 +243,5 @@ public class AppointmentTest {
         return new Appointment(OWNER, PET, DATE,
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

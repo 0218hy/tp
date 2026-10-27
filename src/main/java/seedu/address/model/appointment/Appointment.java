@@ -49,7 +49,6 @@ public class Appointment {
         this.endTime = endTime;
         this.service = service;
     }
-    //@@author
 
     public Client getOwner() {
         return owner;
@@ -82,6 +81,7 @@ public class Appointment {
     public Service getService() {
         return service;
     }
+    //@@author
 
     /** Returns a copy with the new owner phone, preserving the remaining participant details. */
     Appointment withOwnerPhone(Phone newOwnerPhone) {
@@ -110,6 +110,7 @@ public class Appointment {
         return pet.isSamePet(this.pet);
     }
 
+    //@@author 0218hy
     /**
      * Returns whether both appointments have the same date and start time.
      * This is weaker than full equality and does not replace overlap detection.
@@ -121,7 +122,6 @@ public class Appointment {
                 && startTime.equals(otherAppointment.startTime));
     }
 
-    //@@author 0218hy
     /**
      * Returns whether appointments overlap on the same date, regardless of owner or pet.
      * Back-to-back appointments do not overlap.
@@ -132,9 +132,7 @@ public class Appointment {
                 && startTime.value.isBefore(otherAppointment.endTime.value)
                 && endTime.value.isAfter(otherAppointment.startTime.value);
     }
-    //@@author
 
-    //@@author 0218hy
     /**
      * Returns whether this appointment contains the requested date and time for deletion.
      * Includes the start and excludes the end. The query time need not be on a half-hour boundary.
@@ -145,7 +143,6 @@ public class Appointment {
                 && !queryTime.isBefore(startTime.value)
                 && queryTime.isBefore(endTime.value);
     }
-    //@@author
 
     @Override
     public boolean equals(Object other) {
@@ -179,4 +176,5 @@ public class Appointment {
                 .add("service", service)
                 .toString();
     }
+    //@@author
 }

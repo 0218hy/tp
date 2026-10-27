@@ -25,6 +25,7 @@ public class ListAppointmentsCommand extends Command {
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
     private final Clock clock;
 
+    //@@author 0218hy
     /** Creates a command using the current time in Singapore. */
     public ListAppointmentsCommand() {
         this(Clock.system(SINGAPORE_ZONE));
@@ -34,6 +35,7 @@ public class ListAppointmentsCommand extends Command {
     public ListAppointmentsCommand(Clock clock) {
         this.clock = requireNonNull(clock).withZone(SINGAPORE_ZONE);
     }
+    //@@author
 
     @Override
     public CommandResult execute(Model model) {

@@ -25,6 +25,7 @@ public class BubuBookAppointmentTest {
 
     private final BubuBook book = new BubuBook();
 
+    //@@author 0218hy
     @Test
     public void constructor_emptyBook_hasNoAppointments() {
         assertTrue(book.getAppointmentList().isEmpty());
@@ -81,6 +82,7 @@ public class BubuBookAppointmentTest {
         book.addAppointment(nextDay);
         assertEquals(List.of(APPOINTMENT, nextDay), book.getAppointmentList());
     }
+    //@@author
 
     @Test
     public void removeAppointment_existingAppointment_removesOnlyTarget() {
@@ -97,6 +99,7 @@ public class BubuBookAppointmentTest {
         assertThrows(AppointmentNotFoundException.class, () -> book.removeAppointment(APPOINTMENT));
     }
 
+    //@@author 0218hy
     @Test
     public void nullArguments_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
@@ -174,4 +177,5 @@ public class BubuBookAppointmentTest {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2020"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

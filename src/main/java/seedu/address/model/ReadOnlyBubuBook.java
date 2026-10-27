@@ -19,9 +19,11 @@ public interface ReadOnlyBubuBook {
      */
     ObservableList<Pet> getPetList();
 
+    //@@author 0218hy
     /**
      * Returns an unmodifiable view of the appointments list.
      * This list will not contain overlapping appointment slots.
      */
     ObservableList<Appointment> getAppointmentList();
+    //@@author
 }

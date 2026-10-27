@@ -29,6 +29,7 @@ public class BubuBookIntegrationTest {
     private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
+    //@@author 0218hy
     @Test
     public void resetData_invalidAppointments_preservesClientsPetsAndSchedule() {
         BubuBook book = populatedBook();
@@ -84,6 +85,7 @@ public class BubuBookIntegrationTest {
         assertSame(editedAlice, book.getPetList().get(0).getOwner());
         assertEquals(List.of(appointment), book.getAppointmentList());
     }
+    //@@author
 
     @Test
     public void setClient_changedPhoneThenRemoveClient_removesAppointments() {
@@ -166,6 +168,7 @@ public class BubuBookIntegrationTest {
         assertEquals(List.of(bensonAppointment), book.getAppointmentList());
     }
 
+    //@@author 0218hy
     @Test
     public void resetData_missingOwner_preservesAllCollections() {
         BubuBook book = populatedBook();
@@ -189,4 +192,5 @@ public class BubuBookIntegrationTest {
         book.addAppointment(appointment);
         return book;
     }
+    //@@author
 }

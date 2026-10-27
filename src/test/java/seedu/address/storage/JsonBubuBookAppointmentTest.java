@@ -39,6 +39,7 @@ public class JsonBubuBookAppointmentTest {
     @TempDir
     public Path temporaryFolder;
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_historicalAppointments_preservesAllFieldsAndOrder() throws Exception {
         JsonBubuBookStorage storage = storage("nested/bububook.json");
@@ -66,6 +67,7 @@ public class JsonBubuBookAppointmentTest {
         assertSame(restored.getClientList().get(0), restoredAppointment.getOwner());
         assertSame(restored.getPetList().get(0), restoredAppointment.getPet());
     }
+    //@@author
 
     @Test
     public void saveAndRead_profileEdits_preservesParticipantSnapshots() throws Exception {
@@ -89,6 +91,7 @@ public class JsonBubuBookAppointmentTest {
                 restored.getAppointmentList().get(0).getPet().getOwner());
     }
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_changedPhone_updatesBothParticipantLinksAndPreservesProfiles() throws Exception {
         JsonBubuBookStorage storage = storage("changed-phone.json");
@@ -310,4 +313,5 @@ public class JsonBubuBookAppointmentTest {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

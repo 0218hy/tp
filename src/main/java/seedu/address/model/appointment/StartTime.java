@@ -20,6 +20,7 @@ public class StartTime {
 
     public final LocalTime value;
 
+    //@@author 0218hy
     /**
      * Constructs a start time from an exact HH:mm string.
      */
@@ -62,4 +63,5 @@ public class StartTime {
     public int hashCode() {
         return value.hashCode();
     }
+    //@@author
 }

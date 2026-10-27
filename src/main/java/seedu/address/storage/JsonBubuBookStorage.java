@@ -18,6 +18,7 @@ import seedu.address.model.ReadOnlyBubuBook;
 public class JsonBubuBookStorage {
     private final Path filePath;
 
+    //@@author 0218hy
     public JsonBubuBookStorage(Path filePath) {
         this.filePath = requireNonNull(filePath);
     }
@@ -73,4 +74,5 @@ public class JsonBubuBookStorage {
             Files.deleteIfExists(temporary);
         }
     }
+    //@@author
 }

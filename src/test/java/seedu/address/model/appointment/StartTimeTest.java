@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 
 public class StartTimeTest {
+    //@@author 0218hy
     @Test
     public void constructor_validTimes_acceptsBoundariesAndHalfHours() {
         String[] inputs = {"08:00", "08:30", "12:00", "19:30"};
@@ -54,4 +55,5 @@ public class StartTimeTest {
         assertFalse(time.equals(null));
         assertFalse(time.equals(new EndTime("10:30")));
     }
+    //@@author
 }

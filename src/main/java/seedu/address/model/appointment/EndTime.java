@@ -23,6 +23,7 @@ public class EndTime {
 
     public final LocalTime value;
 
+    //@@author 0218hy
     /**
      * Constructs an end time from an exact HH:mm string.
      */
@@ -73,4 +74,5 @@ public class EndTime {
     public int hashCode() {
         return value.hashCode();
     }
+    //@@author
 }

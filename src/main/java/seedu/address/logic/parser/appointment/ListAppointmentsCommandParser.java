@@ -9,6 +9,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 
 /** Parses the parameter-free {@code list-appointments} command. */
 public class ListAppointmentsCommandParser implements Parser<ListAppointmentsCommand> {
+    //@@author 0218hy
     @Override
     public ListAppointmentsCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -18,4 +19,5 @@ public class ListAppointmentsCommandParser implements Parser<ListAppointmentsCom
         }
         return new ListAppointmentsCommand();
     }
+    //@@author
 }

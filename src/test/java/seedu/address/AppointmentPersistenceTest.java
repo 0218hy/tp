@@ -47,6 +47,7 @@ public class AppointmentPersistenceTest {
     private Model model;
     private LogicManager logic;
 
+    //@@author 0218hy
     @BeforeEach
     public void setUp() throws Exception {
         storage = storageWith(new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json")));
@@ -94,6 +95,7 @@ public class AppointmentPersistenceTest {
         logicFor(restarted, storage).execute(booking.replace("01-01-9999", "02-01-9999"));
         assertEquals(2, restarted.getBubuBook().getAppointmentList().size());
     }
+    //@@author
 
     @Test
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {
@@ -105,6 +107,7 @@ public class AppointmentPersistenceTest {
         assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
 
+    //@@author 0218hy
     @Test
     public void startup_missingBubuBook_usesSampleDataWithoutCreatingFiles() throws Exception {
         Files.delete(storage.getBubuBookFilePath());
@@ -248,4 +251,5 @@ public class AppointmentPersistenceTest {
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;
     }
+    //@@author
 }

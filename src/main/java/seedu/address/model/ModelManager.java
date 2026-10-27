@@ -149,6 +149,7 @@ public class ModelManager implements Model {
 
     //=========== Appointments ==============================================================================
 
+    //@@author 0218hy
     @Override
     public void setAppointments(List<Appointment> appointments) {
         bubuBook.setAppointments(appointments);
@@ -163,6 +164,7 @@ public class ModelManager implements Model {
     public void addAppointment(Appointment appointment) {
         bubuBook.addAppointment(appointment);
     }
+    //@@author
 
     @Override
     public void deleteAppointment(Appointment appointment) {

@@ -54,6 +54,7 @@ public class AddAppointmentCommand extends Command {
     private final Service service;
     private final Clock clock;
 
+    //@@author 0218hy
     /** Creates a command using participant identifiers and the current Singapore time. */
     public AddAppointmentCommand(Phone ownerPhone, String petName, AppointmentDate date,
             StartTime startTime, EndTime endTime, Service service) {
@@ -125,4 +126,5 @@ public class AddAppointmentCommand extends Command {
                 .add("date", date).add("startTime", startTime).add("endTime", endTime)
                 .add("service", service).toString();
     }
+    //@@author
 }

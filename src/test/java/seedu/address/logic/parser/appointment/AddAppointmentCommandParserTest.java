@@ -39,6 +39,7 @@ public class AddAppointmentCommandParserTest {
 
     private final AddAppointmentCommandParser parser = new AddAppointmentCommandParser();
 
+    //@@author 0218hy
     @Test
     public void parse_validArgumentsWithOrWithoutLeadingSpace_success() {
         AddAppointmentCommand expected = expected("BuBu", "01-01-9999", "10:00", "11:00", Service.FULL_GROOM);
@@ -179,5 +180,6 @@ public class AddAppointmentCommandParserTest {
     private void assertInvalid(String field, String replacement, String message) {
         assertParseFailure(parser, VALID_ARGS.replace(field, replacement), message);
     }
+    //@@author
 
 }

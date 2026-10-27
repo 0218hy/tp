@@ -33,6 +33,7 @@ public class JsonAdaptedAppointment {
     private final String endTime;
     private final String service;
 
+    //@@author 0218hy
     /** Constructs a snapshot, or a legacy record containing only participant identifiers. */
     @JsonCreator
     public JsonAdaptedAppointment(@JsonProperty("owner") JsonAdaptedClient owner,
@@ -108,4 +109,5 @@ public class JsonAdaptedAppointment {
             throw new IllegalValueException(e.getMessage(), e);
         }
     }
+    //@@author
 }

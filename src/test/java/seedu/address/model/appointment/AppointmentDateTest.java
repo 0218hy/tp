@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 public class AppointmentDateTest {
+    //@@author 0218hy
     @Test
     public void constructor_validDates_preservesDateAndFormat() {
         String[] dates = {"01-01-0001", "29-02-2000", "29-02-2024", "31-12-9999"};
@@ -60,4 +61,5 @@ public class AppointmentDateTest {
         assertFalse(date.equals(null));
         assertFalse(date.equals("18-09-2026"));
     }
+    //@@author
 }

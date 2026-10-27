@@ -18,6 +18,7 @@ public class AppointmentDate {
 
     public final LocalDate value;
 
+    //@@author 0218hy
     /**
      * Constructs a date from an exact DD-MM-YYYY string.
      */
@@ -58,4 +59,5 @@ public class AppointmentDate {
     public int hashCode() {
         return value.hashCode();
     }
+    //@@author
 }

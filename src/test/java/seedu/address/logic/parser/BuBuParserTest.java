@@ -108,12 +108,14 @@ public class BuBuParserTest {
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD + " i/12"));
     }
 
+    //@@author 0218hy
     @Test
     public void parseCommand_edit_throwsUnknownCommand() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("edit"));
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () ->
                 parser.parseCommand("edit 1 n/Updated Client i/91234567"));
     }
+    //@@author
 
     @Test
     public void parseCommand_exit() throws Exception {
@@ -140,6 +142,7 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand(" " + ListClientsCommand.COMMAND_WORD + " ") instanceof ListClientsCommand);
     }
 
+    //@@author 0218hy
     @Test
     public void parseCommand_listAppointments() throws Exception {
         assertTrue(parser.parseCommand("list-appointments") instanceof ListAppointmentsCommand);
@@ -160,6 +163,7 @@ public class BuBuParserTest {
         assertEquals(new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(new Phone("91234567"))),
                 parser.parseCommand(ListPetsCommand.COMMAND_WORD + " i/91234567"));
     }
+    //@@author
 
     @Test
     public void parseCommand_unrecognisedInput_throwsParseException() {

@@ -41,6 +41,7 @@ public interface Model {
     /** Returns the BubuBook */
     ReadOnlyBubuBook getBubuBook();
 
+    //@@author 0218hy
     /** Replaces the appointment schedule after validating all slots. */
     void setAppointments(List<Appointment> appointments);
 
@@ -54,6 +55,7 @@ public interface Model {
      * @throws seedu.address.model.appointment.exceptions.OverlappingAppointmentException if a slot overlaps.
      */
     void addAppointment(Appointment appointment);
+    //@@author
 
     /**
      * Deletes the given appointment.
