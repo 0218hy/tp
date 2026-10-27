@@ -66,7 +66,7 @@ public class DeletePetCommandTest {
 
     @Test
     public void execute_lastValidIndex_deletesLastDisplayedPet() {
-        // Boundary value analysis: the list-size index is the last valid index (n), while n + 1 is invalid.
+        // BVA: the list-size index is the last valid index (n), while n + 1 is invalid.
         DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(2));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deletePet(miloWithDifferentOwner);
@@ -78,7 +78,7 @@ public class DeletePetCommandTest {
 
     @Test
     public void execute_indexTargetsFirstPetInFilteredList_notFirstPetInAllPets() {
-        // Equivalence partition: index deletion uses the visible filtered list, not the full pet list.
+        // EP: index deletion uses the visible filtered list, not the full pet list.
         model.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
         DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());

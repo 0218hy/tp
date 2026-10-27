@@ -9,7 +9,7 @@ public class BreedTest {
 
     @Test
     public void isValidBreed_boundaryLengths() {
-        // Boundary value analysis: check values immediately below, at, and above the 2- and 50-char limits.
+        // BVA: check values immediately below, at, and above the 2- and 50-char limits.
         assertFalse(Breed.isValidBreed("B"));
         assertTrue(Breed.isValidBreed("Be"));
         assertTrue(Breed.isValidBreed("Bea"));

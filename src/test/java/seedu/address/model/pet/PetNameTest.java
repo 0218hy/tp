@@ -35,7 +35,7 @@ public class PetNameTest {
 
     @Test
     public void isValidName_boundaryLengths() {
-        // Boundary value analysis: probe just below, at, and just above both inclusive length limits.
+        // BVA: probe just below, at, and just above both inclusive length limits.
         assertFalse(PetName.isValidName(""));
         assertTrue(PetName.isValidName("A"));
         assertTrue(PetName.isValidName("AB"));

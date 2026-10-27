@@ -73,7 +73,7 @@ public class PetTest {
 
     @Test
     public void constructor_withoutBreed_createsPetWithOptionalBreedAbsent() {
-        // Equivalence partition: breed may be omitted while all compulsory pet fields are present.
+        // EP: breed may be omitted while all compulsory pet fields are present.
         Pet pet = new Pet(new PetName("Milo"), ALICE, Species.DOG, new Requirement("Daily brushing"));
 
         assertEquals(new PetName("Milo"), pet.getName());

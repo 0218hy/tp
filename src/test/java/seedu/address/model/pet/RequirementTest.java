@@ -34,7 +34,7 @@ public class RequirementTest {
 
     @Test
     public void isValidRequirement_boundaryLengths() {
-        // Boundary value analysis: check values immediately below, at, and above the 5- and 240-char limits.
+        // BVA: check values immediately below, at, and above the 5- and 240-char limits.
         assertFalse(Requirement.isValidRequirement("R".repeat(4)));
         assertTrue(Requirement.isValidRequirement("R".repeat(5)));
         assertTrue(Requirement.isValidRequirement("R".repeat(6)));

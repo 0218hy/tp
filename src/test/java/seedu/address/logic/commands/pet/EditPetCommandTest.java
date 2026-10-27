@@ -71,7 +71,7 @@ public class EditPetCommandTest {
 
     @Test
     public void execute_minimumLengthNameAndRequirement_acceptsBoundaryValues() {
-        // Boundary value analysis: the minimum valid name (1 char) and requirement (5 chars) are accepted.
+        // BVA: the minimum valid name (1 char) and requirement (5 chars) are accepted.
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
         descriptor.setName(new PetName("N"));
         descriptor.setRequirement(new Requirement("Brush"));
@@ -85,7 +85,7 @@ public class EditPetCommandTest {
 
     @Test
     public void execute_maximumLengthNameAndRequirement_acceptsBoundaryValues() {
-        // Boundary value analysis: the maximum valid name (40 chars) and requirement (240 chars) are accepted.
+        // BVA: the maximum valid name (40 chars) and requirement (240 chars) are accepted.
         String maximumName = "N".repeat(40);
         String maximumRequirement = "R".repeat(240);
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
@@ -144,7 +144,7 @@ public class EditPetCommandTest {
 
     @Test
     public void execute_updatedNameMatchesOwnNormalizedIdentity_allowsEdit() {
-        // Equivalence partition: a normalized name matching the pet itself is not a duplicate of another pet.
+        // EP: a normalized name matching the pet itself is not a duplicate of another pet.
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
         descriptor.setName(new PetName("  mIlO  "));
         Pet editedPet = new PetBuilder(milo).withName("  mIlO  ").build();

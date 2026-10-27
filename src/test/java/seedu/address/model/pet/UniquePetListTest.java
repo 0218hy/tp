@@ -60,7 +60,7 @@ public class UniquePetListTest {
 
     @Test
     public void add_sameNormalizedNameForSameOwner_throwsDuplicatePetException() {
-        // Equivalence partition: case and repeated whitespace do not create a distinct pet identity.
+        // EP: case and repeated whitespace do not create a distinct pet identity.
         uniquePetList.add(new PetBuilder(ALICE).withName("Milo Bean").build());
         Pet sameNormalizedIdentity = new PetBuilder(ALICE).withName("  mIlO   bEaN  ").build();
 
@@ -70,7 +70,7 @@ public class UniquePetListTest {
 
     @Test
     public void add_sameNameForDifferentOwners_allowsBothPets() {
-        // Equivalence partition: the same normalized name is valid when the owner phone differs.
+        // EP: the same normalized name is valid when the owner phone differs.
         Pet alicePet = new PetBuilder(ALICE).withName("Milo").build();
         Pet bobPet = new PetBuilder(BOB).withName("mIlO").build();
 
