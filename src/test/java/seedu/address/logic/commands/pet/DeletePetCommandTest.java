@@ -65,6 +65,34 @@ public class DeletePetCommandTest {
     }
 
     @Test
+    public void execute_lastValidIndex_deletesLastDisplayedPet() {
+        // BVA: the list-size index is the last valid index (n), while n + 1 is invalid.
+        DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(2));
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.deletePet(miloWithDifferentOwner);
+
+        assertCommandSuccess(deletePetCommand, model,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, miloWithDifferentOwner.getName()),
+                expectedModel);
+    }
+
+    @Test
+    public void execute_indexTargetsFirstPetInFilteredList_notFirstPetInAllPets() {
+        // EP: index deletion uses the visible filtered list, not the full pet list.
+        model.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
+        DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
+        expectedModel.deletePet(miloWithDifferentOwner);
+
+        assertCommandSuccess(deletePetCommand, model,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, miloWithDifferentOwner.getName()),
+                expectedModel);
+        assertTrue(model.hasPet(milo));
+        assertFalse(model.hasPet(miloWithDifferentOwner));
+    }
+
+    @Test
     public void execute_matchingNameWithDifferentOwner_deletesOnlyMatchingPet() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
 

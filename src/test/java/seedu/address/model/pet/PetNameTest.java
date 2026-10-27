@@ -34,6 +34,18 @@ public class PetNameTest {
     }
 
     @Test
+    public void isValidName_boundaryLengths() {
+        // BVA: probe just below, at, and just above both inclusive length limits.
+        assertFalse(PetName.isValidName(""));
+        assertTrue(PetName.isValidName("A"));
+        assertTrue(PetName.isValidName("AB"));
+
+        assertTrue(PetName.isValidName("A".repeat(39)));
+        assertTrue(PetName.isValidName("A".repeat(40)));
+        assertFalse(PetName.isValidName("A".repeat(41)));
+    }
+
+    @Test
     public void hasSameName_comparesNormalizedNames() {
         PetName name = new PetName("  MiLo  ");
 
