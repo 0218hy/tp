@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -17,6 +18,7 @@ import static seedu.address.testutil.TypicalClients.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -156,6 +158,34 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListClientsCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListClientsCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_helpAndListClients_doNotCreateDataFile() throws Exception {
+        int[] saveCallCount = setUpLogicWithSaveCounter();
+        Path dataFile = temporaryFolder.resolve("bububook.json");
+
+        for (String command : List.of("help", "list-clients")) {
+            logic.execute(command);
+        }
+
+        assertEquals(0, saveCallCount[0]);
+        assertFalse(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_helpAndListClients_doNotRewriteExistingDataFile() throws Exception {
+        Path dataFile = temporaryFolder.resolve("bububook.json");
+        new JsonBubuBookStorage(dataFile).saveBubuBook(model.getBubuBook());
+        byte[] originalFileContents = Files.readAllBytes(dataFile);
+        int[] saveCallCount = setUpLogicWithSaveCounter();
+
+        for (String command : List.of("help", "list-clients")) {
+            logic.execute(command);
+        }
+
+        assertEquals(0, saveCallCount[0]);
+        assertArrayEquals(originalFileContents, Files.readAllBytes(dataFile));
     }
 
     @Test
@@ -456,6 +486,23 @@ public class LogicManagerTest {
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         ModelManager expectedModel = new ModelManager();
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    /** Replaces the logic's storage with a counter that records every attempted data-file write. */
+    private int[] setUpLogicWithSaveCounter() {
+        int[] saveCallCount = {0};
+        JsonBubuBookStorage countingStorage = new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                saveCallCount[0]++;
+                super.saveBubuBook(bubuBook);
+            }
+        };
+        StorageManager storage = new StorageManager(countingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("countingUserPrefs.json")));
+        logic = new LogicManager(model, storage);
+        return saveCallCount;
     }
 
     @Test

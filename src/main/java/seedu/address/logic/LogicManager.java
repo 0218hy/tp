@@ -12,11 +12,9 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.CommandResult.DisplayType;
-import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
-import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.BubuBook;
@@ -77,14 +75,11 @@ public class LogicManager implements Logic {
             throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
         }
         ensureRequiredDisplayTypeIsCurrent(command);
-        if (command instanceof ListPetsCommand || command instanceof ListAppointmentsCommand) {
-            CommandResult commandResult = command.execute(model);
-            updateCurrentDisplayType(commandResult);
-            return commandResult;
-        }
         ReadOnlyBubuBook previousBubuBook = new BubuBook(model.getBubuBook());
         CommandResult commandResult = command.execute(model);
-        saveCommandResult(command, previousBubuBook);
+        if (!previousBubuBook.equals(model.getBubuBook())) {
+            saveCommandResult(command, previousBubuBook);
+        }
         updateCurrentDisplayType(commandResult);
         return commandResult;
     }
