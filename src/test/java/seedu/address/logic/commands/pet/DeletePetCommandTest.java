@@ -55,6 +55,30 @@ public class DeletePetCommandTest {
     }
 
     @Test
+    public void execute_nameWithDifferentCase_deletesMatchingPet() {
+        // EP: pet-name lookup ignores case, matching edit-pet behavior.
+        DeletePetCommand deletePetCommand = new DeletePetCommand(new PetName("mIlO"), ALICE.getPhone());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.deletePet(milo);
+
+        assertCommandSuccess(deletePetCommand, model,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_nameWithRepeatedWhitespace_deletesMatchingPet() {
+        // EP: repeated and surrounding whitespace normalize to the stored name.
+        Pet spacedNamePet = new PetBuilder(ALICE).withName("Milo  Junior").build();
+        model.addPet(spacedNamePet);
+        DeletePetCommand deletePetCommand = new DeletePetCommand(new PetName("  milo junior  "), ALICE.getPhone());
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.deletePet(spacedNamePet);
+
+        assertCommandSuccess(deletePetCommand, model,
+                String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, spacedNamePet.getName()), expectedModel);
+    }
+
+    @Test
     public void execute_validIndex_deletesPetFromFilteredList() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(Index.fromOneBased(1));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
