@@ -184,6 +184,7 @@ public class ModelManager implements Model {
         filteredClients.setPredicate(predicate);
     }
 
+    //@@author anderschow
     /**
      * Sorts the live displayed client list by name, ignoring case, without reordering stored clients.
      * Subsequent changes to the filtered list retain this sort order.
@@ -193,6 +194,7 @@ public class ModelManager implements Model {
         sortedClients.setComparator(Comparator.comparing(person -> person.getName().fullName,
                 String.CASE_INSENSITIVE_ORDER));
     }
+    //@@author
 
     //=========== Filtered Pet List Accessors ========================================================
 

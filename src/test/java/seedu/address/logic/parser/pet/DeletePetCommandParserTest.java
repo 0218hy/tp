@@ -20,6 +20,7 @@ public class DeletePetCommandParserTest {
 
     private final DeletePetCommandParser parser = new DeletePetCommandParser();
 
+    //@@author khangsian0412
     @Test
     public void parse_allFieldsPresent_success() {
         assertParseSuccess(parser, " p/Milo i/98765432",
@@ -29,12 +30,16 @@ public class DeletePetCommandParserTest {
         assertParseSuccess(parser, " i/98765432 p/Milo",
                 new DeletePetCommand(new PetName("Milo"), new Phone("98765432")));
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void parse_index_success() {
         assertParseSuccess(parser, " 2", new DeletePetCommand(Index.fromOneBased(2)));
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void parse_missingOrUnexpectedFields_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeletePetCommand.MESSAGE_USAGE);
@@ -43,7 +48,9 @@ public class DeletePetCommandParserTest {
         assertParseFailure(parser, " p/Milo", expectedMessage);
         assertParseFailure(parser, " i/98765432", expectedMessage);
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void parse_indexWithIdentifiers_failure() {
         for (String arguments : List.of("1 p/Milo", "1 i/98765432", "1 p/Milo i/98765432",
@@ -51,7 +58,9 @@ public class DeletePetCommandParserTest {
             assertParseFailure(parser, arguments, DeletePetCommandParser.MESSAGE_INDEX_AND_IDENTIFIERS);
         }
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void parse_duplicateFields_failure() {
         assertParseFailure(parser, " p/Milo p/Luna i/98765432",
@@ -59,13 +68,16 @@ public class DeletePetCommandParserTest {
         assertParseFailure(parser, " p/Milo i/98765432 i/87654321",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_OWNER_IDENTIFIER));
     }
+    //@@author
 
     @Test
     public void parse_invalidValues_failure() {
+        //@@author khangsian0412
         assertParseFailure(parser, " p/M@lo i/98765432", PetName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " p/ i/98765432", PetName.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " p/Milo i/123a", Phone.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " p/Milo i/", Phone.MESSAGE_CONSTRAINTS);
+        //@@author
         assertParseFailure(parser, " 0", "Index must be a positive integer.");
     }
 }

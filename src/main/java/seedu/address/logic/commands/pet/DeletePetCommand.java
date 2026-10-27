@@ -55,13 +55,16 @@ public class DeletePetCommand extends Command {
         this.ownerPhone = requireNonNull(ownerPhone);
     }
 
+    //@@author chunghean
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null
                 ? Optional.empty()
                 : Optional.of(CommandResult.DisplayType.PETS);
     }
+    //@@author
 
+    //@@author khangsian0412
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -71,6 +74,7 @@ public class DeletePetCommand extends Command {
         model.deletePet(petToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_PET_SUCCESS, petToDelete.getName()));
     }
+    //@@author
 
     private Pet findPet(Model model) throws CommandException {
         if (targetIndex != null) {

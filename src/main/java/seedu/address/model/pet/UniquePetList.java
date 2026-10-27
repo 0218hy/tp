@@ -56,6 +56,7 @@ public class UniquePetList implements Iterable<Pet> {
         internalList.set(index, editedPet);
     }
 
+    //@@author khangsian0412
     /**
      * Replaces the owner of every pet owned by {@code targetOwner}.
      */
@@ -68,6 +69,7 @@ public class UniquePetList implements Iterable<Pet> {
             }
         }
     }
+    //@@author
 
     /**
      * Removes the given pet from the list.

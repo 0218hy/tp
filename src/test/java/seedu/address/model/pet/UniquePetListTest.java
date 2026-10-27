@@ -120,6 +120,7 @@ public class UniquePetListTest {
         assertThrows(DuplicatePetException.class, () -> uniquePetList.setPet(milo, duplicatePet));
     }
 
+    //@@author khangsian0412
     @Test
     public void updateOwner_replacesOwnerForAllMatchingPets() {
         Pet ownedByAlice = new PetBuilder(ALICE).build();
@@ -139,12 +140,15 @@ public class UniquePetListTest {
         assertSame(BOB, uniquePetList.asUnmodifiableObservableList().get(0).getOwner());
         assertSame(BOB, uniquePetList.asUnmodifiableObservableList().get(1).getOwner());
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void updateOwner_nullOwner_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePetList.updateOwner(null, BOB));
         assertThrows(NullPointerException.class, () -> uniquePetList.updateOwner(ALICE, null));
     }
+    //@@author
 
     @Test
     public void remove_nullPet_throwsNullPointerException() {

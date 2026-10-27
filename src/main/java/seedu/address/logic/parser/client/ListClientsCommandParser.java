@@ -11,6 +11,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 
 /** Parses the optional client search keyword. */
 public class ListClientsCommandParser implements Parser<ListClientsCommand> {
+    //@@author anderschow
     /**
      * Parses an optional {@code q/} keyword for the list-clients command.
      *
@@ -36,4 +37,5 @@ public class ListClientsCommandParser implements Parser<ListClientsCommand> {
         }
         return new ListClientsCommand(keyword);
     }
+    //@@author
 }
