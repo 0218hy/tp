@@ -144,6 +144,7 @@ public class AppointmentTest {
     }
     //@@author
 
+    //@@author khangsian0412
     @Test
     public void withPetName_preservesAppointmentSnapshotDetails() {
         Appointment original = create("10:30", "12:00");
@@ -159,6 +160,7 @@ public class AppointmentTest {
         assertEquals(new PetName("BuBu"), original.getPetName());
         assertThrows(NullPointerException.class, () -> original.withPetName(null));
     }
+    //@@author
 
     //@@author 0218hy
     @Test

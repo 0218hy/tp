@@ -256,6 +256,7 @@ public class LogicManagerTest {
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
 
+    //@@author khangsian0412
     @Test
     public void execute_deletePet_successAndSavesUpdatedBubuBook() throws Exception {
         Pet pet = new PetBuilder(AMY).build();
@@ -272,13 +273,11 @@ public class LogicManagerTest {
         assertEquals(expectedModel.getBubuBook(), savedBubuBook);
     }
 
-    //@@author khangsian0412
     @Test
     public void execute_deletePetWithNoMatch_throwsCommandException() {
         assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
                 DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
     @Test
     public void execute_editPet_updatesAndSavesProfile() throws Exception {
@@ -316,6 +315,7 @@ public class LogicManagerTest {
         assertCommandException("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs a short walk",
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
+    //@@author
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {

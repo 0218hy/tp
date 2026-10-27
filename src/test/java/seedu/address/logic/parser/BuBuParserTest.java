@@ -56,12 +56,14 @@ public class BuBuParserTest {
         assertEquals(new DeleteClientCommand(INDEX_FIRST_CLIENT), command);
     }
 
+    //@@author khangsian0412
     @Test
     public void parseCommand_deletePet() throws Exception {
         DeletePetCommand command = (DeletePetCommand) parser.parseCommand(
                 DeletePetCommand.COMMAND_WORD + " p/Milo i/98765432");
         assertEquals(new DeletePetCommand(new PetName("Milo"), new Phone("98765432")), command);
     }
+    //@@author
 
     @Test
     public void parseCommand_deleteAppointmentByIndex() throws Exception {

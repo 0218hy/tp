@@ -58,6 +58,7 @@ public class UniquePetListTest {
         assertThrows(DuplicatePetException.class, () -> uniquePetList.add(pet));
     }
 
+    //@@author khangsian0412
     @Test
     public void add_sameNormalizedNameForSameOwner_throwsDuplicatePetException() {
         // EP: case and repeated whitespace do not create a distinct pet identity.
@@ -79,6 +80,7 @@ public class UniquePetListTest {
 
         assertEquals(List.of(alicePet, bobPet), uniquePetList.asUnmodifiableObservableList());
     }
+    //@@author
 
     @Test
     public void setPet_targetPetNotInList_throwsPetNotFoundException() {
@@ -140,9 +142,7 @@ public class UniquePetListTest {
         assertSame(BOB, uniquePetList.asUnmodifiableObservableList().get(0).getOwner());
         assertSame(BOB, uniquePetList.asUnmodifiableObservableList().get(1).getOwner());
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void updateOwner_nullOwner_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePetList.updateOwner(null, BOB));

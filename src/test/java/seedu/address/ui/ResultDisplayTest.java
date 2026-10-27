@@ -19,6 +19,7 @@ import javafx.scene.text.TextFlow;
 @EnabledOnOs(OS.LINUX)
 public class ResultDisplayTest {
 
+    //@@author khangsian0412
     @Test
     public void setHelpContent_displaysStyledHelpReference() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -52,6 +53,7 @@ public class ResultDisplayTest {
             assertEquals("Listed all clients.", feedbackDisplay.getText());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test
@@ -110,6 +112,7 @@ public class ResultDisplayTest {
     }
     // @@author
 
+    //@@author khangsian0412
     @Test
     public void getHelpLineStyleClass_heading_returnsHeadingStyle() {
         assertEquals("help-heading", ResultDisplay.getHelpLineStyleClass("AVAILABLE COMMANDS"));
@@ -130,6 +133,7 @@ public class ResultDisplayTest {
     public void getHelpLineStyleClass_blankLine_returnsSpacingStyle() {
         assertEquals("help-spacing", ResultDisplay.getHelpLineStyleClass("   "));
     }
+    //@@author
 
     // @@author xinyu-zxy
     private static void assertFeedbackState(TextArea feedbackDisplay, boolean isSuccess, boolean isError) {
@@ -140,6 +144,7 @@ public class ResultDisplayTest {
     }
     // @@author
 
+    //@@author khangsian0412
     private static <T> T getField(Object target, String fieldName, Class<T> fieldType) {
         try {
             Field field = target.getClass().getDeclaredField(fieldName);
@@ -149,4 +154,5 @@ public class ResultDisplayTest {
             throw new AssertionError(exception);
         }
     }
+    //@@author
 }

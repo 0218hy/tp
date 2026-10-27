@@ -93,6 +93,7 @@ public class ModelManagerTest {
         assertFalse(modelManager.hasPet(new PetBuilder(ALICE).build()));
     }
 
+    //@@author khangsian0412
     @Test
     public void addPet_petAdded_isPresentAndShown() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -130,6 +131,7 @@ public class ModelManagerTest {
         assertFalse(modelManager.hasPet(pet));
         assertEquals(List.of(), modelManager.getFilteredPetList());
     }
+    //@@author
 
     @Test
     public void deleteAppointment_appointmentInBubuBook_removesAppointment() {

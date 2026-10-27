@@ -49,6 +49,7 @@ public class JsonSerializableBubuBookTest {
                 dataFromFile::toModelType);
     }
 
+    //@@author khangsian0412
     @Test
     public void toModelType_petWithOwner_success() throws Exception {
         BubuBook bubuBook = TypicalClients.getTypicalBubuBook();
@@ -70,5 +71,6 @@ public class JsonSerializableBubuBookTest {
         assertThrows(IllegalValueException.class, JsonSerializableBubuBook.MESSAGE_DUPLICATE_PET,
                 data::toModelType);
     }
+    //@@author
 
 }

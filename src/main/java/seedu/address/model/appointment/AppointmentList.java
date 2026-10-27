@@ -95,6 +95,7 @@ public class AppointmentList {
     }
     //@@author
 
+    //@@author khangsian0412
     /**
      * Updates every appointment belonging to {@code currentPet} with its replacement name.
      * Other appointment snapshot details remain unchanged.
@@ -109,6 +110,7 @@ public class AppointmentList {
             }
         }
     }
+    //@@author
 
     /** Removes every appointment belonging to the given pet. */
     public void removeAppointmentsForPet(Pet pet) {

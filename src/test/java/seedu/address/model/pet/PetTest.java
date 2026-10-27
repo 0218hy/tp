@@ -70,6 +70,7 @@ public class PetTest {
         assertThrows(NullPointerException.class, () -> pet.isIdentifiedBy(ALICE.getPhone(), null));
     }
 
+    //@@author khangsian0412
     @Test
     public void constructor_nullField_throwsNullPointerException() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -94,6 +95,7 @@ public class PetTest {
         assertNull(pet.getBreed());
         assertEquals(new Requirement("Daily brushing"), pet.getRequirement());
     }
+    //@@author
 
     @Test
     public void equals() {
@@ -109,6 +111,7 @@ public class PetTest {
         assertFalse(pet.equals(new PetBuilder(pet).withRequirement("Daily medicine").build()));
     }
 
+    //@@author khangsian0412
     @Test
     public void withOwner_replacesOnlyOwner() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -135,4 +138,5 @@ public class PetTest {
         assertEquals(new PetName("Milo"), pet.getName());
         assertThrows(NullPointerException.class, () -> pet.withName(null));
     }
+    //@@author
 }

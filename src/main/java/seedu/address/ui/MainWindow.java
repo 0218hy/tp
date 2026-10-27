@@ -166,6 +166,7 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    //@@author khangsian0412
     /**
      * Displays the command reference in the result display.
      */
@@ -177,6 +178,7 @@ public class MainWindow extends UiPart<Stage> {
             logger.warning("Unable to display the command reference: " + exception.getMessage());
         }
     }
+    //@@author
 
     void show() {
         primaryStage.show();
@@ -272,6 +274,7 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    //@@author khangsian0412
     /**
      * Sets the height of the result display area.
      */
@@ -280,4 +283,5 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplayPlaceholder.setPrefHeight(height);
         resultDisplayPlaceholder.setMaxHeight(height);
     }
+    //@@author
 }
