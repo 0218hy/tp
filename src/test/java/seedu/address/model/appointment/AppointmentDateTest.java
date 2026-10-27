@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 public class AppointmentDateTest {
+    //@@author 0218hy
     @Test
     public void constructor_validDates_preservesDateAndFormat() {
         String[] dates = {"01-01-0001", "29-02-2000", "29-02-2024", "31-12-9999"};
@@ -22,12 +23,16 @@ public class AppointmentDateTest {
             assertEquals(dates[i], date.toString());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_pastDate_allowsHistoricalRecords() {
         assertEquals(LocalDate.of(2000, 1, 1), new AppointmentDate("01-01-2000").value);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_invalidDate_rejectsInvalidCalendarDatesAndFormats() {
         String[] invalidDates = {"", " ", "1-01-2026", "01-1-2026", "01-01-26", "2026-01-01",
@@ -41,13 +46,17 @@ public class AppointmentDateTest {
             assertEquals(AppointmentDate.MESSAGE_CONSTRAINTS, error.getMessage());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertFalse(AppointmentDate.isValidDate(null));
         assertThrows(NullPointerException.class, () -> new AppointmentDate(null));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void equalsAndHashCode_compareDateValues() {
         AppointmentDate date = new AppointmentDate("18-09-2026");
@@ -60,4 +69,5 @@ public class AppointmentDateTest {
         assertFalse(date.equals(null));
         assertFalse(date.equals("18-09-2026"));
     }
+    //@@author
 }

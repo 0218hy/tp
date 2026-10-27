@@ -54,12 +54,15 @@ public class AddAppointmentCommand extends Command {
     private final Service service;
     private final Clock clock;
 
+    //@@author 0218hy
     /** Creates a command using participant identifiers and the current Singapore time. */
     public AddAppointmentCommand(Phone ownerPhone, String petName, AppointmentDate date,
             StartTime startTime, EndTime endTime, Service service) {
         this(ownerPhone, petName, date, startTime, endTime, service, Clock.system(SINGAPORE_ZONE));
     }
+    //@@author
 
+    //@@author 0218hy
     /** Creates a command with a supplied clock for deterministic time checks. */
     public AddAppointmentCommand(Phone ownerPhone, String petName, AppointmentDate date,
             StartTime startTime, EndTime endTime, Service service, Clock clock) {
@@ -73,7 +76,9 @@ public class AddAppointmentCommand extends Command {
         this.service = service;
         this.clock = clock.withZone(SINGAPORE_ZONE);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -107,7 +112,9 @@ public class AddAppointmentCommand extends Command {
                 + "-" + toSchedule.getEndTime() + "; Service: " + toSchedule.getService();
         return new CommandResult(String.format(MESSAGE_SUCCESS, details));
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         return other == this || (other instanceof AddAppointmentCommand otherCommand
@@ -118,11 +125,14 @@ public class AddAppointmentCommand extends Command {
                 && endTime.equals(otherCommand.endTime)
                 && service == otherCommand.service);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("ownerPhone", ownerPhone).add("petName", petName)
                 .add("date", date).add("startTime", startTime).add("endTime", endTime)
                 .add("service", service).toString();
     }
+    //@@author
 }

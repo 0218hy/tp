@@ -39,20 +39,25 @@ public class AddAppointmentCommandParserTest {
 
     private final AddAppointmentCommandParser parser = new AddAppointmentCommandParser();
 
+    //@@author 0218hy
     @Test
     public void parse_validArgumentsWithOrWithoutLeadingSpace_success() {
         AddAppointmentCommand expected = expected("BuBu", "01-01-9999", "10:00", "11:00", Service.FULL_GROOM);
         assertParseSuccess(parser, VALID_ARGS, expected);
         assertParseSuccess(parser, "  " + VALID_ARGS + "  ", expected);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_reorderedFieldsAndExtraSpaces_success() {
         assertParseSuccess(parser,
                 " s/ full   GROOM   et/11:00 st/10:00 p/ BuBu   Junior d/01-01-9999 i/91234567 ",
                 expected("BuBu Junior", "01-01-9999", "10:00", "11:00", Service.FULL_GROOM));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_eachSupportedService_success() {
         for (Service service : Service.values()) {
@@ -60,7 +65,9 @@ public class AddAppointmentCommandParserTest {
                     expected("BuBu", "01-01-9999", "10:00", "11:00", service));
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_boundaryTimesAndLeapDate_success() {
         assertParseSuccess(parser, VALID_ARGS.replace("10:00", "08:00").replace("11:00", "08:30"),
@@ -70,7 +77,9 @@ public class AddAppointmentCommandParserTest {
         assertParseSuccess(parser, VALID_ARGS.replace("01-01-9999", "29-02-2028"),
                 expected("BuBu", "29-02-2028", "10:00", "11:00", Service.FULL_GROOM));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_missingFieldsOrPreamble_failure() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddAppointmentCommand.MESSAGE_USAGE);
@@ -81,7 +90,9 @@ public class AddAppointmentCommandParserTest {
             assertParseFailure(parser, VALID_ARGS.replace(field, ""), usage);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_duplicateFieldsEvenWithSameValues_failure() {
         for (int i = 0; i < FIELDS.size(); i++) {
@@ -90,60 +101,78 @@ public class AddAppointmentCommandParserTest {
             assertParseFailure(parser, VALID_ARGS + " " + PREFIXES.get(i) + "different", message);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidOrEmptyOwnerPhone_failure() {
         for (String phone : List.of("", "abc", "12", "9123 4567", "+6591234567")) {
             assertInvalid("91234567", phone, Phone.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidOrEmptyPetName_failure() {
         for (String name : List.of("", "   ", "Bu/Bu", "a".repeat(41))) {
             assertInvalid("BuBu", name, PetName.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidOrEmptyDate_failure() {
         for (String date : List.of("", "31-02-2026", "29-02-2027", "1-01-9999", "9999-01-01")) {
             assertInvalid("01-01-9999", date, AppointmentDate.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidOrEmptyStartTime_failure() {
         for (String start : List.of("", "07:30", "20:00", "10:15", "9:00", "24:00")) {
             assertInvalid("10:00", start, StartTime.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidEndTimeOrDuration_failure() {
         for (String end : List.of("", "08:00", "20:30", "11:15", "9:30", "09:30", "10:00")) {
             assertInvalid("11:00", end, EndTime.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_unknownOrEmptyService_failure() {
         assertInvalid("Full groom", "unknown", Service.MESSAGE_CONSTRAINTS);
         assertInvalid("Full groom", "", Service.MESSAGE_CONSTRAINTS);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_unrecognisedPrefix_failure() {
         assertParseFailure(parser, VALID_ARGS + " x/extra", Service.MESSAGE_CONSTRAINTS);
         assertInvalid("BuBu", "BuBu x/extra", PetName.MESSAGE_CONSTRAINTS);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_pastDate_defersExecutionChecks() {
         assertParseSuccess(parser, VALID_ARGS.replace("01-01-9999", "01-01-2000"),
                 expected("BuBu", "01-01-2000", "10:00", "11:00", Service.FULL_GROOM));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parseAndExecute_validArguments_addsExpectedAppointment() throws Exception {
         ModelManager model = new ModelManager();
@@ -155,7 +184,9 @@ public class AddAppointmentCommandParserTest {
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parseAndExecute_missingOwner_rejectsAppointment() throws Exception {
         AddAppointmentCommand command = parser.parse(VALID_ARGS);
@@ -164,20 +195,27 @@ public class AddAppointmentCommandParserTest {
         assertEquals(AddAppointmentCommand.MESSAGE_OWNER_NOT_FOUND, exception.getMessage());
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
+    //@@author
 
+    //@@author 0218hy
     private AddAppointmentCommand expected(String petName, String date, String start, String end,
             Service service) {
         return new AddAppointmentCommand(new Phone("91234567"), petName, new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), service);
     }
+    //@@author
 
+    //@@author 0218hy
     private void assertInvalid(String field, String replacement, String message) {
         assertParseFailure(parser, VALID_ARGS.replace(field, replacement), message);
     }
+    //@@author
 
 }

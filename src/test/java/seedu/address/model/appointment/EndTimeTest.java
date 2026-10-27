@@ -10,6 +10,7 @@ import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 
 public class EndTimeTest {
+    //@@author 0218hy
     @Test
     public void constructor_validTimes_acceptsBoundariesAndHalfHours() {
         String[] inputs = {"08:30", "09:00", "12:30", "20:00"};
@@ -22,7 +23,9 @@ public class EndTimeTest {
             assertEquals(inputs[i], time.toString());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_invalidTimes_rejectsFormatsAndOutOfRangeValues() {
         String[] invalidTimes = {"", " ", "8:30", "08:3", "08.30", "08:30:00", "08:30 ",
@@ -35,13 +38,17 @@ public class EndTimeTest {
             assertEquals(EndTime.MESSAGE_CONSTRAINTS, error.getMessage());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertFalse(EndTime.isValidEndTime(null));
         assertThrows(NullPointerException.class, () -> new EndTime(null));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void minimumDuration_requiresThirtyMinutesOnSameDay() {
         EndTime end = new EndTime("12:00");
@@ -54,7 +61,9 @@ public class EndTimeTest {
         assertFalse(new EndTime("08:30").isAtLeastThirtyMinutesAfter(new StartTime("19:30")));
         assertThrows(NullPointerException.class, () -> end.isAtLeastThirtyMinutesAfter(null));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void equalsAndHashCode_compareTimeValues() {
         EndTime time = new EndTime("12:00");
@@ -67,4 +76,5 @@ public class EndTimeTest {
         assertFalse(time.equals(null));
         assertFalse(time.equals(new StartTime("12:00")));
     }
+    //@@author
 }

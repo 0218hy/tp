@@ -23,6 +23,7 @@ public class AppointmentList {
     private final ObservableList<Appointment> unmodifiableAppointments =
             FXCollections.unmodifiableObservableList(internalList);
 
+    //@@author 0218hy
     /**
      * Replaces the appointments, preserving their order.
      * Validates the entire replacement before changing the current list.
@@ -36,7 +37,9 @@ public class AppointmentList {
         replacement.forEach(validated::addAppointment);
         internalList.setAll(validated.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Returns whether an existing appointment overlaps {@code appointment}, regardless of owner or pet.
      */
@@ -44,7 +47,9 @@ public class AppointmentList {
         requireNonNull(appointment);
         return internalList.stream().anyMatch(appointment::overlaps);
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Adds an appointment at the end of the list.
      *
@@ -58,6 +63,7 @@ public class AppointmentList {
         }
         internalList.add(appointment);
     }
+    //@@author
 
     /**
      * Removes the equivalent appointment from the list.
@@ -114,20 +120,26 @@ public class AppointmentList {
         internalList.removeIf(appointment -> appointment.isForPet(pet));
     }
 
+    //@@author 0218hy
     public ObservableList<Appointment> getAppointmentList() {
         return unmodifiableAppointments;
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         return other == this || (other instanceof AppointmentList otherList
                 && internalList.equals(otherList.internalList));
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public int hashCode() {
         return internalList.hashCode();
     }
+    //@@author
 
     @Override
     public String toString() {

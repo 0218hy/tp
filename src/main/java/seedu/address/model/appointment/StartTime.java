@@ -20,6 +20,7 @@ public class StartTime {
 
     public final LocalTime value;
 
+    //@@author 0218hy
     /**
      * Constructs a start time from an exact HH:mm string.
      */
@@ -30,7 +31,9 @@ public class StartTime {
         }
         value = LocalTime.parse(startTime, FORMATTER);
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Returns whether the input is an allowed start time. Future booking checks require a date too.
      */
@@ -46,20 +49,27 @@ public class StartTime {
             return false;
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public String toString() {
         return value.format(FORMATTER);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         return other == this
                 || (other instanceof StartTime otherTime && value.equals(otherTime.value));
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public int hashCode() {
         return value.hashCode();
     }
+    //@@author
 }

@@ -16,10 +16,13 @@ public enum Service {
 
     private final String displayName;
 
+    //@@author 0218hy
     Service(String displayName) {
         this.displayName = displayName;
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Parses a service label, ignoring case and leading, trailing or repeated whitespace.
      * Unrecognised services are rejected rather than silently mapped to Other.
@@ -34,9 +37,12 @@ public enum Service {
         }
         throw new IllegalArgumentException(MESSAGE_CONSTRAINTS);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public String toString() {
         return displayName;
     }
+    //@@author
 }

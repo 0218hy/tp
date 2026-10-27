@@ -33,6 +33,7 @@ public class JsonAdaptedAppointment {
     private final String endTime;
     private final String service;
 
+    //@@author 0218hy
     /** Constructs a snapshot, or a legacy record containing only participant identifiers. */
     @JsonCreator
     public JsonAdaptedAppointment(@JsonProperty("owner") JsonAdaptedClient owner,
@@ -49,25 +50,33 @@ public class JsonAdaptedAppointment {
         this.endTime = endTime;
         this.service = service;
     }
+    //@@author
 
+    //@@author 0218hy
     /** Constructs a legacy record for migration from the identifier-only format. */
     public JsonAdaptedAppointment(String ownerPhone, String petName, String date,
             String startTime, String endTime, String service) {
         this(null, null, ownerPhone, petName, date, startTime, endTime, service);
     }
+    //@@author
 
+    //@@author 0218hy
     /** Copies participant snapshots so bookings survive removal of the registered records. */
     public JsonAdaptedAppointment(Appointment source) {
         this(new JsonAdaptedClient(source.getOwner()), new JsonAdaptedPet(source.getPet()), null, null,
                 source.getDate().toString(), source.getStartTime().toString(), source.getEndTime().toString(),
                 source.getService().toString());
     }
+    //@@author
 
+    //@@author 0218hy
     /** Restores a self-contained appointment snapshot. Historical dates are allowed. */
     public Appointment toModelType() throws IllegalValueException {
         return toModelType(List.of(), List.of());
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Restores snapshots, reusing identical registered objects when available.
      * Legacy records require their participants to still exist because no profile details were saved.
@@ -108,4 +117,5 @@ public class JsonAdaptedAppointment {
             throw new IllegalValueException(e.getMessage(), e);
         }
     }
+    //@@author
 }

@@ -23,6 +23,7 @@ public class EndTime {
 
     public final LocalTime value;
 
+    //@@author 0218hy
     /**
      * Constructs an end time from an exact HH:mm string.
      */
@@ -33,7 +34,9 @@ public class EndTime {
         }
         value = LocalTime.parse(endTime, FORMATTER);
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Returns whether the input meets end-time format, working-hour and interval constraints.
      */
@@ -49,7 +52,9 @@ public class EndTime {
             return false;
         }
     }
+    //@@author
 
+    //@@author 0218hy
     /**
      * Returns whether this end time is at least 30 minutes after the given start on the same day.
      */
@@ -57,20 +62,27 @@ public class EndTime {
         requireNonNull(startTime);
         return Duration.between(startTime.value, value).toMinutes() >= 30;
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public String toString() {
         return value.format(FORMATTER);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         return other == this
                 || (other instanceof EndTime otherTime && value.equals(otherTime.value));
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public int hashCode() {
         return value.hashCode();
     }
+    //@@author
 }

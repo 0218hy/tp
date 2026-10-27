@@ -56,13 +56,16 @@ public class DeleteAppointmentCommandParserTest {
                 DeleteAppointmentCommandParser.MESSAGE_INDEX_AND_DATE_TIME);
     }
 
+    //@@author 0218hy
     @Test
     public void parse_invalidDate_reportsDateConstraints() {
         for (String date : new String[]{"31-02-2020", "29-02-2027", "1-01-2020", ""}) {
             assertParseFailure(parser, "d/" + date + " t/10:30", AppointmentDate.MESSAGE_CONSTRAINTS);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidTime_reportsTimeConstraints() {
         for (String time : new String[]{"25:00", "24:00", "10:60", "10:3", "10:30:00", ""}) {
@@ -70,14 +73,18 @@ public class DeleteAppointmentCommandParserTest {
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_TIME);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_invalidIndex_reportsIndexConstraints() {
         for (String index : new String[]{"0", "-1", "1.5", "2147483648", "unexpected"}) {
             assertParseFailure(parser, index, MESSAGE_INVALID_INDEX);
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void parse_validTimeBoundariesAndNonHalfHour_success() {
         for (String time : new String[]{"00:00", "23:59", "10:17"}) {
@@ -85,6 +92,7 @@ public class DeleteAppointmentCommandParserTest {
                     new DeleteAppointmentCommand(new AppointmentDate("01-01-2020"), LocalTime.parse(time)));
         }
     }
+    //@@author
 
     @Test
     public void parse_duplicatePrefix_failure() {

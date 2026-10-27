@@ -39,6 +39,7 @@ public class JsonBubuBookAppointmentTest {
     @TempDir
     public Path temporaryFolder;
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_historicalAppointments_preservesAllFieldsAndOrder() throws Exception {
         JsonBubuBookStorage storage = storage("nested/bububook.json");
@@ -52,7 +53,9 @@ public class JsonBubuBookAppointmentTest {
         assertTrue(json.contains("\"date\" : \"01-01-2000\""));
         assertTrue(json.contains("\"service\" : \"Full groom\""));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_participantSnapshots_reusesMatchingProfiles() throws Exception {
         JsonBubuBookStorage storage = storage("snapshots.json");
@@ -66,6 +69,7 @@ public class JsonBubuBookAppointmentTest {
         assertSame(restored.getClientList().get(0), restoredAppointment.getOwner());
         assertSame(restored.getPetList().get(0), restoredAppointment.getPet());
     }
+    //@@author
 
     @Test
     public void saveAndRead_profileEdits_preservesParticipantSnapshots() throws Exception {
@@ -89,6 +93,7 @@ public class JsonBubuBookAppointmentTest {
                 restored.getAppointmentList().get(0).getPet().getOwner());
     }
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_changedPhone_updatesBothParticipantLinksAndPreservesProfiles() throws Exception {
         JsonBubuBookStorage storage = storage("changed-phone.json");
@@ -109,7 +114,9 @@ public class JsonBubuBookAppointmentTest {
         assertSame(updated.getOwner(), updated.getPet().getOwner());
         assertEquals(new Phone("91234567"), original.getOwnerPhone());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_removedPet_removesRelatedAppointments() throws Exception {
         JsonBubuBookStorage storage = storage("removed-pet.json");
@@ -124,7 +131,9 @@ public class JsonBubuBookAppointmentTest {
         assertTrue(restored.getPetList().isEmpty());
         assertEquals(1, restored.getClientList().size());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void saveAndRead_removedClientAfterPhoneChange_removesRelatedAppointments() throws Exception {
         JsonBubuBookStorage storage = storage("removed-client.json");
@@ -138,7 +147,9 @@ public class JsonBubuBookAppointmentTest {
 
         assertEquals(new BubuBook(), storage.readBubuBook().orElseThrow());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void readBubuBook_legacyAppointment_resolvesParticipantsAndSavesSnapshots() throws Exception {
         JsonBubuBookStorage storage = storage("legacy.json");
@@ -155,7 +166,9 @@ public class JsonBubuBookAppointmentTest {
         assertTrue(Files.readString(storage.getBubuBookFilePath()).contains("\"owner\" : {"));
         assertEquals(restored, storage.readBubuBook().orElseThrow());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void toModelType_snapshotWithoutRegisteredParticipants_restoresCompleteProfiles() throws Exception {
         Appointment original = bookWithParticipantSnapshots().getAppointmentList().get(0);
@@ -165,7 +178,9 @@ public class JsonBubuBookAppointmentTest {
         assertEquals(original, restored);
         assertSame(restored.getOwner(), restored.getPet().getOwner());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void toModelType_legacyDifferentPetName_rejected() {
         Appointment participants = create("10:00", "11:00");
@@ -177,7 +192,9 @@ public class JsonBubuBookAppointmentTest {
 
         assertEquals("Legacy appointment pet is not registered under its owner.", exception.getMessage());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void toModelType_legacyMissingParticipants_rejected() {
         Appointment participants = create("10:00", "11:00");
@@ -191,7 +208,9 @@ public class JsonBubuBookAppointmentTest {
         assertThrows(IllegalValueException.class, () -> legacy.toModelType(
                 List.of(participants.getOwner(), otherOwner), List.of(otherPet)));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void toModelType_incompleteOrMismatchedSnapshots_rejected() {
         Appointment appointment = create("10:00", "11:00");
@@ -205,7 +224,9 @@ public class JsonBubuBookAppointmentTest {
         assertThrows(IllegalValueException.class, () -> new JsonAdaptedAppointment(otherOwner, pet, null, null,
                 "01-01-2000", "10:00", "11:00", "Full groom").toModelType());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void saveBubuBook_replacesPreviousScheduleAndCleansTemporaryFiles() throws Exception {
         JsonBubuBookStorage storage = storage("bububook.json");
@@ -218,12 +239,16 @@ public class JsonBubuBookAppointmentTest {
             assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void readBubuBook_missingFile_returnsEmpty() throws Exception {
         assertTrue(storage("missing.json").readBubuBook().isEmpty());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void readBubuBook_malformedOrMissingData_rejectedWithoutChangingFile() throws Exception {
         JsonBubuBookStorage storage = storage("invalid.json");
@@ -235,7 +260,9 @@ public class JsonBubuBookAppointmentTest {
             assertEquals(json, Files.readString(storage.getBubuBookFilePath()));
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void readBubuBook_overlappingRecords_rejected() throws Exception {
         JsonBubuBookStorage storage = storage("overlap.json");
@@ -245,7 +272,9 @@ public class JsonBubuBookAppointmentTest {
                 storage.getBubuBookFilePath());
         assertThrows(DataLoadingException.class, storage::readBubuBook);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void toModelType_missingAndInvalidFields_rejected() {
         Appointment participants = create("10:00", "11:00");
@@ -264,7 +293,9 @@ public class JsonBubuBookAppointmentTest {
                 new JsonSerializableBubuBook(List.of(), List.of(),
                         Arrays.asList((JsonAdaptedAppointment) null)).toModelType());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void saveBubuBook_targetIsDirectory_reportsFailureAndCleansTemporaryFile() throws Exception {
         JsonBubuBookStorage storage = storage("bububook.json");
@@ -277,13 +308,17 @@ public class JsonBubuBookAppointmentTest {
             assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructorAndSave_nullArguments_rejected() {
         assertThrows(NullPointerException.class, () -> new JsonBubuBookStorage(null));
         assertThrows(NullPointerException.class, () -> storage("bububook.json").saveBubuBook(null));
     }
+    //@@author
 
+    //@@author 0218hy
     private BubuBook bookWithParticipantSnapshots() {
         Client owner = new ClientBuilder().withPhone("91234567").withTags("friend").build();
         Pet pet = new PetBuilder(owner).withName("BuBu").withBreed("Poodle")
@@ -296,18 +331,25 @@ public class JsonBubuBookAppointmentTest {
         book.addAppointment(appointment);
         return book;
     }
+    //@@author
 
+    //@@author 0218hy
     private JsonBubuBookStorage storage(String filename) {
         return new JsonBubuBookStorage(temporaryFolder.resolve(filename));
     }
+    //@@author
 
+    //@@author 0218hy
     private JsonAdaptedAppointment adapt(List<String> fields) {
         return new JsonAdaptedAppointment(fields.get(0), fields.get(1), fields.get(2),
                 fields.get(3), fields.get(4), fields.get(5));
     }
+    //@@author
 
+    //@@author 0218hy
     private Appointment create(String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

@@ -25,12 +25,15 @@ public class BubuBookAppointmentTest {
 
     private final BubuBook book = new BubuBook();
 
+    //@@author 0218hy
     @Test
     public void constructor_emptyBook_hasNoAppointments() {
         assertTrue(book.getAppointmentList().isEmpty());
         assertFalse(book.hasOverlappingAppointment(APPOINTMENT));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructor_copy_doesNotShareMutableList() {
         book.addAppointment(APPOINTMENT);
@@ -40,7 +43,9 @@ public class BubuBookAppointmentTest {
         copy.setAppointments(List.of());
         assertEquals(List.of(APPOINTMENT, ADJACENT), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void addAppointment_historicalAndAdjacentAppointments_preservesInsertionOrder() {
         book.addAppointment(ADJACENT);
@@ -49,7 +54,9 @@ public class BubuBookAppointmentTest {
         book.addAppointment(earlier);
         assertEquals(List.of(ADJACENT, APPOINTMENT, earlier), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void addAppointment_duplicateOrOverlappingSlot_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
@@ -61,7 +68,9 @@ public class BubuBookAppointmentTest {
             assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void addAppointment_differentOwnerAndPet_stillRejectsOverlap() {
         book.addAppointment(APPOINTMENT);
@@ -70,7 +79,9 @@ public class BubuBookAppointmentTest {
         assertThrows(OverlappingAppointmentException.class, () -> book.addAppointment(otherPet));
         assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void addAppointment_sameTimeDifferentDay_allowed() {
         book.addAppointment(APPOINTMENT);
@@ -81,6 +92,7 @@ public class BubuBookAppointmentTest {
         book.addAppointment(nextDay);
         assertEquals(List.of(APPOINTMENT, nextDay), book.getAppointmentList());
     }
+    //@@author
 
     @Test
     public void removeAppointment_existingAppointment_removesOnlyTarget() {
@@ -97,6 +109,7 @@ public class BubuBookAppointmentTest {
         assertThrows(AppointmentNotFoundException.class, () -> book.removeAppointment(APPOINTMENT));
     }
 
+    //@@author 0218hy
     @Test
     public void nullArguments_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
@@ -108,7 +121,9 @@ public class BubuBookAppointmentTest {
         assertThrows(NullPointerException.class, () -> book.removeAppointment(null));
         assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void setAppointments_validReplacement_copiesAndReplacesList() {
         book.addAppointment(APPOINTMENT);
@@ -119,7 +134,9 @@ public class BubuBookAppointmentTest {
         book.setAppointments(List.of());
         assertTrue(book.getAppointmentList().isEmpty());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void setAppointments_invalidReplacement_preservesExistingAppointments() {
         book.addAppointment(ADJACENT);
@@ -128,7 +145,9 @@ public class BubuBookAppointmentTest {
         assertThrows(NullPointerException.class, () -> book.setAppointments(Arrays.asList(APPOINTMENT, null)));
         assertEquals(List.of(ADJACENT), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void resetData_validBookAndSelf_preservesData() {
         BubuBook source = new BubuBook();
@@ -143,7 +162,9 @@ public class BubuBookAppointmentTest {
         source.setAppointments(List.of());
         assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void getAppointmentList_unmodifiableView_observesChanges() {
         ObservableList<Appointment> view = book.getAppointmentList();
@@ -155,7 +176,9 @@ public class BubuBookAppointmentTest {
         book.setAppointments(List.of(ADJACENT));
         assertEquals(List.of(ADJACENT), view);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void equalsAndHashCode_compareAppointmentsAndTheirOrder() {
         book.setAppointments(List.of(APPOINTMENT, ADJACENT));
@@ -169,9 +192,12 @@ public class BubuBookAppointmentTest {
         copy.setAppointments(List.of(ADJACENT, APPOINTMENT));
         assertNotEquals(book, copy);
     }
+    //@@author
 
+    //@@author 0218hy
     private static Appointment create(String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2020"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

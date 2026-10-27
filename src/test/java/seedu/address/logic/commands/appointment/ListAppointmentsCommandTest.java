@@ -47,6 +47,7 @@ public class ListAppointmentsCommandTest {
         assertEquals(List.of(ongoing, later, tomorrow, nextMonth), model.getFilteredAppointmentList());
     }
 
+    //@@author 0218hy
     @Test
     public void execute_exactBoundaries_excludesEndingNowAndIncludesStartingNow() {
         model.setAppointments(List.of(create("07-10-2026", "09:00", "10:00"),
@@ -55,6 +56,7 @@ public class ListAppointmentsCommandTest {
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(CLOCK).execute(model).getFeedbackToUser());
     }
+    //@@author
 
     @Test
     public void execute_emptyOrCompletedSchedule_returnsEmptyMessage() {
@@ -71,6 +73,7 @@ public class ListAppointmentsCommandTest {
         assertEquals(List.of(), model.getFilteredAppointmentList());
     }
 
+    //@@author 0218hy
     @Test
     public void execute_singaporeDateAheadOfUtc_usesSingaporeDate() {
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
@@ -80,7 +83,9 @@ public class ListAppointmentsCommandTest {
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(midnight).execute(model).getFeedbackToUser());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void execute_participantsRemoved_excludesRelatedAppointments() {
         Client owner = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
@@ -100,15 +105,20 @@ public class ListAppointmentsCommandTest {
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void constructorAndExecute_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(null));
         assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(CLOCK).execute(null));
     }
+    //@@author
 
+    //@@author 0218hy
     private static Appointment create(String date, String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate(date),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

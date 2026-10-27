@@ -29,6 +29,7 @@ import seedu.address.model.client.Phone;
  * are performed when the command executes, not while parsing.
  */
 public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand> {
+    //@@author 0218hy
     @Override
     public AddAppointmentCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -54,4 +55,5 @@ public class AddAppointmentCommandParser implements Parser<AddAppointmentCommand
             throw new ParseException(e.getMessage(), e);
         }
     }
+    //@@author
 }

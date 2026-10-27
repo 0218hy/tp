@@ -51,37 +51,53 @@ public class Appointment {
     }
     //@@author
 
+    //@@author 0218hy
     public Client getOwner() {
         return owner;
     }
+    //@@author
 
+    //@@author 0218hy
     public Pet getPet() {
         return pet;
     }
+    //@@author
 
+    //@@author 0218hy
     public Phone getOwnerPhone() {
         return owner.getPhone();
     }
+    //@@author
 
+    //@@author 0218hy
     public PetName getPetName() {
         return pet.getName();
     }
+    //@@author
 
+    //@@author 0218hy
     public AppointmentDate getDate() {
         return date;
     }
+    //@@author
 
+    //@@author 0218hy
     public StartTime getStartTime() {
         return startTime;
     }
+    //@@author
 
+    //@@author 0218hy
     public EndTime getEndTime() {
         return endTime;
     }
+    //@@author
 
+    //@@author 0218hy
     public Service getService() {
         return service;
     }
+    //@@author
 
     /** Returns a copy with the new owner phone, preserving the remaining participant details. */
     Appointment withOwnerPhone(Phone newOwnerPhone) {
@@ -110,6 +126,7 @@ public class Appointment {
         return pet.isSamePet(this.pet);
     }
 
+    //@@author 0218hy
     /**
      * Returns whether both appointments have the same date and start time.
      * This is weaker than full equality and does not replace overlap detection.
@@ -120,6 +137,7 @@ public class Appointment {
                 && date.equals(otherAppointment.date)
                 && startTime.equals(otherAppointment.startTime));
     }
+    //@@author
 
     //@@author 0218hy
     /**
@@ -147,6 +165,7 @@ public class Appointment {
     }
     //@@author
 
+    //@@author 0218hy
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -162,12 +181,16 @@ public class Appointment {
                 && endTime.equals(otherAppointment.endTime)
                 && service == otherAppointment.service;
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public int hashCode() {
         return Objects.hash(owner, pet, date, startTime, endTime, service);
     }
+    //@@author
 
+    //@@author 0218hy
     @Override
     public String toString() {
         return new ToStringBuilder(this)
@@ -179,4 +202,5 @@ public class Appointment {
                 .add("service", service)
                 .toString();
     }
+    //@@author
 }

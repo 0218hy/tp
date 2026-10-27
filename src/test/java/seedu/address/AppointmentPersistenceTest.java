@@ -47,6 +47,7 @@ public class AppointmentPersistenceTest {
     private Model model;
     private LogicManager logic;
 
+    //@@author 0218hy
     @BeforeEach
     public void setUp() throws Exception {
         storage = storageWith(new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json")));
@@ -57,7 +58,9 @@ public class AppointmentPersistenceTest {
         model = new MainApp().initModelManager(storage, new UserPrefs());
         logic = logicFor(model, storage);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void scheduleSaveAndRestart_preservesAppointmentsAndDetectsOverlap() throws Exception {
         BubuBook before = new BubuBook(model.getBubuBook());
@@ -73,7 +76,9 @@ public class AppointmentPersistenceTest {
         assertEquals(AddAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
         assertEquals(1, restarted.getBubuBook().getAppointmentList().size());
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void createClientPetAndAppointment_throughCommands_preservesRecordsAfterRestart() throws Exception {
         logic.execute("add-client n/Jane Tan i/81234567 e/jane@example.com a/123 Clementi Road");
@@ -94,6 +99,7 @@ public class AppointmentPersistenceTest {
         logicFor(restarted, storage).execute(booking.replace("01-01-9999", "02-01-9999"));
         assertEquals(2, restarted.getBubuBook().getAppointmentList().size());
     }
+    //@@author
 
     @Test
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {
@@ -105,6 +111,7 @@ public class AppointmentPersistenceTest {
         assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
 
+    //@@author 0218hy
     @Test
     public void startup_missingBubuBook_usesSampleDataWithoutCreatingFiles() throws Exception {
         Files.delete(storage.getBubuBookFilePath());
@@ -113,7 +120,9 @@ public class AppointmentPersistenceTest {
         assertFalse(restarted.getBubuBook().getClientList().isEmpty());
         assertFalse(Files.exists(storage.getBubuBookFilePath()));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void startup_invalidBubuBook_preservesFileAndBlocksCommands() throws Exception {
         Files.writeString(storage.getBubuBookFilePath(), "broken data");
@@ -124,7 +133,9 @@ public class AppointmentPersistenceTest {
         assertEquals(LogicManager.MESSAGE_CORRUPTED_RECORDS, exception.getMessage());
         assertEquals("broken data", Files.readString(storage.getBubuBookFilePath()));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void clearAllRecords_includingFilteredAndHistoricalRecords_persistsAfterRestart() throws Exception {
         model.setAppointments(historicalBook().getAppointmentList());
@@ -152,7 +163,9 @@ public class AppointmentPersistenceTest {
             assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
         }
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void clearSaveFails_restoresAllRecordsAndPreservesSavedFile() throws Exception {
         model.setAppointments(historicalBook().getAppointmentList());
@@ -173,7 +186,9 @@ public class AppointmentPersistenceTest {
         assertEquals(before, model.getBubuBook());
         assertEquals(savedBefore, Files.readString(storage.getBubuBookFilePath()));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void scheduleWithMissingPet_rejectsAndDoesNotSave() throws Exception {
         String before = Files.readString(storage.getBubuBookFilePath());
@@ -183,7 +198,9 @@ public class AppointmentPersistenceTest {
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
         assertEquals(before, Files.readString(storage.getBubuBookFilePath()));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void scheduleWithInvalidArguments_doesNotSave() throws Exception {
         String before = Files.readString(storage.getBubuBookFilePath());
@@ -191,19 +208,25 @@ public class AppointmentPersistenceTest {
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
         assertEquals(before, Files.readString(storage.getBubuBookFilePath()));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void scheduleSaveFails_restoresModelAndAllowsRetry() throws Exception {
         assertSaveFailure(new IOException("write failed"),
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "write failed"));
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void scheduleSaveDenied_restoresModelAndReportsPermissionError() throws Exception {
         assertSaveFailure(new AccessDeniedException("bububook.json"),
                 String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, "bububook.json"));
     }
+    //@@author
 
+    //@@author 0218hy
     private void assertSaveFailure(IOException failure, String expectedMessage) throws Exception {
         BubuBook before = historicalBook();
         model.setAppointments(before.getAppointmentList());
@@ -232,20 +255,27 @@ public class AppointmentPersistenceTest {
         assertEquals(model.getBubuBook().getAppointmentList(),
                 storage.readBubuBook().orElseThrow().getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     private StorageManager storageWith(JsonBubuBookStorage bubuBookStorage) {
         return new StorageManager(bubuBookStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
     }
+    //@@author
 
+    //@@author 0218hy
     private LogicManager logicFor(Model target, StorageManager targetStorage) {
         return new LogicManager(target, targetStorage);
     }
+    //@@author
 
+    //@@author 0218hy
     private BubuBook historicalBook() {
         BubuBook book = new BubuBook();
         book.addAppointment(createAppointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;
     }
+    //@@author
 }

@@ -34,6 +34,7 @@ public class BubuBook implements ReadOnlyBubuBook {
         resetData(source);
     }
 
+    //@@author 0218hy
     /** Validates the entire replacement before changing any existing list. */
     public void resetData(ReadOnlyBubuBook source) {
         requireNonNull(source);
@@ -45,7 +46,9 @@ public class BubuBook implements ReadOnlyBubuBook {
         pets.setPets(validated.getPetList());
         appointments.setAppointments(validated.getAppointmentList());
     }
+    //@@author
 
+    //@@author 0218hy
     /** Replaces clients and refreshes pet owners, rejecting missing owners before mutation. */
     public void setClients(List<Client> replacement) {
         UniqueClientList validated = new UniqueClientList();
@@ -56,6 +59,7 @@ public class BubuBook implements ReadOnlyBubuBook {
         clients.setClients(validated.asUnmodifiableObservableList());
         pets.setPets(updatedPets);
     }
+    //@@author
 
     public boolean hasClient(Client client) {
         return clients.contains(client);
@@ -81,6 +85,7 @@ public class BubuBook implements ReadOnlyBubuBook {
         pets.removeAllOwnedBy(client);
     }
 
+    //@@author 0218hy
     /** Replaces pets after validating uniqueness and resolving every owner. */
     public void setPets(List<Pet> replacement) {
         requireNonNull(replacement);
@@ -89,6 +94,7 @@ public class BubuBook implements ReadOnlyBubuBook {
                 .collect(Collectors.toList());
         pets.setPets(resolved);
     }
+    //@@author
 
     public boolean hasPet(Pet pet) {
         return pets.contains(pet);
@@ -114,30 +120,40 @@ public class BubuBook implements ReadOnlyBubuBook {
         appointments.removeAppointmentsForPet(pet);
     }
 
+    //@@author 0218hy
     /** Clears all clients, pets, and appointments, preserving the observable lists. */
     public void clear() {
         appointments.setAppointments(List.of());
         pets.setPets(List.of());
         clients.setClients(List.of());
     }
+    //@@author
 
+    //@@author 0218hy
     private static Client findOwner(Pet pet, List<Client> clients) {
         requireNonNull(pet);
         return clients.stream().filter(client -> client.isSameClient(pet.getOwner()))
                 .findFirst().orElseThrow(ClientNotFoundException::new);
     }
+    //@@author
 
+    //@@author 0218hy
     public void setAppointments(List<Appointment> replacement) {
         appointments.setAppointments(replacement);
     }
+    //@@author
 
+    //@@author 0218hy
     public boolean hasOverlappingAppointment(Appointment appointment) {
         return appointments.hasOverlappingAppointment(appointment);
     }
+    //@@author
 
+    //@@author 0218hy
     public void addAppointment(Appointment appointment) {
         appointments.addAppointment(appointment);
     }
+    //@@author
 
     public void removeAppointment(Appointment appointment) {
         appointments.removeAppointment(appointment);
@@ -153,10 +169,12 @@ public class BubuBook implements ReadOnlyBubuBook {
         return pets.asUnmodifiableObservableList();
     }
 
+    //@@author 0218hy
     @Override
     public ObservableList<Appointment> getAppointmentList() {
         return appointments.getAppointmentList();
     }
+    //@@author
 
     @Override
     public boolean equals(Object other) {

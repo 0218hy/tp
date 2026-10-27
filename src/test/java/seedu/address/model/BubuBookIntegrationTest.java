@@ -29,6 +29,7 @@ public class BubuBookIntegrationTest {
     private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
+    //@@author 0218hy
     @Test
     public void resetData_invalidAppointments_preservesClientsPetsAndSchedule() {
         BubuBook book = populatedBook();
@@ -44,7 +45,9 @@ public class BubuBookIntegrationTest {
         assertThrows(OverlappingAppointmentException.class, () -> book.resetData(invalid));
         assertEquals(before, book);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void resetData_validReplacement_preservesAllObservableViews() {
         BubuBook book = new BubuBook();
@@ -64,7 +67,9 @@ public class BubuBookIntegrationTest {
         assertThrows(UnsupportedOperationException.class, pets::clear);
         assertThrows(UnsupportedOperationException.class, appointments::clear);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void setClients_missingOwner_rejectsWithoutChangingAnyRecords() {
         BubuBook book = populatedBook();
@@ -73,7 +78,9 @@ public class BubuBookIntegrationTest {
         assertThrows(ClientNotFoundException.class, () -> book.setClients(List.of(BENSON)));
         assertEquals(before, book);
     }
+    //@@author
 
+    //@@author 0218hy
     @Test
     public void setClients_updatedOwner_refreshesPetsAndPreservesSchedule() {
         BubuBook book = populatedBook();
@@ -84,6 +91,7 @@ public class BubuBookIntegrationTest {
         assertSame(editedAlice, book.getPetList().get(0).getOwner());
         assertEquals(List.of(appointment), book.getAppointmentList());
     }
+    //@@author
 
     @Test
     public void setClient_changedPhoneThenRemoveClient_removesAppointments() {
@@ -166,6 +174,7 @@ public class BubuBookIntegrationTest {
         assertEquals(List.of(bensonAppointment), book.getAppointmentList());
     }
 
+    //@@author 0218hy
     @Test
     public void resetData_missingOwner_preservesAllCollections() {
         BubuBook book = populatedBook();
@@ -181,7 +190,9 @@ public class BubuBookIntegrationTest {
         assertThrows(ClientNotFoundException.class, () -> book.resetData(invalid));
         assertEquals(before, book);
     }
+    //@@author
 
+    //@@author 0218hy
     private BubuBook populatedBook() {
         BubuBook book = new BubuBook();
         book.addClient(ALICE);
@@ -189,4 +200,5 @@ public class BubuBookIntegrationTest {
         book.addAppointment(appointment);
         return book;
     }
+    //@@author
 }

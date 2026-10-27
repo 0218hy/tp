@@ -48,6 +48,7 @@ public class AppointmentCardTest {
         });
     }
 
+    //@@author 0218hy
     @Test
     public void constructor_longCareNotes_wrapWithoutTruncation() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -70,6 +71,7 @@ public class AppointmentCardTest {
             assertTrue(careNotes.getHeight() >= careNotes.prefHeight(careNotes.getWidth()));
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test
