@@ -432,14 +432,14 @@ delete-pet p/PET_NAME i/OWNER_IDENTIFIER
 #### Parameters and validation
 
 * `INDEX` — a positive integer referring to the pet's one-based position in the current pet list, including any owner filter.
-* `p/PET_NAME` — alternatively, the saved pet name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. Unlike edit lookup, deletion matches the stored name exactly, including case and internal spaces.
+* `p/PET_NAME` — alternatively, the saved pet name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. The name is matched case-insensitively; leading and trailing whitespace is ignored, and repeated internal whitespace is treated as a single space, consistent with edit lookup.
 * `i/OWNER_IDENTIFIER` — required with `p/`; the owner's eight-digit phone number starting with `8` or `9`.
 * Provide an index or both identifiers, not both formats. Each identifier prefix may appear only once.
 
 #### Examples
 
 * `delete-pet 1` — deletes the first pet after displaying the desired list with `list-pets`.
-* `delete-pet p/Milo i/98765432` — deletes the saved pet named exactly `Milo` under that owner.
+* `delete-pet p/MILO i/98765432` — deletes the saved pet named `Milo` under that owner. Case and whitespace differences do not prevent a match.
 
 #### Success and other behavior
 
