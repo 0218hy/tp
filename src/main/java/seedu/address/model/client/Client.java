@@ -45,6 +45,7 @@ public class Client {
         return phone;
     }
 
+    // @@author xinyu-zxy
     /**
      * Checks for an exact phone-number match without trimming.
      * Returns false if {@code phoneNumber} is null.
@@ -52,6 +53,7 @@ public class Client {
     public boolean hasPhone(String phoneNumber) {
         return phone.value.equals(phoneNumber);
     }
+    // @@author
 
     public Email getEmail() {
         return email;

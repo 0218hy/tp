@@ -53,10 +53,13 @@ public class ResultDisplayTest {
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void setErrorFeedbackToUser_afterSuccess_displaysError() {
         JavaFxTestUtils.runAndWait(() -> {
             ResultDisplay resultDisplay = new ResultDisplay();
+
+            // EP: error feedback replaces existing success feedback
             resultDisplay.setFeedbackToUser("Pet added.");
 
             resultDisplay.setErrorFeedbackToUser("Owner not found.\nPlease add the client first.");
@@ -66,11 +69,15 @@ public class ResultDisplayTest {
             assertFeedbackState(feedbackDisplay, false, true);
         });
     }
+    // @@author
 
+    // @@author xinyu-zxy
     @Test
     public void setFeedbackToUser_afterError_displaysSuccess() {
         JavaFxTestUtils.runAndWait(() -> {
             ResultDisplay resultDisplay = new ResultDisplay();
+
+            // EP: success feedback replaces existing error feedback
             resultDisplay.setErrorFeedbackToUser("Invalid command.");
 
             resultDisplay.setFeedbackToUser("Listed all pets.");
@@ -85,6 +92,8 @@ public class ResultDisplayTest {
     public void setHelpContent_afterError_clearsFeedbackState() {
         JavaFxTestUtils.runAndWait(() -> {
             ResultDisplay resultDisplay = new ResultDisplay();
+
+            // EP: help content replaces error feedback and clears both feedback states
             resultDisplay.setErrorFeedbackToUser("Invalid command.");
 
             resultDisplay.setHelpContent("AVAILABLE COMMANDS");
@@ -99,6 +108,7 @@ public class ResultDisplayTest {
             assertFeedbackState(feedbackDisplay, false, true);
         });
     }
+    // @@author
 
     @Test
     public void getHelpLineStyleClass_heading_returnsHeadingStyle() {
@@ -121,12 +131,14 @@ public class ResultDisplayTest {
         assertEquals("help-spacing", ResultDisplay.getHelpLineStyleClass("   "));
     }
 
+    // @@author xinyu-zxy
     private static void assertFeedbackState(TextArea feedbackDisplay, boolean isSuccess, boolean isError) {
         assertEquals(isSuccess,
                 feedbackDisplay.getPseudoClassStates().contains(PseudoClass.getPseudoClass("feedback-success")));
         assertEquals(isError,
                 feedbackDisplay.getPseudoClassStates().contains(PseudoClass.getPseudoClass("feedback-error")));
     }
+    // @@author
 
     private static <T> T getField(Object target, String fieldName, Class<T> fieldType) {
         try {

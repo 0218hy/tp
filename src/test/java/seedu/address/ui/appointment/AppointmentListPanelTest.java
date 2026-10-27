@@ -36,20 +36,24 @@ public class AppointmentListPanelTest {
             AppointmentListPanel panel = new AppointmentListPanel(appointments);
             AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
 
+            // EP: empty cell
             assertEquals(appointments, panelList(panel));
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
 
+            // EP: populated cell
             cell.updateItem(appointment, false);
             assertNotNull(cell.getGraphic());
 
+            // EP: cell with a null item despite not being marked empty
             cell.updateItem(null, false);
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void updateItem_dateGroups_showsOnlyFirstHeadingAndKeepsContinuousIndices() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -60,14 +64,18 @@ public class AppointmentListPanelTest {
             AppointmentListPanel panel = new AppointmentListPanel(appointments);
             AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
 
+            // EP: first appointment in a date group
+            // BVA: index zero (first valid list index)
             cell.updateIndex(0);
             cell.updateItem(first, false);
             assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
 
+            // EP: appointment on the same date as the previous appointment
             cell.updateIndex(1);
             cell.updateItem(second, false);
             assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
 
+            // EP: appointment on a different date from the previous appointment
             cell.updateIndex(2);
             cell.updateItem(third, false);
             assertCard(cell, true, "3. ", "Appointments for 02-01-2027");
@@ -82,10 +90,14 @@ public class AppointmentListPanelTest {
             AppointmentListPanel panel = new AppointmentListPanel(appointments);
             AppointmentListPanel.AppointmentListViewCell cell = panel.new AppointmentListViewCell();
 
+            // EP: index below the valid list range
+            // BVA: index minus one (immediately below the first valid index)
             cell.updateIndex(-1);
             cell.updateItem(appointment, false);
             assertCard(cell, true, "0. ", "Appointments for 01-01-2027");
 
+            // EP: index at or above the list size
+            // BVA: index equal to the list size (immediately above the last valid index)
             cell.updateIndex(appointments.size());
             cell.updateItem(appointment, false);
             assertCard(cell, true, "2. ", "Appointments for 01-01-2027");
@@ -109,21 +121,25 @@ public class AppointmentListPanelTest {
             cell.updateItem(second, false);
             assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
 
+            // EP: filtering makes an existing appointment the first item in its date group
             displayedAppointments.setPredicate(appointment -> appointment.equals(second));
             cell.updateIndex(0);
             cell.updateItem(second, false);
             assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
 
+            // EP: removing the filter restores a preceding appointment in the same date group
             displayedAppointments.setPredicate(appointment -> true);
             cell.updateIndex(1);
             cell.updateItem(second, false);
             assertCard(cell, false, "2. ", "Appointments for 01-01-2027");
 
+            // EP: deletion makes an existing appointment the first item in its date group
             savedAppointments.remove(first);
             cell.updateIndex(0);
             cell.updateItem(second, false);
             assertCard(cell, true, "1. ", "Appointments for 01-01-2027");
 
+            // EP: deleting all appointments produces an empty cell
             savedAppointments.clear();
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
@@ -147,6 +163,7 @@ public class AppointmentListPanelTest {
     private static Label getLabel(AppointmentListPanel.AppointmentListViewCell cell, String id) {
         return (Label) cell.getGraphic().lookup("#" + id);
     }
+    // @@author
 
     @SuppressWarnings("unchecked")
     private static ObservableList<Appointment> panelList(AppointmentListPanel panel) {

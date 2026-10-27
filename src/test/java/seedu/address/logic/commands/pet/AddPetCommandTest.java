@@ -19,6 +19,7 @@ import seedu.address.model.pet.Species;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.testutil.TypicalClients;
 
+// @@author xinyu-zxy
 /** Tests the add-pet command against the model. */
 public class AddPetCommandTest {
     private static final String OWNER_PHONE = TypicalClients.ALICE.getPhone().value;
@@ -27,7 +28,10 @@ public class AddPetCommandTest {
     @Test
     public void execute_withAndWithoutBreed_addsPets() throws Exception {
         Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs());
+
+        // EP: pet with an optional breed
         AddPetCommand first = command("Mochi", OWNER_PHONE, new Breed("Golden retriever"));
+        // EP: pet without an optional breed
         AddPetCommand second = command("BuBu", OWNER_PHONE, null);
 
         assertEquals("Pet added: Mochi (Dog, Golden retriever) under Alice Pauline.",
@@ -40,18 +44,25 @@ public class AddPetCommandTest {
     public void execute_normalizedDuplicate_rejectedOnlyForSameOwner() throws Exception {
         Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs());
         command("Mochi", OWNER_PHONE, null).execute(model);
+
+        // EP: same owner and duplicate name after case normalization
         assertThrows(CommandException.class, "This client already has a pet named Mochi.", () ->
                 command("mochi", OWNER_PHONE, null).execute(model));
+
+        // EP: same owner and duplicate name after whitespace normalization
         assertThrows(CommandException.class, "This client already has a pet named Mo chi.", () -> {
             command("Mo chi", OWNER_PHONE, null).execute(model);
             command("Mo  chi", OWNER_PHONE, null).execute(model);
         });
+
+        // EP: different owner and same normalized pet name
         command("Mochi", TypicalClients.BENSON.getPhone().value, null).execute(model);
         assertEquals(3, model.getBubuBook().getPetList().size());
     }
 
     @Test
     public void execute_modelDoesNotStorePet_assertionFails() {
+        // EP: model violates the postcondition by dropping the added pet
         Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs()) {
             @Override
             public void addPet(Pet pet) {
@@ -64,6 +75,8 @@ public class AddPetCommandTest {
     @Test
     public void execute_unknownOwner_rejected() {
         Model model = new ModelManager(TypicalClients.getTypicalBubuBook(), new UserPrefs());
+
+        // EP: owner phone does not identify a registered client
         assertThrows(CommandException.class, AddPetCommand.MESSAGE_OWNER_NOT_FOUND, () ->
                 command("Mochi", "91234567", null).execute(model));
         assertEquals(List.of(), model.getBubuBook().getPetList());
@@ -76,6 +89,7 @@ public class AddPetCommandTest {
         model.addPet(existingPet);
         List<Pet> petsBefore = List.copyOf(model.getBubuBook().getPetList());
 
+        // EP: same owner and duplicate normalized name with different non-identifying details
         assertThrows(CommandException.class, "This client already has a pet named Mochi.", () ->
                 command("mochi", OWNER_PHONE, new Breed("British Shorthair")).execute(model));
         assertEquals(petsBefore, model.getBubuBook().getPetList());
@@ -85,6 +99,8 @@ public class AddPetCommandTest {
     public void constructorAndExecute_nullRequiredArguments_rejected() {
         PetName name = new PetName("Mochi");
         Requirement requirement = new Requirement(REQUIREMENTS);
+
+        // EP: each required constructor argument is null in turn
         assertThrows(NullPointerException.class, () ->
                 new AddPetCommand(null, OWNER_PHONE, Species.DOG, null, requirement));
         assertThrows(NullPointerException.class, () ->
@@ -93,6 +109,8 @@ public class AddPetCommandTest {
                 new AddPetCommand(name, OWNER_PHONE, null, null, requirement));
         assertThrows(NullPointerException.class, () ->
                 new AddPetCommand(name, OWNER_PHONE, Species.DOG, null, null));
+
+        // EP: execution model is null
         assertThrows(NullPointerException.class, () -> command("Mochi", OWNER_PHONE, null).execute(null));
     }
 

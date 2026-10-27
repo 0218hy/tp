@@ -30,20 +30,24 @@ public class PetListPanelTest {
             PetListPanel panel = new PetListPanel(pets);
             PetListPanel.PetListViewCell cell = panel.new PetListViewCell();
 
+            // EP: empty cell
             assertEquals(pets, panelList(panel));
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
 
+            // EP: populated cell
             cell.updateItem(pet, false);
             assertNotNull(cell.getGraphic());
 
+            // EP: cell with a null item despite not being marked empty
             cell.updateItem(null, false);
             assertNull(cell.getGraphic());
             assertNull(cell.getText());
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void updateItem_ownerGroups_showsOnlyFirstHeadingAndKeepsContinuousIndices() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -55,14 +59,18 @@ public class PetListPanelTest {
             PetListPanel panel = new PetListPanel(pets);
             PetListPanel.PetListViewCell cell = panel.new PetListViewCell();
 
+            // EP: first pet in an owner group
+            // BVA: index zero (first valid list index)
             cell.updateIndex(0);
             cell.updateItem(firstPet, false);
             assertCard(cell, true, "1. ", "Bubu");
 
+            // EP: pet with the same owner as the previous pet
             cell.updateIndex(1);
             cell.updateItem(secondPet, false);
             assertCard(cell, false, "2. ", "Mochi");
 
+            // EP: pet with a different owner from the previous pet
             cell.updateIndex(2);
             cell.updateItem(thirdPet, false);
             assertCard(cell, true, "3. ", "Luna");
@@ -78,10 +86,14 @@ public class PetListPanelTest {
             PetListPanel panel = new PetListPanel(pets);
             PetListPanel.PetListViewCell cell = panel.new PetListViewCell();
 
+            // EP: index below the valid list range
+            // BVA: index minus one (immediately below the first valid index)
             cell.updateIndex(-1);
             cell.updateItem(pet, false);
             assertCard(cell, true, "0. ", "Milo");
 
+            // EP: index at or above the list size
+            // BVA: index equal to the list size (immediately above the last valid index)
             cell.updateIndex(pets.size());
             cell.updateItem(pet, false);
             assertCard(cell, true, "2. ", "Milo");
@@ -105,21 +117,25 @@ public class PetListPanelTest {
             cell.updateItem(secondPet, false);
             assertCard(cell, false, "2. ", "Mochi");
 
+            // EP: filtering makes an existing pet the first item in its owner group
             displayedPets.setPredicate(pet -> pet.equals(secondPet));
             cell.updateIndex(0);
             cell.updateItem(secondPet, false);
             assertCard(cell, true, "1. ", "Mochi");
 
+            // EP: removing the filter restores a preceding pet with the same owner
             displayedPets.setPredicate(pet -> true);
             cell.updateIndex(1);
             cell.updateItem(secondPet, false);
             assertCard(cell, false, "2. ", "Mochi");
 
+            // EP: deletion makes an existing pet the first item in its owner group
             savedPets.remove(firstPet);
             cell.updateIndex(0);
             cell.updateItem(secondPet, false);
             assertCard(cell, true, "1. ", "Mochi");
 
+            // EP: deleting all pets produces an empty cell
             savedPets.clear();
             cell.updateItem(null, true);
             assertNull(cell.getGraphic());
@@ -138,6 +154,7 @@ public class PetListPanelTest {
     private static Label getLabel(PetListPanel.PetListViewCell cell, String id) {
         return (Label) cell.getGraphic().lookup("#" + id);
     }
+    // @@author
 
     @SuppressWarnings("unchecked")
     private static ObservableList<Pet> panelList(PetListPanel panel) {

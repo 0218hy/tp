@@ -24,6 +24,7 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.testutil.TypicalClients;
 
+// @@author xinyu-zxy
 /**
  * Tests listing pet profiles without changing the saved model.
  */
@@ -35,6 +36,7 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_allPets_groupsAndSortsByOwnerThenPet() throws Exception {
+        // EP: no owner filter
         Model model = createModel();
         Pet zoe = addPet(model, BENSON, "Zoe", Species.CAT, null);
         Pet mochi = addPet(model, ALICE, "mochi", Species.DOG, "Golden retriever");
@@ -52,6 +54,7 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_ownersWithSameName_keepsPetsInSeparateGroups() throws Exception {
+        // EP: different owner phones with identical owner names
         Model model = createModel();
         Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
                 .withEmail("other-alice@example.com").build();
@@ -67,6 +70,7 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_ownerFilter_sortsOnlySelectedOwnersPets() throws Exception {
+        // EP: owner filter matching multiple pets
         Model model = createModel();
         addPet(model, BENSON, "Zoe", Species.DOG, null);
         addPet(model, ALICE, "Mochi", Species.DOG, "Golden retriever");
@@ -82,6 +86,7 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_ownerFilterWithSameNameOwners_listsOnlyMatchingPhone() throws Exception {
+        // EP: owner filter matches one of two same-name owners by phone
         Model model = createModel();
         Client sameNameOwner = new ClientBuilder(ALICE).withPhone("81234567")
                 .withEmail("other-alice@example.com").build();
@@ -102,12 +107,17 @@ public class ListPetsCommandTest {
     public void execute_emptyResults_returnsSpecificMessages() throws Exception {
         Model model = createModel();
 
+        // EP: no owner filter and no saved pets
         assertEquals("Listed all pets.",
                 new ListPetsCommand(null).execute(model).getFeedbackToUser());
+
+        // EP: owner filter matching no pets in an empty pet list
         assertEquals("Alice Pauline has no saved pet profiles.",
                 new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
 
         addPet(model, BENSON, "Zoe", Species.CAT, null);
+
+        // EP: owner filter matching no pets in a non-empty pet list
         assertEquals("Alice Pauline has no saved pet profiles.",
                 new ListPetsCommand(ALICE_PREDICATE).execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPetList());
@@ -115,6 +125,8 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_singlePet_returnsCountAndPreservesProfile() throws Exception {
+        // EP: owner filter matching exactly one pet
+        // BVA: one matching pet (smallest non-empty result)
         Model model = createModel();
         Pet pip = addPet(model, ALICE, "Pip", Species.GUINEA_PIG, null);
 
@@ -125,6 +137,7 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_unknownOwner_throwsCommandException() {
+        // EP: owner filter does not identify a registered client
         Model model = createModel();
         addPet(model, ALICE, "Mochi", Species.DOG, null);
         model.updateFilteredPetList(pet -> false);
@@ -137,13 +150,17 @@ public class ListPetsCommandTest {
 
     @Test
     public void execute_nullModel_throwsNullPointerException() {
+        // EP: null execution model
         assertThrows(NullPointerException.class, () -> new ListPetsCommand(null).execute(null));
     }
 
     @Test
     public void equals_samePhone_equalCommands() {
+        // EP: filtered commands containing the same owner phone
         assertEquals(new ListPetsCommand(ALICE_PREDICATE),
                 new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(ALICE.getPhone())));
+
+        // EP: unfiltered commands
         assertEquals(new ListPetsCommand(null), new ListPetsCommand(null));
         assertEquals(new ListPetsCommand(ALICE_PREDICATE).hashCode(),
                 new ListPetsCommand(new PetOwnerPhoneMatchesPredicate(ALICE.getPhone())).hashCode());

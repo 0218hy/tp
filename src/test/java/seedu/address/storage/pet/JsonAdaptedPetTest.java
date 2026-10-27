@@ -39,8 +39,10 @@ public class JsonAdaptedPetTest {
         assertSame(ALICE, actualPet.getOwner());
     }
 
+    // @@author xinyu-zxy
     @Test
     public void toModelType_breedAndOwnerPhone_preserved() throws Exception {
+        // EP: current-format record with an owner phone and optional breed
         String breed = "Golden retriever";
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, ALICE.getPhone().value,
                 VALID_SPECIES, breed, VALID_REQUIREMENT);
@@ -53,6 +55,7 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_legacyOwnerNameMatchesMultipleClients_throwsIllegalValueException() {
+        // EP: legacy owner name matches multiple clients
         Client sameNameClient = new ClientBuilder(BOB).withName(VALID_OWNER_NAME).build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
 
@@ -63,6 +66,7 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_ownerPhoneDistinguishesClientsWithSameName_returnsCorrectOwner() throws Exception {
+        // EP: owner phone distinguishes clients with the same name
         Client sameNameClient = new ClientBuilder(BOB).withName(VALID_OWNER_NAME).build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, sameNameClient.getPhone().value,
                 VALID_SPECIES, null, VALID_REQUIREMENT);
@@ -72,12 +76,14 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_ownerNameConflictsWithPhone_throwsIllegalValueException() {
+        // EP: stored owner phone and owner name identify different clients
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, BOB.getPhone().value,
                 VALID_SPECIES, null, VALID_REQUIREMENT);
 
         String expectedMessage = JsonAdaptedPet.MESSAGE_OWNER_DETAILS_MISMATCH;
         assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(VALID_CLIENTS));
     }
+    // @@author
 
     @Test
     public void toModelType_invalidName_throwsIllegalValueException() {

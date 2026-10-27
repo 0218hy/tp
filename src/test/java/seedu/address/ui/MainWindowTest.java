@@ -92,6 +92,7 @@ public class MainWindowTest {
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void executeCommand_recordHeading_tracksVisibleListAndCount() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -100,14 +101,22 @@ public class MainWindowTest {
             mainWindow.fillInnerParts();
             Label title = getField(mainWindow, "recordTitle", Label.class);
             Label count = getField(mainWindow, "recordCount", Label.class);
+
+            // EP: empty displayed list
+            // BVA: zero displayed records
             assertEquals("👥 Clients", title.getText());
             assertEquals("0 records", count.getText());
 
             logic.nextResult = new CommandResult("Listed all pets.", DisplayType.PETS);
             executeCommand(mainWindow, "list-pets");
             assertEquals("🐾 Pets", title.getText());
+
+            // EP: displayed list containing exactly one record
+            // BVA: one record, the smallest non-empty list
             logic.pets.add(new PetBuilder(TypicalClients.ALICE).build());
             assertEquals("1 record", count.getText());
+
+            // EP: displayed list containing multiple records
             logic.pets.add(new PetBuilder(TypicalClients.ALICE).withName("Luna").build());
             assertEquals("2 records", count.getText());
             logic.pets.clear();
@@ -116,14 +125,19 @@ public class MainWindowTest {
             logic.nextResult = new CommandResult("Appointments", DisplayType.APPOINTMENTS);
             executeCommand(mainWindow, "list-appointments");
             assertEquals("📅 Appointments", title.getText());
+
+            // EP: update to a hidden list does not change the visible list's count
             logic.pets.add(new PetBuilder(TypicalClients.ALICE).build());
             assertEquals("0 records", count.getText());
 
             logic.nextResult = new CommandResult("Help", true, false);
             mainWindow.handleHelp();
+
+            // EP: command that leaves the current display type unchanged
             assertEquals("📅 Appointments", title.getText());
         });
     }
+    // @@author
 
     private static void executeCommand(MainWindow mainWindow, String commandText) {
         try {

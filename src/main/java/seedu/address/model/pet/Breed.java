@@ -3,6 +3,7 @@ package seedu.address.model.pet;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+// @@author xinyu-zxy
 /**
  * Represents a pet's breed when one is known.
  * A pet without breed information stores no {@code Breed} value.
@@ -16,7 +17,9 @@ public class Breed {
     public final String value;
 
     /**
-     * Creates a breed from text that meets the length and character constraints.
+     * Constructs a {@code Breed}.
+     *
+     * @param breed A valid breed.
      */
     public Breed(String breed) {
         requireNonNull(breed);
@@ -25,8 +28,8 @@ public class Breed {
     }
 
     /**
-     * Returns whether the supplied text is a valid breed.
-     * Blank text and values outside the allowed length are invalid.
+     * Returns whether the text contains 2-50 letters, numbers, spaces, periods, apostrophes, or hyphens.
+     * Null and blank values are invalid.
      */
     public static boolean isValidBreed(String breed) {
         return breed != null && breed.length() >= MIN_LENGTH && breed.length() <= MAX_LENGTH

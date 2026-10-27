@@ -20,6 +20,7 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 
+// @@author xinyu-zxy
 /**
  * Adds a pet profile to a registered client identified by phone number.
  * Pets with the same normalized name cannot belong to the same client.
@@ -44,6 +45,7 @@ public class AddPetCommand extends Command {
     /**
      * Creates a command with the pet's details and the owner's phone number.
      * Breed may be {@code null} when the client does not know it.
+     * All other arguments must be non-null.
      */
     public AddPetCommand(PetName name, String ownerPhone, Species species, Breed breed, Requirement requirement) {
         this.name = requireNonNull(name);
@@ -86,6 +88,8 @@ public class AddPetCommand extends Command {
 
     /**
      * Rejects a pet if its owner already has one with the same normalized name.
+     *
+     * @throws CommandException if a duplicate pet exists.
      */
     private void checkForDuplicate(Model model, Pet pet) throws CommandException {
         for (Pet existingPet : model.getBubuBook().getPetList()) {

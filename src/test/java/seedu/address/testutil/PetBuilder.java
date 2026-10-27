@@ -74,6 +74,7 @@ public class PetBuilder {
         return this;
     }
 
+    // @@author xinyu-zxy
     /**
      * Sets the optional breed of the pet being built.
      */
@@ -81,6 +82,7 @@ public class PetBuilder {
         this.breed = new Breed(breed);
         return this;
     }
+    // @@author
 
     public Pet build() {
         return new Pet(name, owner, species, breed, requirement);

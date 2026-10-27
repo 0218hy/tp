@@ -71,9 +71,11 @@ public class AppointmentCardTest {
         });
     }
 
+    // @@author xinyu-zxy
     @Test
     public void constructor_sameDate_hidesHeadingWithoutResettingIndex() {
         JavaFxTestUtils.runAndWait(() -> {
+            // EP: appointment does not start a new date group
             Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).build(),
                     new AppointmentDate("01-01-2027"), new StartTime("10:00"),
                     new EndTime("11:00"), Service.FULL_GROOM);
@@ -83,6 +85,7 @@ public class AppointmentCardTest {
             assertEquals("2. ", getLabel(card, "id").getText());
         });
     }
+    // @@author
 
     private static Label getLabel(AppointmentCard card, String fieldName) {
         try {

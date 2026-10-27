@@ -29,9 +29,10 @@ public class PetName {
         value = name;
     }
 
+    // @@author xinyu-zxy
     /**
-     * Returns whether the text is a valid pet name.
-     * Names must fit the length limit and contain only the supported characters.
+     * Returns whether the text is non-null, non-blank, at most 40 characters, and contains only letters,
+     * numbers, spaces, periods, apostrophes, or hyphens.
      */
     public static boolean isValidName(String test) {
         return test != null && !test.isBlank() && test.length() <= MAX_LENGTH
@@ -50,6 +51,7 @@ public class PetName {
         assert !normalizedName.isBlank() : "Normalizing a valid pet name must not produce a blank name";
         return normalizedName;
     }
+    // @@author
 
     /** Returns whether this name matches {@code otherName} after normalization. */
     public boolean hasSameName(PetName otherName) {

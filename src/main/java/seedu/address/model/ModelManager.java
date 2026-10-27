@@ -57,13 +57,15 @@ public class ModelManager implements Model {
         this(new BubuBook(), new UserPrefs());
     }
 
-    /** Groups pets by owner name and phone, then orders each owner's pets by normalized name. */
+    // @@author xinyu-zxy
+    /** Returns a comparator that groups pets by owner, then orders them by normalized name. */
     private static Comparator<Pet> createPetDisplayComparator() {
         Comparator<Pet> byOwnerName = Comparator.comparing(
                 pet -> pet.getOwner().getName().fullName.toLowerCase(Locale.ROOT));
         Comparator<Pet> byOwner = byOwnerName.thenComparing(pet -> pet.getOwner().getPhone().value);
         return byOwner.thenComparing(pet -> pet.getName().getNormalizedName());
     }
+    // @@author
 
     //=========== UserPrefs ==================================================================================
 

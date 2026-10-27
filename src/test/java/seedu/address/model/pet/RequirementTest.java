@@ -20,15 +20,31 @@ public class RequirementTest {
 
     @Test
     public void isValidRequirement() {
+        // EP: null input
         assertFalse(Requirement.isValidRequirement(null));
 
+        // EP: blank requirements
+        // BVA: zero characters
         assertFalse(Requirement.isValidRequirement(""));
         assertFalse(Requirement.isValidRequirement(" "));
 
+        // EP: non-blank requirements shorter than the minimum length
+        assertFalse(Requirement.isValidRequirement("-"));
+        // BVA: four characters (just below the minimum length)
+        assertFalse(Requirement.isValidRequirement("Care"));
+
+        // EP: requirements within the length limits and without unsupported characters
+        // BVA: five characters (minimum valid length)
+        assertTrue(Requirement.isValidRequirement("Brush"));
         assertTrue(Requirement.isValidRequirement("Daily brushing"));
         assertTrue(Requirement.isValidRequirement("Bath every 2 weeks"));
-        assertFalse(Requirement.isValidRequirement("-"));
+
+        // EP: requirements containing an unsupported slash
         assertFalse(Requirement.isValidRequirement("Bath/brush"));
+
+        // BVA: 240 characters (maximum valid length)
+        assertTrue(Requirement.isValidRequirement("A".repeat(240)));
+        // BVA: 241 characters (just above the maximum length)
         assertFalse(Requirement.isValidRequirement("A".repeat(241)));
     }
 

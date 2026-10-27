@@ -32,9 +32,11 @@ public class JsonAdaptedPet {
     private final String breed;
     private final String requirement;
 
+    // @@author xinyu-zxy
     /**
      * Constructs a stored pet record from its JSON fields.
      * Owner phone and breed may be absent in older records.
+     * Field validation is deferred until {@link #toModelType(List)}.
      */
     @JsonCreator
     public JsonAdaptedPet(@JsonProperty("name") String name, @JsonProperty("ownerName") String ownerName,
@@ -85,6 +87,8 @@ public class JsonAdaptedPet {
 
     /**
      * Converts the stored name after checking its required field and format.
+     *
+     * @throws IllegalValueException if the name is missing or invalid.
      */
     private PetName toPetName() throws IllegalValueException {
         if (name == null) {
@@ -99,6 +103,8 @@ public class JsonAdaptedPet {
     /**
      * Finds the owner by phone, falling back to the name in legacy records.
      * Rejects ambiguous legacy names and names that conflict with a stored phone.
+     *
+     * @throws IllegalValueException if the owner details are missing, ambiguous, inconsistent, or unmatched.
      */
     private Client findOwner(List<Client> clients) throws IllegalValueException {
         if (ownerName == null && ownerPhone == null) {
@@ -114,6 +120,8 @@ public class JsonAdaptedPet {
     /**
      * Finds the owner identified by the stored phone number.
      * Called only after {@link #findOwner(List)} selects a non-null phone identifier.
+     *
+     * @throws IllegalValueException if no registered client has the stored phone number.
      */
     private Client findOwnerByPhone(List<Client> clients) throws IllegalValueException {
         assert ownerPhone != null : "Phone lookup requires a stored owner phone";
@@ -128,6 +136,8 @@ public class JsonAdaptedPet {
     /**
      * Finds the sole owner with the stored name in a legacy pet record.
      * Called only after {@link #findOwner(List)} verifies that a name is available without a phone.
+     *
+     * @throws IllegalValueException if the stored name matches no client or multiple clients.
      */
     private Client findLegacyOwnerByName(List<Client> clients) throws IllegalValueException {
         assert ownerName != null : "Legacy lookup requires a stored owner name";
@@ -149,6 +159,8 @@ public class JsonAdaptedPet {
 
     /**
      * Converts the stored species to a supported model value.
+     *
+     * @throws IllegalValueException if the species is missing or unsupported.
      */
     private Species toSpecies() throws IllegalValueException {
         if (species == null) {
@@ -163,6 +175,8 @@ public class JsonAdaptedPet {
 
     /**
      * Converts a recorded breed, or returns {@code null} when no breed was stored.
+     *
+     * @throws IllegalValueException if a recorded breed is invalid.
      */
     private Breed toBreed() throws IllegalValueException {
         if (breed != null && !Breed.isValidBreed(breed)) {
@@ -173,6 +187,8 @@ public class JsonAdaptedPet {
 
     /**
      * Converts the stored care requirements after validating them.
+     *
+     * @throws IllegalValueException if the requirements are missing or invalid.
      */
     private Requirement toRequirement() throws IllegalValueException {
         if (requirement == null) {
@@ -184,4 +200,5 @@ public class JsonAdaptedPet {
         }
         return new Requirement(requirement);
     }
+    // @@author
 }

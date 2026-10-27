@@ -20,16 +20,30 @@ public class PetNameTest {
 
     @Test
     public void isValidName() {
+        // EP: null input
         assertFalse(PetName.isValidName(null));
 
+        // EP: empty name
+        // BVA: zero characters
         assertFalse(PetName.isValidName(""));
+
+        // EP: blank name
         assertFalse(PetName.isValidName(" "));
+
+        // EP: names containing unsupported characters
         assertFalse(PetName.isValidName("Milo!"));
 
+        // EP: names containing only supported characters and within the length limits
+        // BVA: one character (minimum valid length)
+        assertTrue(PetName.isValidName("M"));
         assertTrue(PetName.isValidName("Milo"));
         assertTrue(PetName.isValidName("Sir Fluffy 2nd"));
         assertTrue(PetName.isValidName("12345"));
         assertTrue(PetName.isValidName("Mochi-Jr.'s"));
+
+        // BVA: 40 characters (maximum valid length)
+        assertTrue(PetName.isValidName("A".repeat(40)));
+        // BVA: 41 characters (just above the maximum length)
         assertFalse(PetName.isValidName("A".repeat(41)));
     }
 
