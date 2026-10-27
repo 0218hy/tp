@@ -570,6 +570,8 @@ The command makes no changes when it cannot be completed.
 
 * `Choose an appointment index, or provide both d/CURRENT_DATE (DD-MM-YYYY) and st/CURRENT_START_TIME (HH:mm).` —
   the target is missing or incomplete.
+* `Missing parameter: d/CURRENT_DATE (DD-MM-YYYY)` or `Missing parameter: st/CURRENT_START_TIME (HH:mm)` — one of the
+  required target prefixes is missing; the command format and parameters are shown.
 * `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format and parameters are shown.
 * Duplicate-prefix error — a single-valued prefix was supplied more than once.
 * `Appointment index must be a positive whole number.` — the index is malformed or not positive.
@@ -628,6 +630,8 @@ The command makes no changes when it cannot be completed.
 
 * `Choose an appointment index, or provide both d/DATE (DD-MM-YYYY) and st/START_TIME (HH:mm).` — the target is missing or
   incomplete.
+* `Missing parameter: d/DATE (DD-MM-YYYY)` or `Missing parameter: st/START_TIME (HH:mm)` — one of the required target
+  prefixes is missing; the command format and parameters are shown.
 * `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format and parameters are shown.
 * Duplicate-prefix error — a single-valued prefix was supplied more than once.
 * `Appointment index must be a positive whole number.` — the index is malformed or not positive.

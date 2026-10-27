@@ -33,6 +33,7 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
                     + "in 30-minute intervals.";
 
     private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!\\S)([A-Za-z]+/)");
+    private static final Pattern DATE_SHAPED_VALUE = Pattern.compile("\\S+-\\S*");
     private static final Prefix[] PREFIXES = {PREFIX_DATE, PREFIX_START_TIME};
 
     @Override
@@ -54,6 +55,10 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
         boolean hasDate = arguments.getValue(PREFIX_DATE).isPresent();
         boolean hasTime = arguments.getValue(PREFIX_START_TIME).isPresent();
 
+        if (hasIndex && !hasDate && hasTime && looksLikeDate(arguments.getPreamble())) {
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    "d/DATE (DD-MM-YYYY)", DeleteAppointmentCommand.MESSAGE_USAGE));
+        }
         if (hasIndex && (hasDate || hasTime)) {
             throw new ParseException(MESSAGE_INDEX_AND_DATE_TIME);
         }
@@ -62,7 +67,12 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
             Index index = parseIndex(arguments.getPreamble());
             return new DeleteAppointmentCommand(index);
         }
-        if (!hasDate || !hasTime) {
+        if (hasDate != hasTime) {
+            String missingParameter = hasDate ? "st/START_TIME (HH:mm)" : "d/DATE (DD-MM-YYYY)";
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    missingParameter, DeleteAppointmentCommand.MESSAGE_USAGE));
+        }
+        if (!hasDate && !hasTime) {
             throw new ParseException(MESSAGE_TARGET_REQUIRED);
         }
         AppointmentDate date = parseDate(arguments.getValue(PREFIX_DATE).orElseThrow());
@@ -105,5 +115,10 @@ public class DeleteAppointmentCommandParser implements Parser<DeleteAppointmentC
             }
         }
         return false;
+    }
+
+    /** Returns whether a preamble has the shape of a date, without validating its date components. */
+    private static boolean looksLikeDate(String preamble) {
+        return DATE_SHAPED_VALUE.matcher(preamble).matches();
     }
 }

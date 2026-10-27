@@ -1,6 +1,7 @@
 package seedu.address.logic.parser.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static seedu.address.logic.Messages.getErrorMessageForMissingParameter;
 import static seedu.address.logic.Messages.getErrorMessageForUnknownParameter;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -37,9 +38,23 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_missingArguments_failure() {
-        for (String args : new String[]{"", "d/01-01-2020", "st/10:30"}) {
-            assertParseFailure(parser, args, DeleteAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
-        }
+        assertParseFailure(parser, "", DeleteAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
+        assertParseFailure(parser, "d/01-01-2020",
+                getErrorMessageForMissingParameter("st/START_TIME (HH:mm)",
+                        DeleteAppointmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "st/10:30",
+                getErrorMessageForMissingParameter("d/DATE (DD-MM-YYYY)",
+                        DeleteAppointmentCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_dateLikePreamble_reportsMissingDatePrefix() {
+        assertParseFailure(parser, "12-12-1234 st/12:00",
+                getErrorMessageForMissingParameter("d/DATE (DD-MM-YYYY)",
+                        DeleteAppointmentCommand.MESSAGE_USAGE));
+        assertParseFailure(parser, "12- st/12:00",
+                getErrorMessageForMissingParameter("d/DATE (DD-MM-YYYY)",
+                        DeleteAppointmentCommand.MESSAGE_USAGE));
     }
 
     @Test
@@ -57,7 +72,7 @@ public class DeleteAppointmentCommandParserTest {
     //@@author 0218hy
     @Test
     public void parse_invalidDate_reportsDateConstraints() {
-        for (String date : new String[]{"31-02-2020", "29-02-2027", "1-01-2020", ""}) {
+        for (String date : new String[]{"31-02-2020", "29-02-2027", "1-01-2020", "12-", ""}) {
             assertParseFailure(parser, "d/" + date + " st/10:30",
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_DATE);
         }

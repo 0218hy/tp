@@ -1434,7 +1434,10 @@ testers are expected to do more *exploratory* testing.
    2. Test case: `delete-appointment 1 d/01-01-9999 st/10:30`<br>
       Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
 
-   3. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
+   3. Test case: `delete-appointment 12-12-1234 st/10:30`<br>
+      Expected: The command is rejected because the date is missing its `d/` prefix.
+
+   4. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
       Expected: The command is rejected because the date or time is invalid.
 
 4. Persistence after deletion

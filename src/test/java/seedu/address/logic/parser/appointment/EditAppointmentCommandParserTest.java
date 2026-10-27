@@ -2,6 +2,7 @@ package seedu.address.logic.parser.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
+import static seedu.address.logic.Messages.getErrorMessageForMissingParameter;
 import static seedu.address.logic.Messages.getErrorMessageForUnknownParameter;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -59,11 +60,27 @@ public class EditAppointmentCommandParserTest {
     public void parse_missingTargetOrEditField_failure() {
         assertParseFailure(parser, "s/Full groom", EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
         assertParseFailure(parser, "d/18-09-2027 s/Full groom",
-                EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
+                getErrorMessageForMissingParameter("st/CURRENT_START_TIME (HH:mm)",
+                        EditAppointmentCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "st/10:00 s/Full groom",
-                EditAppointmentCommandParser.MESSAGE_TARGET_REQUIRED);
+                getErrorMessageForMissingParameter("d/CURRENT_DATE (DD-MM-YYYY)",
+                        EditAppointmentCommand.MESSAGE_USAGE));
         assertParseFailure(parser, "1", EditAppointmentCommand.MESSAGE_NOT_EDITED);
         assertParseFailure(parser, "d/18-09-2027 st/10:00", EditAppointmentCommand.MESSAGE_NOT_EDITED);
+    }
+
+    @Test
+    public void parse_unprefixedStartTime_reportsMissingStartTimePrefix() {
+        assertParseFailure(parser, "d/12-12-2026 12:00",
+                getErrorMessageForMissingParameter("st/CURRENT_START_TIME (HH:mm)",
+                        EditAppointmentCommand.MESSAGE_USAGE));
+    }
+
+    @Test
+    public void parse_dateLikePreamble_reportsMissingDatePrefix() {
+        assertParseFailure(parser, "12-12-2024 st/12:00 i/91239123",
+                getErrorMessageForMissingParameter("d/CURRENT_DATE (DD-MM-YYYY)",
+                        EditAppointmentCommand.MESSAGE_USAGE));
     }
 
     @Test

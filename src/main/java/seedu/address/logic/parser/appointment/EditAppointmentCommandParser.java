@@ -46,6 +46,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
                     + "in 30-minute intervals.";
 
     private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!\\S)([A-Za-z]+/)");
+    private static final Pattern DATE_SHAPED_VALUE = Pattern.compile("\\S+-\\S*");
 
     private static final Prefix[] PREFIXES = {
         PREFIX_DATE, PREFIX_START_TIME, PREFIX_OWNER_IDENTIFIER, PREFIX_PET_NAME,
@@ -77,10 +78,21 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         boolean hasIndex = !arguments.getPreamble().isEmpty();
         boolean hasTargetDate = arguments.getValue(PREFIX_DATE).isPresent();
         boolean hasTargetStartTime = arguments.getValue(PREFIX_START_TIME).isPresent();
+        if (hasIndex && !hasTargetDate && hasTargetStartTime && looksLikeDate(arguments.getPreamble())) {
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    "d/CURRENT_DATE (DD-MM-YYYY)", EditAppointmentCommand.MESSAGE_USAGE));
+        }
         if (hasIndex && (hasTargetDate || hasTargetStartTime)) {
             throw new ParseException(EditAppointmentCommand.MESSAGE_INDEX_AND_DATE_TIME);
         }
-        if (!hasIndex && (!hasTargetDate || !hasTargetStartTime)) {
+        if (!hasIndex && hasTargetDate != hasTargetStartTime) {
+            String missingParameter = hasTargetDate
+                    ? "st/CURRENT_START_TIME (HH:mm)"
+                    : "d/CURRENT_DATE (DD-MM-YYYY)";
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    missingParameter, EditAppointmentCommand.MESSAGE_USAGE));
+        }
+        if (!hasIndex && !hasTargetDate && !hasTargetStartTime) {
             throw new ParseException(MESSAGE_TARGET_REQUIRED);
         }
 
@@ -135,6 +147,11 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
             }
         }
         return false;
+    }
+
+    /** Returns whether a preamble has the shape of a date, without validating its date components. */
+    private static boolean looksLikeDate(String preamble) {
+        return DATE_SHAPED_VALUE.matcher(preamble).matches();
     }
 
     /** Parses a replacement or target date. */
