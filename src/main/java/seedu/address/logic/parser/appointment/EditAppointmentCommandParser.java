@@ -1,7 +1,6 @@
 package seedu.address.logic.parser.appointment;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_END_TIME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_NEW_DATE;
@@ -15,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.appointment.EditAppointmentCommand;
 import seedu.address.logic.commands.appointment.EditAppointmentCommand.EditAppointmentDescriptor;
 import seedu.address.logic.parser.ArgumentMultimap;
@@ -66,8 +66,8 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         while (parameterMatcher.find()) {
             String parameter = parameterMatcher.group(1);
             if (!isKnownParameter(parameter)) {
-                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                        EditAppointmentCommand.MESSAGE_USAGE));
+                throw new ParseException(Messages.getErrorMessageForUnknownParameter(
+                        parameter, EditAppointmentCommand.MESSAGE_USAGE));
             }
         }
 

@@ -570,8 +570,8 @@ The command makes no changes when it cannot be completed.
 
 * `Choose an appointment index, or provide both d/CURRENT_DATE (DD-MM-YYYY) and st/CURRENT_START_TIME (HH:mm).` —
   the target is missing or incomplete.
-* Invalid command format — a parameter is unsupported, a prefix is repeated, or the command structure is invalid;
-  the command usage is shown.
+* `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format and parameters are shown.
+* Duplicate-prefix error — a single-valued prefix was supplied more than once.
 * `Appointment index must be a positive whole number.` — the index is malformed or not positive.
 * `Choose either an appointment index or a date and start time, not both.` — both target formats are supplied.
 * `Specify at least one appointment detail to change using i/NEW_OWNER_PHONE, p/NEW_PET_NAME, nd/NEW_DATE,
@@ -628,8 +628,8 @@ The command makes no changes when it cannot be completed.
 
 * `Choose an appointment index, or provide both d/DATE (DD-MM-YYYY) and st/START_TIME (HH:mm).` — the target is missing or
   incomplete.
-* Invalid command format — a parameter is unsupported, a prefix is repeated, or the command structure is invalid;
-  the command usage is shown.
+* `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format and parameters are shown.
+* Duplicate-prefix error — a single-valued prefix was supplied more than once.
 * `Appointment index must be a positive whole number.` — the index is malformed or not positive.
 * Invalid appointment date — use `DD-MM-YYYY`, such as `18-09-2027`, and enter a real calendar date.
 * Invalid appointment start time — use `HH:mm`, such as `10:30`, from `08:00` to `19:30` in 30-minute intervals.

@@ -1,8 +1,8 @@
 package seedu.address.logic.parser.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
+import static seedu.address.logic.Messages.getErrorMessageForUnknownParameter;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_END_TIME;
@@ -116,6 +116,6 @@ public class EditAppointmentCommandParserTest {
     @Test
     public void parse_unknownParameter_failure() {
         assertParseFailure(parser, "1 t/10:00",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditAppointmentCommand.MESSAGE_USAGE));
+                getErrorMessageForUnknownParameter("t/", EditAppointmentCommand.MESSAGE_USAGE));
     }
 }

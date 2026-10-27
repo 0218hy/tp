@@ -1,7 +1,7 @@
 package seedu.address.logic.parser.appointment;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.getErrorMessageForUnknownParameter;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
@@ -111,6 +111,6 @@ public class DeleteAppointmentCommandParserTest {
     @Test
     public void parse_unknownParameter_failure() {
         assertParseFailure(parser, "1 t/10:30",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteAppointmentCommand.MESSAGE_USAGE));
+                getErrorMessageForUnknownParameter("t/", DeleteAppointmentCommand.MESSAGE_USAGE));
     }
 }
