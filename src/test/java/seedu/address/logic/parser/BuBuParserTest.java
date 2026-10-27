@@ -123,12 +123,14 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
     }
 
+    //@@author anderschow
     @Test
     public void parseCommand_removedClientCommands_throwsUnknownCommand() {
         for (String input : List.of("find", "find Alex", "list", "list q/Alex")) {
             assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(input));
         }
     }
+    //@@author
 
     @Test
     public void parseCommand_help() throws Exception {

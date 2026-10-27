@@ -71,6 +71,7 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
     }
 
+    //@@author anderschow
     @Test
     public void execute_editClientFromFilteredList_updatesLinksAndSaves() throws Exception {
         model.addClient(AMY);
@@ -139,6 +140,7 @@ public class LogicManagerTest {
         assertCommandException("edit-client i/" + ALICE.getPhone() + " p/89998888",
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
+    //@@author
 
     @Test
     public void execute_invalidCommandFormat_throwsParseException() {
@@ -458,6 +460,7 @@ public class LogicManagerTest {
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 
+    //@@author anderschow
     @Test
     public void execute_addClient_savesAndDisplaysClient() throws Exception {
         model.updateFilteredClientList(client -> false);
@@ -468,5 +471,6 @@ public class LogicManagerTest {
         JsonBubuBookStorage saved = new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"));
         assertEquals(model.getBubuBook(), saved.readBubuBook().orElseThrow());
     }
+    //@@author
 
 }
