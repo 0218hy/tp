@@ -12,6 +12,8 @@ import static seedu.address.testutil.TypicalClients.BOB;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
@@ -62,11 +64,106 @@ public class EditPetCommandTest {
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.setPet(milo, editedPet);
 
+        assertTrue(command.getRequiredDisplayType().isEmpty());
         assertCommandSuccess(command, model, String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()),
                 expectedModel);
         assertTrue(model.hasPet(editedPet));
         assertTrue(model.getBubuBook().getPetList().stream()
                 .anyMatch(pet -> pet.getName().equals(editedPet.getName()) && pet.getOwner().equals(ALICE)));
+    }
+
+    /** Verifies an index edit applies all supported changes and keeps the selected pet's owner. */
+    @Test
+    public void execute_indexEdit_appliesAllFields() {
+        // EP: a valid one-based index selects a displayed pet, and all descriptor fields use the existing edit path.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("Milo Bean"));
+        descriptor.setSpecies(Species.CAT);
+        descriptor.setBreed(new Breed("British Shorthair"));
+        descriptor.setRequirement(new Requirement("Prefers quiet drying"));
+        Pet editedPet = new PetBuilder(milo).withName("Milo Bean").withSpecies(Species.CAT)
+                .withBreed("British Shorthair").withRequirement("Prefers quiet drying").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(milo, editedPet);
+
+        EditPetCommand command = new EditPetCommand(Index.fromOneBased(1), descriptor);
+        assertCommandSuccess(command, model, String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()),
+                expectedModel);
+        assertEquals(CommandResult.DisplayType.PETS, command.getRequiredDisplayType().orElseThrow());
+        assertTrue(model.hasPet(editedPet));
+        assertTrue(model.hasPet(miloWithDifferentOwner));
+    }
+
+    /** Verifies the final displayed pet is editable at the upper valid index boundary. */
+    @Test
+    public void execute_indexAtListSize_editsLastDisplayedPet() {
+        // BVA: n is the largest valid one-based index when the displayed list has n pets.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        Pet editedPet = new PetBuilder(miloWithDifferentOwner).withRequirement("Needs a short walk").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(miloWithDifferentOwner, editedPet);
+
+        assertCommandSuccess(new EditPetCommand(Index.fromOneBased(3), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+    }
+
+    /** Verifies index targeting uses the filtered display order and preserves unspecified values. */
+    @Test
+    public void execute_indexEdit_usesFilteredListAndResetsFilter() {
+        // EP: the index belongs to the currently displayed (filtered) list, not the full saved-pet list.
+        model.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        Pet editedPet = new PetBuilder(miloWithDifferentOwner).withRequirement("Needs a short walk").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
+        expectedModel.setPet(miloWithDifferentOwner, editedPet);
+        expectedModel.updateFilteredPetList(Model.PREDICATE_SHOW_ALL_PETS);
+
+        assertCommandSuccess(new EditPetCommand(Index.fromOneBased(1), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+        assertTrue(model.hasPet(milo));
+        assertTrue(model.hasPet(mochi));
+    }
+
+    /** Verifies an index one past the displayed-list size fails without changing any pet. */
+    @Test
+    public void execute_indexOnePastListSize_throwsCommandException() {
+        // BVA: n + 1 is the first invalid index when the displayed list contains n pets.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+
+        assertCommandFailure(new EditPetCommand(Index.fromOneBased(4), descriptor), model,
+                EditPetCommand.MESSAGE_INVALID_PET_DISPLAYED_INDEX);
+        assertTrue(model.hasPet(milo));
+        assertTrue(model.hasPet(mochi));
+        assertTrue(model.hasPet(miloWithDifferentOwner));
+    }
+
+    /** Verifies index one is invalid when the current displayed list is empty. */
+    @Test
+    public void execute_indexOnEmptyFilteredList_throwsCommandException() {
+        // BVA: with n = 0 displayed pets, 1 is already beyond the valid range.
+        model.updateFilteredPetList(pet -> false);
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+
+        assertCommandFailure(new EditPetCommand(Index.fromOneBased(1), descriptor), model,
+                EditPetCommand.MESSAGE_INVALID_PET_DISPLAYED_INDEX);
+        assertTrue(model.hasPet(milo));
+    }
+
+    /** Verifies an index-targeted rename cannot duplicate another pet owned by the same client. */
+    @Test
+    public void execute_indexEditDuplicateName_throwsCommandException() {
+        // EP: index targeting is subject to the same normalized duplicate-name rule as identifier targeting.
+        EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
+        descriptor.setName(new PetName("  mOcHi  "));
+
+        assertCommandFailure(new EditPetCommand(Index.fromOneBased(1), descriptor), model,
+                String.format(EditPetCommand.MESSAGE_DUPLICATE_PET, mochi.getName()));
+        assertTrue(model.hasPet(milo));
     }
 
     @Test
@@ -239,6 +336,8 @@ public class EditPetCommandTest {
         assertThrows(NullPointerException.class, () -> new EditPetCommand(null, ALICE.getPhone(), descriptor));
         assertThrows(NullPointerException.class, () -> new EditPetCommand(milo.getName(), null, descriptor));
         assertThrows(NullPointerException.class, () -> new EditPetCommand(milo.getName(), ALICE.getPhone(), null));
+        assertThrows(NullPointerException.class, () -> new EditPetCommand((Index) null, descriptor));
+        assertThrows(NullPointerException.class, () -> new EditPetCommand(Index.fromOneBased(1), null));
     }
 
     @Test
@@ -252,12 +351,16 @@ public class EditPetCommandTest {
         differentDescriptor.setSpecies(Species.RABBIT);
         EditPetCommand editMiloWithDifferentChanges = new EditPetCommand(milo.getName(), ALICE.getPhone(),
                 differentDescriptor);
+        EditPetCommand indexEditMilo = new EditPetCommand(Index.fromOneBased(1), descriptor);
 
         assertTrue(editMilo.equals(editMilo));
         assertTrue(editMilo.equals(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor)));
         assertFalse(editMilo.equals(editMiloForBob));
         assertFalse(editMilo.equals(editMochi));
         assertFalse(editMilo.equals(editMiloWithDifferentChanges));
+        assertFalse(editMilo.equals(indexEditMilo));
+        assertTrue(indexEditMilo.equals(new EditPetCommand(Index.fromOneBased(1), descriptor)));
+        assertFalse(indexEditMilo.equals(new EditPetCommand(Index.fromOneBased(2), descriptor)));
         assertFalse(editMilo.equals(new DeleteClientCommand(
                 seedu.address.commons.core.index.Index.fromOneBased(1))));
         assertFalse(editMilo.equals(null));
@@ -307,5 +410,13 @@ public class EditPetCommandTest {
                         + "{name=null, species=null, breed=null, isBreedEdited=false, "
                         + "requirement=Needs gentle drying}}",
                 command.toString());
+
+        EditPetCommand indexCommand = new EditPetCommand(Index.fromOneBased(1), descriptor);
+        assertEquals(EditPetCommand.class.getCanonicalName() + "{targetIndex=" + Index.class.getCanonicalName()
+                        + "{zeroBasedIndex=0}, editPetDescriptor="
+                        + EditPetCommand.EditPetDescriptor.class.getCanonicalName()
+                        + "{name=null, species=null, breed=null, isBreedEdited=false, "
+                        + "requirement=Needs gentle drying}}",
+                indexCommand.toString());
     }
 }

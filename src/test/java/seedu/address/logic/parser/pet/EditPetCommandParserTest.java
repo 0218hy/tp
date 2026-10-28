@@ -1,12 +1,16 @@
 package seedu.address.logic.parser.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.pet.EditPetCommand;
 import seedu.address.logic.commands.pet.EditPetCommand.EditPetDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -31,6 +35,61 @@ public class EditPetCommandParserTest {
         EditPetCommand expected = new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor);
         assertEquals(expected, parser.parse("p/Mochi i/91234567 n/Mochi Bean s/Cat "
                 + "b/British Shorthair r/Prefers quiet drying"));
+    }
+
+    /** Verifies an index target accepts the same full set of optional replacements as identifier targeting. */
+    @Test
+    public void parse_byIndexWithAllEditableFields_success() {
+        // EP: the index-target partition supports each existing optional edit field.
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setName(new PetName("Mochi Bean"));
+        descriptor.setSpecies(Species.CAT);
+        descriptor.setBreed(new Breed("British Shorthair"));
+        descriptor.setRequirement(new Requirement("Prefers quiet drying"));
+
+        assertParseSuccess(parser, "1 n/Mochi Bean s/Cat b/British Shorthair r/Prefers quiet drying",
+                new EditPetCommand(Index.fromOneBased(1), descriptor));
+    }
+
+    /** Verifies a breed can be explicitly cleared when an index identifies the pet. */
+    @Test
+    public void parse_byIndexEmptyBreed_success() {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setBreed(null);
+
+        assertParseSuccess(parser, "1 b/", new EditPetCommand(Index.fromOneBased(1), descriptor));
+    }
+
+    /** Verifies the lower valid index boundary parses and index zero is rejected. */
+    @Test
+    public void parse_indexAtLowerBoundaryAndBelow_failure() {
+        // BVA: index 1 is the lowest valid one-based value, while 0 is just below the valid range.
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Needs a short walk"));
+        assertParseSuccess(parser, "1 r/Needs a short walk", new EditPetCommand(Index.fromOneBased(1), descriptor));
+        assertParseFailure(parser, "0 r/Needs a short walk", MESSAGE_INVALID_INDEX);
+    }
+
+    /** Verifies malformed index values are rejected rather than treated as identifiers. */
+    @Test
+    public void parse_nonNumericIndex_failure() {
+        // EP: non-numeric preamble is outside the valid index partition.
+        assertParseFailure(parser, "first r/Needs a short walk", MESSAGE_INVALID_INDEX);
+        assertParseFailure(parser, "-1 r/Needs a short walk", MESSAGE_INVALID_INDEX);
+    }
+
+    /** Verifies index targeting cannot be combined with either identifier component. */
+    @Test
+    public void parse_indexWithIdentifiers_failure() {
+        // EP: the index and name/owner identifier forms are mutually exclusive.
+        assertParseFailure(parser, "1 p/Mochi r/Needs a short walk", EditPetCommand.MESSAGE_INDEX_AND_IDENTIFIERS);
+        assertParseFailure(parser, "1 i/91234567 r/Needs a short walk", EditPetCommand.MESSAGE_INDEX_AND_IDENTIFIERS);
+    }
+
+    /** Verifies an index target still requires at least one replacement field. */
+    @Test
+    public void parse_indexWithoutChanges_failure() {
+        assertParseFailure(parser, "1", EditPetCommand.MESSAGE_NOT_EDITED);
     }
 
     @Test
@@ -97,7 +156,7 @@ public class EditPetCommandParserTest {
         }
         assertThrows(ParseException.class, EditPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
                 parser.parse("p/Mochi i/91234567 x/value n/Mochi Bean"));
-        assertThrows(ParseException.class, EditPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
+        assertThrows(ParseException.class, EditPetCommand.MESSAGE_INDEX_AND_IDENTIFIERS, () ->
                 parser.parse("unexpected p/Mochi i/91234567 n/Mochi Bean"));
     }
 
