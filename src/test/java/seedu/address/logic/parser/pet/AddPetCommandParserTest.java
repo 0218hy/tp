@@ -30,9 +30,11 @@ public class AddPetCommandParserTest {
     @Test
     public void parse_optionalBreed_createsCommands() throws Exception {
         // EP: optional breed omitted
+        // BVA: zero breed fields, the minimum valid occurrence count
         AddPetCommand withoutBreed = new AddPetCommand(new PetName("Mochi"), "91234567",
                 Species.DOG, null, new Requirement("Calm with baths"));
         // EP: optional breed supplied
+        // BVA: one breed field, the maximum valid occurrence count
         AddPetCommand withBreed = new AddPetCommand(new PetName("Mochi"), "91234567",
                 Species.DOG, new Breed("Golden retriever"), new Requirement("Calm with baths"));
         assertEquals(withoutBreed, parser.parse(VALID_FIELDS));
@@ -124,6 +126,7 @@ public class AddPetCommandParserTest {
     @Test
     public void parse_repeatedFieldsIncludingBreed_throwsParseException() {
         // EP: each required field repeated in turn
+        // BVA: two occurrences, immediately above the maximum of one
         for (String field : List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths")) {
             assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_DUPLICATE_FIELD, () ->
                     parser.parse(VALID_FIELDS + " " + field));
@@ -136,6 +139,10 @@ public class AddPetCommandParserTest {
 
     @Test
     public void parse_invalidValues_throwsParseException() {
+        // EP: pet name containing an unsupported character
+        assertThrows(ParseException.class, PetName.MESSAGE_CONSTRAINTS, () ->
+                parser.parse(VALID_FIELDS.replace("Mochi", "Bad@Name")));
+
         // EP: owner phone with an unsupported starting digit
         assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
                 parser.parse(VALID_FIELDS.replace("91234567", "71234567")));
@@ -148,6 +155,25 @@ public class AddPetCommandParserTest {
         // BVA: 1-character breed, immediately below the 2-character minimum
         assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
                 parser.parse(VALID_FIELDS + " b/X"));
+    }
+
+    @Test
+    public void parse_ownerPhoneLengthBoundaries_acceptsOnlyEightDigits() throws Exception {
+        // EP: phone shorter than the required length
+        // BVA: 7 digits, immediately below the required 8 digits
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
+                parser.parse(VALID_FIELDS.replace("91234567", "9123456")));
+
+        // EP: valid eight-digit owner phone
+        // BVA: 8 digits, the required phone length
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement("Calm with baths"));
+        assertEquals(expected, parser.parse(VALID_FIELDS));
+
+        // EP: phone longer than the required length
+        // BVA: 9 digits, immediately above the required 8 digits
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
+                parser.parse(VALID_FIELDS.replace("91234567", "912345678")));
     }
 
     @Test

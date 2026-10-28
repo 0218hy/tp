@@ -1246,13 +1246,13 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Alex Yeoh (phone number `87438807`) exists.
 
    2. Test case: `add-pet p/Mochi i/87438807 s/Dog`<br>
-      Expected: No pet is added. The status message is `Missing required field: REQUIREMENTS.`
+      Expected: No pet is added. Feedback starts with `Missing required field: REQUIREMENTS.` and then shows the `add-pet` usage and example.
 
    3. Test case: `add-pet p/Mochi i/87438807 s/Horse r/Calm with baths`<br>
       Expected: No pet is added. The status message is `Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.`
 
    4. Test case: `add-pet p/Mochi i/99999999 s/Dog r/Calm with baths` when no client has that phone number<br>
-      Expected: No pet is added. The status message is `The owner identifier does not belong to the specified client.`
+      Expected: No pet is added. The status message is `No saved client has this phone number. Add the client before adding a pet.`
 
    5. Test case: `add-pet p/Mochi p/BuBu i/87438807 s/Dog r/Calm with baths`<br>
       Expected: No pet is added. The status message is `Each pet field may be specified only once.`
@@ -1282,13 +1282,13 @@ testers are expected to do more *exploratory* testing.
 3. Invalid owner identifiers and command formats
 
    1. Test case: `list-pets i/71234567`<br>
-      Expected: The status message is `Owner identifier must be a valid phone number belonging to the specified client.`
+      Expected: The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
 
    2. Test case: `list-pets i/87438807 i/99272758`<br>
-      Expected: `Each owner identifier may be specified only once.`
+      Expected: `The owner phone may be specified only once.`
 
    3. Test case: `list-pets x/extra`<br>
-      Expected: The status message is `Invalid command format. Check the command syntax and try again.`
+      Expected: Feedback starts with `Invalid command format!` and then shows the `list-pets` usage and example.
 
 ### Editing a pet
 

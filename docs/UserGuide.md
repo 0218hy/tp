@@ -353,7 +353,7 @@ The command makes no changes when it cannot be completed.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a name, owner phone, species, breed or requirement is invalid.
 * After the command structure is accepted, supplied non-empty fields are validated before missing fields are reported.
-* `Invalid command format. Check the command syntax and try again.` — unsupported prefixes or text outside a field are supplied.
+* `Invalid command format!` followed by the `add-pet` usage and example — unsupported prefixes or text outside a field are supplied.
 * `No saved client has this phone number. Add the client before adding a pet.` — the phone format is valid, but no registered client has that number.
 * `This client already has a pet named PET_NAME.` — the name conflicts with another pet under that owner.
 * `Unable to save a pet. Please try again.` — the updated records could not be saved.
@@ -390,9 +390,9 @@ list-pets [i/OWNER_IDENTIFIER]
 The command makes no changes when it cannot be completed.
 
 * `No saved client has this phone number.` — the supplied phone has no registered client.
-* `Each owner identifier may be specified only once.` — `i/` is repeated.
+* `The owner phone may be specified only once.` — `i/` is repeated.
 * `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone format is invalid.
-* `Invalid command format. Check the command syntax and try again.` — unsupported fields or extra text are supplied.
+* `Invalid command format!` followed by the `list-pets` usage and example — unsupported fields or extra text are supplied.
 
 ### Editing a pet: `edit-pet`
 
