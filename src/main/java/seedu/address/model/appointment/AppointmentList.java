@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 //@@author
 import java.util.List;
+import java.util.Objects;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -111,9 +112,36 @@ public class AppointmentList {
 
     //@@author khangsian0412
     /**
-     * Updates every appointment belonging to {@code currentPet} with its replacement name.
-     * Other appointment snapshot details remain unchanged.
+     * Refreshes pet details in ongoing and future appointments while preserving completed booking snapshots.
+     * Pet-name changes continue to propagate to completed appointments so linked records remain identifiable.
      */
+    public void updatePet(Pet currentPet, Pet editedPet) {
+        requireNonNull(currentPet);
+        requireNonNull(editedPet);
+        boolean nameChanged = !currentPet.getName().equals(editedPet.getName());
+        boolean petDetailsChanged = nameChanged
+                || !currentPet.getSpecies().equals(editedPet.getSpecies())
+                || !Objects.equals(currentPet.getBreed(), editedPet.getBreed())
+                || !currentPet.getRequirement().equals(editedPet.getRequirement());
+        if (!petDetailsChanged) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Singapore"));
+        for (int index = 0; index < internalList.size(); index++) {
+            Appointment appointment = internalList.get(index);
+            if (appointment.isForPet(currentPet)) {
+                LocalDateTime appointmentEnd = appointment.getDate().value.atTime(appointment.getEndTime().value);
+                if (appointmentEnd.isAfter(now)) {
+                    internalList.set(index, appointment.withPet(editedPet));
+                } else if (nameChanged) {
+                    internalList.set(index, appointment.withPetName(editedPet.getName()));
+                }
+            }
+        }
+    }
+
+    /** Updates every linked appointment's pet name while retaining its other snapshot details. */
     public void updatePetName(Pet currentPet, PetName newPetName) {
         requireNonNull(currentPet);
         requireNonNull(newPetName);
