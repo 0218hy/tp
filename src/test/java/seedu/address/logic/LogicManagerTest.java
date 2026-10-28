@@ -71,6 +71,59 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
     }
 
+    //@@author 0218hy
+    @Test
+    public void execute_addAndEditClients_preservesSearchAndReevaluatesMatches() throws Exception {
+        model.addClient(ALICE);
+        model.addClient(AMY);
+        logic.execute("list-clients q/Alice");
+
+        logic.execute("add-client n/Alice Demo i/81112222 e/demoone@example.com a/123 Test Road");
+        logic.execute("add-client n/Bob Demo i/82223333 e/bobdemo@example.com a/456 Test Road");
+        assertEquals(List.of("Alice Demo", "Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
+        assertEquals(4, model.getBubuBook().getClientList().size());
+
+        logic.execute("edit-client i/" + ALICE.getPhone() + " a/789 Updated Road");
+        assertEquals("789 Updated Road", model.getFilteredClientList().get(1).getAddress().value);
+        logic.execute("edit-client i/81112222 n/Clara Demo");
+        logic.execute("edit-client i/82223333 a/999 Updated Road");
+        assertEquals(List.of("Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
+
+        logic.execute("edit-client i/81112222 n/Alice Again");
+        assertEquals(List.of("Alice Again", "Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
+        assertEquals(model.getBubuBook(), new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"))
+                .readBubuBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_addAndEditPets_preservesOwnerFilter() throws Exception {
+        model.addClient(ALICE);
+        model.addClient(AMY);
+        Pet milo = new PetBuilder(ALICE).withName("Milo").build();
+        model.addPet(milo);
+        model.addPet(new PetBuilder(AMY).withName("Milo").build());
+        logic.execute("list-pets i/" + ALICE.getPhone());
+
+        logic.execute("add-pet p/Coco i/" + ALICE.getPhone() + " s/Dog r/No special requirements");
+        logic.execute("add-pet p/Luna i/" + AMY.getPhone() + " s/Cat r/No special requirements");
+        assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
+                .map(pet -> pet.getName().value).toList());
+
+        logic.execute("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs quiet drying");
+        logic.execute("edit-pet p/Luna i/" + AMY.getPhone() + " r/Needs gentle brushing");
+        assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
+                .map(pet -> pet.getName().value).toList());
+        assertTrue(model.getFilteredPetList().stream().allMatch(pet -> pet.isOwnedBy(ALICE.getPhone())));
+        assertEquals("Needs quiet drying", model.getFilteredPetList().get(1).getRequirement().value);
+        assertEquals(4, model.getBubuBook().getPetList().size());
+        assertEquals(model.getBubuBook(), new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"))
+                .readBubuBook().orElseThrow());
+    }
+
+    //@@author
     //@@author anderschow
     @Test
     public void execute_editClientFromFilteredList_updatesLinksAndSaves() throws Exception {
@@ -86,7 +139,7 @@ public class LogicManagerTest {
 
         assertEquals(String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(edited)),
                 result.getFeedbackToUser());
-        assertEquals(List.of(AMY, edited), model.getFilteredClientList());
+        assertTrue(model.getFilteredClientList().isEmpty());
         assertEquals(edited, model.getBubuBook().getPetList().getFirst().getOwner());
         assertEquals(edited.getPhone(), model.getBubuBook().getAppointmentList().getFirst().getOwnerPhone());
         assertEquals(edited.getPhone(),
@@ -466,12 +519,13 @@ public class LogicManagerTest {
 
     //@@author anderschow
     @Test
-    public void execute_addClient_savesAndDisplaysClient() throws Exception {
+    public void execute_addClient_savesWithoutClearingFilter() throws Exception {
         model.updateFilteredClientList(client -> false);
         CommandResult result = logic.execute("add-client n/Amelia Tan i/91234567 "
                 + "e/amelia@example.com a/12 Punggol Drive t/regular");
         assertEquals("Client added: Amelia Tan (91234567).", result.getFeedbackToUser());
-        assertEquals(1, model.getFilteredClientList().size());
+        assertTrue(model.getFilteredClientList().isEmpty());
+        assertEquals(1, model.getBubuBook().getClientList().size());
         JsonBubuBookStorage saved = new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"));
         assertEquals(model.getBubuBook(), saved.readBubuBook().orElseThrow());
     }

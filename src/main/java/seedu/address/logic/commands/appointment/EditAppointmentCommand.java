@@ -10,7 +10,6 @@ import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_SERVICE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_START_TIME;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_APPOINTMENTS;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -202,7 +201,6 @@ public class EditAppointmentCommand extends Command {
                     + "-" + editedAppointment.getEndTime());
             throw new CommandException(MESSAGE_OVERLAP, e);
         }
-        model.updateFilteredAppointmentList(PREDICATE_SHOW_ALL_APPOINTMENTS);
         logger.info(() -> "edit-appointment: appointment updated in model; slot changed="
                 + !appointmentToEdit.isSameAppointment(editedAppointment) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(editedAppointment)));

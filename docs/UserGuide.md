@@ -163,7 +163,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 #### Success and other behavior
 
 * On success, BuBu displays `Client added: NAME (PHONE).`
-* The client filter is reset to include all clients. The command does not switch away from a pet or appointment panel; use `list-clients` to view clients.
+* The active client filter is preserved. The new client appears only if it matches the filter. The command does not switch away from a pet or appointment panel; use `list-clients` to view all clients.
 * Changes are saved automatically. A save failure restores the previous records and displays `Unable to save client.`
 
 #### Error handling
@@ -241,7 +241,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 
 #### Success and other behavior
 
-* On success, BuBu displays `Edited client: ...` and selects the full client list.
+* On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
 * Linked pet owner profiles are updated. A phone-number change also updates linked appointment owner identifiers; other booking details remain as recorded.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
@@ -322,7 +322,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 #### Success and other behavior
 
 * On success, BuBu displays `Pet added: PET_NAME (SPECIES, BREED) under OWNER.` The breed is omitted from the message when not supplied.
-* The pet filter is reset to include all pets. The client filter and selected panel are unchanged; use `list-pets` to view pets.
+* The active pet filter is preserved. A new pet appears only if it matches the filter. The client filter and selected panel are unchanged; use `list-pets` to view all pets.
 * Changes are saved automatically. A save failure restores the previous records and displays `Unable to save a pet. Please try again.`
 
 #### Error handling
@@ -401,7 +401,7 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 #### Success and other behavior
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
-* The pet filter is reset to include all pets; the selected panel does not change.
+* The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
 * Existing appointments retain their recorded pet details. The owner is unchanged.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
@@ -556,6 +556,9 @@ edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/N
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
 * The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
   appointment.
+* Editing preserves the active appointment filter. Matching appointments show their updated details; appointments
+  that no longer match remain saved but disappear from the view. Completed appointments hidden by `list-appointments`
+  remain hidden after an edit.
 
 Examples:
 

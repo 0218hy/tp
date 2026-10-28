@@ -112,7 +112,6 @@ public class ModelManager implements Model {
     @Override
     public void addClient(Client client) {
         bubuBook.addClient(client);
-        updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
     @Override
@@ -138,7 +137,6 @@ public class ModelManager implements Model {
     @Override
     public void addPet(Pet pet) {
         bubuBook.addPet(pet);
-        updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
     }
 
     @Override

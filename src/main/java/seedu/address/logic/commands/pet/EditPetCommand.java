@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIE
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -64,7 +63,7 @@ public class EditPetCommand extends Command {
 
     /**
      * Finds the identified pet, applies the requested changes, and replaces its stored profile.
-     * The owner is preserved and the displayed pet list is refreshed after a successful edit.
+     * The owner and active pet filter are preserved after a successful edit.
      *
      * @param model the model containing the pet profiles
      * @return the result describing the edited pet
@@ -78,7 +77,6 @@ public class EditPetCommand extends Command {
 
         checkForDuplicate(model, petToEdit, editedPet);
         model.setPet(petToEdit, editedPet);
-        model.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
         return new CommandResult(String.format(MESSAGE_SUCCESS, editedPet.getName()));
     }
 
