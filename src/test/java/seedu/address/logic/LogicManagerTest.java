@@ -74,23 +74,37 @@ public class LogicManagerTest {
     //@@author 0218hy
     @Test
     public void execute_addAndEditClients_preservesSearchAndReevaluatesMatches() throws Exception {
+        // #157: state-based EPs for an active search. Run a user workflow and assert after each transition.
         model.addClient(ALICE);
         model.addClient(AMY);
         logic.execute("list-clients q/Alice");
 
+        // Add EPs: matching and nonmatching record. Both are stored; only the match becomes visible.
         logic.execute("add-client n/Alice Demo i/81112222 e/demoone@example.com a/123 Test Road");
+        assertEquals(List.of("Alice Demo", "Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
         logic.execute("add-client n/Bob Demo i/82223333 e/bobdemo@example.com a/456 Test Road");
         assertEquals(List.of("Alice Demo", "Alice Pauline"), model.getFilteredClientList().stream()
                 .map(client -> client.getName().fullName).toList());
         assertEquals(4, model.getBubuBook().getClientList().size());
 
+        // Edit EP: match -> match (a field unrelated to the search changes).
         logic.execute("edit-client i/" + ALICE.getPhone() + " a/789 Updated Road");
         assertEquals("789 Updated Road", model.getFilteredClientList().get(1).getAddress().value);
+        assertEquals(List.of("Alice Demo", "Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
+        // Edit EPs: match -> nonmatch, then nonmatch -> nonmatch.
         logic.execute("edit-client i/81112222 n/Clara Demo");
+        assertEquals(List.of("Alice Pauline"), model.getFilteredClientList().stream()
+                .map(client -> client.getName().fullName).toList());
         logic.execute("edit-client i/82223333 a/999 Updated Road");
         assertEquals(List.of("Alice Pauline"), model.getFilteredClientList().stream()
                 .map(client -> client.getName().fullName).toList());
 
+        assertEquals("999 Updated Road", model.getBubuBook().getClientList().stream()
+                .filter(client -> client.getPhone().value.equals("82223333"))
+                .findFirst().orElseThrow().getAddress().value);
+        // Edit EP: nonmatch -> match. Re-evaluate the predicate; preserving a frozen result list is incorrect.
         logic.execute("edit-client i/81112222 n/Alice Again");
         assertEquals(List.of("Alice Again", "Alice Pauline"), model.getFilteredClientList().stream()
                 .map(client -> client.getName().fullName).toList());
@@ -100,6 +114,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_addAndEditPets_preservesOwnerFilter() throws Exception {
+        // #157: matching/nonmatching owner EPs; same pet name under both owners prevents name-only filtering.
         model.addClient(ALICE);
         model.addClient(AMY);
         Pet milo = new PetBuilder(ALICE).withName("Milo").build();
@@ -108,16 +123,24 @@ public class LogicManagerTest {
         logic.execute("list-pets i/" + ALICE.getPhone());
 
         logic.execute("add-pet p/Coco i/" + ALICE.getPhone() + " s/Dog r/No special requirements");
+        assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
+                .map(pet -> pet.getName().value).toList());
         logic.execute("add-pet p/Luna i/" + AMY.getPhone() + " s/Cat r/No special requirements");
         assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
                 .map(pet -> pet.getName().value).toList());
 
+        // Editing care details preserves membership for both visible and hidden records.
         logic.execute("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs quiet drying");
+        assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
+                .map(pet -> pet.getName().value).toList());
         logic.execute("edit-pet p/Luna i/" + AMY.getPhone() + " r/Needs gentle brushing");
         assertEquals(List.of("Coco", "Milo"), model.getFilteredPetList().stream()
                 .map(pet -> pet.getName().value).toList());
         assertTrue(model.getFilteredPetList().stream().allMatch(pet -> pet.isOwnedBy(ALICE.getPhone())));
         assertEquals("Needs quiet drying", model.getFilteredPetList().get(1).getRequirement().value);
+        assertEquals("Needs gentle brushing", model.getBubuBook().getPetList().stream()
+                .filter(pet -> pet.getName().value.equals("Luna") && pet.isOwnedBy(AMY.getPhone()))
+                .findFirst().orElseThrow().getRequirement().value);
         assertEquals(4, model.getBubuBook().getPetList().size());
         assertEquals(model.getBubuBook(), new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"))
                 .readBubuBook().orElseThrow());

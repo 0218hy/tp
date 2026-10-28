@@ -9,6 +9,7 @@ public class ServiceTest {
     //@@author 0218hy
     @Test
     public void fromString_supportedServices_returnsMatchingEnum() {
+        // EP: each supported label maps to a distinct enum, so one representative per service is necessary.
         assertEquals(Service.BATH_AND_BRUSH, Service.fromString("Bath and brush"));
         assertEquals(Service.FULL_GROOM, Service.fromString("Full groom"));
         assertEquals(Service.NAIL_TRIM, Service.fromString("Nail trim"));
@@ -17,14 +18,17 @@ public class ServiceTest {
 
     @Test
     public void fromString_caseAndWhitespace_areIgnored() {
-        assertEquals(Service.BATH_AND_BRUSH, Service.fromString("  bAtH  AND\tbrush  "));
-        assertEquals(Service.FULL_GROOM, Service.fromString("FULL   GROOM"));
-        assertEquals(Service.NAIL_TRIM, Service.fromString(" nail trim "));
-        assertEquals(Service.OTHER, Service.fromString("other"));
+        // Normalization EPs: case, leading/trailing whitespace, repeated internal spaces, and tab separators.
+        // Isolate transformations to identify which rule failed; service mappings are already tested above.
+        assertEquals(Service.BATH_AND_BRUSH, Service.fromString("bAtH and brush"));
+        assertEquals(Service.BATH_AND_BRUSH, Service.fromString("  Bath and brush  "));
+        assertEquals(Service.BATH_AND_BRUSH, Service.fromString("Bath  and brush"));
+        assertEquals(Service.BATH_AND_BRUSH, Service.fromString("Bath\tand brush"));
     }
 
     @Test
     public void fromString_invalidServices_rejectedRatherThanMappedToOther() {
+        // EPs: empty/blank, unknown label, partial label, extra suffix, enum identifier, invalid separator.
         for (String input : new String[]{"", " ", "Haircut", "Bath", "Full groom extra", "FULL_GROOM", "Nail/trim"}) {
             IllegalArgumentException error = assertThrows(
                     IllegalArgumentException.class, () -> Service.fromString(input), input);

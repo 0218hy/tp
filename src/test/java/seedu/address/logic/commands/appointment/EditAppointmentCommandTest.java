@@ -135,6 +135,8 @@ public class EditAppointmentCommandTest {
 
     @Test
     public void execute_ongoingFutureFilter_keepsCompletedAppointmentsHidden() throws Exception {
+        // #157: preserve the filter across an edit. EPs: past date, ended today, ongoing, future.
+        // BVA: ending now stays hidden and starting now stays visible after editing another record.
         Appointment yesterday = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("06-10-2026"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
         Appointment earlierToday = createAppointment(OWNER_PHONE, "BuBu", ORIGINAL_DATE,
@@ -159,29 +161,35 @@ public class EditAppointmentCommandTest {
 
     @Test
     public void execute_dateFilter_reevaluatesRescheduledAppointment() throws Exception {
+        // #157: edit-state EPs are match -> match, match -> nonmatch, and nonmatch -> match.
+        // A date predicate isolates preservation from the separate date-filter parser/command feature.
         Appointment tomorrow = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("08-10-2026"),
                 new StartTime("12:00"), new EndTime("13:00"), Service.FULL_GROOM);
         model.addAppointment(tomorrow);
         model.updateFilteredAppointmentList(appointment -> appointment.getDate().equals(ORIGINAL_DATE));
         new EditAppointmentCommand(Index.fromOneBased(1), descriptorWithEndTime("11:30"), CLOCK).execute(model);
-        assertEquals(1, model.getFilteredAppointmentList().size());
-        assertEquals(new EndTime("11:30"), model.getFilteredAppointmentList().getFirst().getEndTime());
+        Appointment edited = new Appointment(owner, pet, ORIGINAL_DATE, ORIGINAL_START,
+                new EndTime("11:30"), Service.FULL_GROOM);
+        assertEquals(List.of(edited), model.getFilteredAppointmentList());
 
         EditAppointmentCommand.EditAppointmentDescriptor descriptor =
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setDate(tomorrow.getDate());
         new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK).execute(model);
         assertTrue(model.getFilteredAppointmentList().isEmpty());
-        assertEquals(2, model.getBubuBook().getAppointmentList().size());
+        Appointment moved = new Appointment(owner, pet, tomorrow.getDate(), ORIGINAL_START,
+                new EndTime("11:30"), Service.FULL_GROOM);
+        assertEquals(List.of(moved, tomorrow), model.getBubuBook().getAppointmentList());
 
         descriptor.setDate(ORIGINAL_DATE);
         new EditAppointmentCommand(tomorrow.getDate(), ORIGINAL_START, descriptor, CLOCK).execute(model);
-        assertEquals(1, model.getFilteredAppointmentList().size());
-        assertEquals(ORIGINAL_DATE, model.getFilteredAppointmentList().getFirst().getDate());
+        assertEquals(List.of(edited), model.getFilteredAppointmentList());
+        assertEquals(List.of(edited, tomorrow), model.getBubuBook().getAppointmentList());
     }
 
     @Test
     public void execute_identifierEdit_worksWhenAppointmentIsFilteredOut() throws Exception {
+        // #157: nonmatch -> nonmatch; an identifier can edit a hidden record without revealing it.
         model.updateFilteredAppointmentList(appointment -> false);
         EditAppointmentCommand command = new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START,
                 descriptorWithEndTime("11:30"), CLOCK);
@@ -304,6 +312,7 @@ public class EditAppointmentCommandTest {
 
     @Test
     public void execute_endTimeBeforeMinimumDuration_failure() {
+        // #124: both supplied fields form a zero-duration appointment, even though each time is valid alone.
         EditAppointmentCommand.EditAppointmentDescriptor descriptor =
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setStartTime(new StartTime("11:00"));
@@ -312,6 +321,30 @@ public class EditAppointmentCommandTest {
         assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
                 EditAppointmentCommand.MESSAGE_INVALID_DURATION);
     }
+
+    //@@author 0218hy
+    @Test
+    public void execute_singleTimeEditWithInvalidDuration_noMutation() {
+        // #124: omitted fields retain stored values. EPs: end-only/start-only edits producing zero/negative duration.
+        // Exercise both target forms because lookup must feed the same duration validation.
+        EditAppointmentCommand.EditAppointmentDescriptor endEqualsStart = descriptorWithEndTime("10:30");
+        EditAppointmentCommand.EditAppointmentDescriptor endBeforeStart = descriptorWithEndTime("10:00");
+        EditAppointmentCommand.EditAppointmentDescriptor startEqualsEnd =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        startEqualsEnd.setStartTime(new StartTime("11:00"));
+        EditAppointmentCommand.EditAppointmentDescriptor startAfterEnd =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        startAfterEnd.setStartTime(new StartTime("11:30"));
+        for (EditAppointmentCommand.EditAppointmentDescriptor descriptor : List.of(endEqualsStart, endBeforeStart,
+                startEqualsEnd, startAfterEnd)) {
+            assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
+            assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
+                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
+        }
+    }
+    //@@author
+    //@@author chunghean
 
     @Test
     public void execute_overlapFailure_preservesModel() {
@@ -447,9 +480,11 @@ public class EditAppointmentCommandTest {
 
     private void assertFailure(EditAppointmentCommand command, String expectedMessage) {
         BubuBook before = new BubuBook(model.getBubuBook());
+        List<Appointment> visibleBefore = List.copyOf(model.getFilteredAppointmentList());
         CommandException exception = assertThrows(CommandException.class, () -> command.execute(model));
-        assertEquals(expectedMessage, exception.getMessage());
-        assertEquals(before, model.getBubuBook());
+        assertEquals(expectedMessage, exception.getMessage(), command.toString());
+        assertEquals(before, model.getBubuBook(), command.toString());
+        assertEquals(visibleBefore, model.getFilteredAppointmentList());
     }
     //@@author
 }

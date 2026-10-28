@@ -54,9 +54,9 @@ public class BubuBookAppointmentTest {
     @Test
     public void addAppointment_duplicateOrOverlappingSlot_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
+        // EPs: same reference, equal value, distinct intersecting slot. Geometry is covered in AppointmentTest.
         for (Appointment overlap : List.of(APPOINTMENT, create("10:00", "11:00"),
-                create("09:30", "10:30"), create("10:30", "11:30"),
-                create("09:30", "11:30"), create("10:00", "10:30"))) {
+                create("10:30", "11:30"))) {
             assertTrue(book.hasOverlappingAppointment(overlap));
             assertThrows(OverlappingAppointmentException.class, () -> book.addAppointment(overlap));
             assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
@@ -127,9 +127,11 @@ public class BubuBookAppointmentTest {
 
     @Test
     public void setAppointments_invalidReplacement_preservesExistingAppointments() {
+        // Invalid collection EPs: conflicting elements and a null element. Each failed replacement must be atomic.
         book.addAppointment(ADJACENT);
         assertThrows(OverlappingAppointmentException.class, () ->
                 book.setAppointments(List.of(APPOINTMENT, create("10:30", "11:30"))));
+        assertEquals(List.of(ADJACENT), book.getAppointmentList());
         assertThrows(NullPointerException.class, () -> book.setAppointments(Arrays.asList(APPOINTMENT, null)));
         assertEquals(List.of(ADJACENT), book.getAppointmentList());
     }
