@@ -3,6 +3,7 @@ package seedu.address.model.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
@@ -58,7 +59,10 @@ public class BubuBookAppointmentTest {
         for (Appointment overlap : List.of(APPOINTMENT, create("10:00", "11:00"),
                 create("10:30", "11:30"))) {
             assertTrue(book.hasOverlappingAppointment(overlap));
-            assertThrows(OverlappingAppointmentException.class, () -> book.addAppointment(overlap));
+            OverlappingAppointmentException exception = assertThrows(OverlappingAppointmentException.class, () ->
+                    book.addAppointment(overlap));
+            // #163: carry the stored record, not the rejected candidate, to the command's message formatter.
+            assertSame(APPOINTMENT, exception.getConflictingAppointment());
             assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
         }
     }

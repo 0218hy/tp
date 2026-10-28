@@ -95,7 +95,7 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_sameStartAndEndTime_failure() {
+    public void execute_unchangedTiming_reportsNoChanges() {
         EditAppointmentCommand.EditAppointmentDescriptor descriptor =
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setStartTime(ORIGINAL_START);
@@ -246,14 +246,16 @@ public class EditAppointmentCommandTest {
 
     @Test
     public void execute_equalStartAndEndTimes_failure() {
-        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("10:00");
-        descriptor.setStartTime(new StartTime("10:00"));
+        // EP: both fields supplied with zero duration. Keep the start in the future to isolate duration validation.
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:00");
+        descriptor.setStartTime(new StartTime("11:00"));
 
         assertInvalidTiming(descriptor);
     }
 
     @Test
     public void execute_endBeforeStart_failure() {
+        // EP: both fields supplied with negative duration; the equal-times boundary is tested separately.
         EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:00");
         descriptor.setStartTime(new StartTime("11:30"));
 
@@ -261,21 +263,8 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_endTimeOnlyEqualsExistingStart_failure() {
-        assertInvalidTiming(descriptorWithEndTime("10:30"));
-    }
-
-    @Test
-    public void execute_startTimeOnlyEqualsExistingEnd_failure() {
-        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
-                new EditAppointmentCommand.EditAppointmentDescriptor();
-        descriptor.setStartTime(new StartTime("11:00"));
-
-        assertInvalidTiming(descriptor);
-    }
-
-    @Test
     public void execute_thirtyMinuteDuration_success() throws Exception {
+        // BVA: minimum valid duration after editing both time fields.
         EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:30");
         descriptor.setStartTime(new StartTime("11:00"));
 
@@ -287,27 +276,14 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
-    public void execute_pastStart_failure() {
-        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
-                new EditAppointmentCommand.EditAppointmentDescriptor();
-        descriptor.setDate(new AppointmentDate("07-10-2026"));
-        descriptor.setStartTime(new StartTime("09:30"));
-        descriptor.setEndTime(new EndTime("10:00"));
-
-        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
-                EditAppointmentCommand.MESSAGE_PAST_START);
-    }
-
-    @Test
-    public void execute_endTimeBeforeMinimumDuration_failure() {
-        // #124: both supplied fields form a zero-duration appointment, even though each time is valid alone.
-        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
-                new EditAppointmentCommand.EditAppointmentDescriptor();
-        descriptor.setStartTime(new StartTime("11:00"));
-        descriptor.setEndTime(new EndTime("11:00"));
-
-        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
-                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
+    public void execute_startAtOrBeforeNow_failure() {
+        // EP: already started; BVA: exactly now is also invalid when editing a booking. Duration remains valid.
+        for (String start : List.of("09:30", "10:00")) {
+            EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:00");
+            descriptor.setStartTime(new StartTime(start));
+            assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                    EditAppointmentCommand.MESSAGE_PAST_START);
+        }
     }
 
     //@@author 0218hy
@@ -325,11 +301,39 @@ public class EditAppointmentCommandTest {
         startAfterEnd.setStartTime(new StartTime("11:30"));
         for (EditAppointmentCommand.EditAppointmentDescriptor descriptor : List.of(endEqualsStart, endBeforeStart,
                 startEqualsEnd, startAfterEnd)) {
-            assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
-                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
-            assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
-                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
+            assertInvalidTiming(descriptor);
         }
+    }
+
+    @Test
+    public void execute_petExistsUnderAnotherOwner_noMutation() {
+        // Participant EP: pet exists, but not for the selected owner (different from an absent pet).
+        Client otherOwner = new ClientBuilder().withPhone("81234567").withEmail("other@example.com").build();
+        model.addClient(otherOwner);
+        model.addPet(new PetBuilder(otherOwner).withName("Mochi").build());
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:30");
+        descriptor.setPetName("Mochi");
+
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_PET_NOT_FOUND);
+    }
+
+    @Test
+    public void execute_samePetNameUnderBothOwners_selectsPetOfNewOwner() throws Exception {
+        // Valid participant EP: identical pet names under different owners. Owner and name must both match.
+        Client otherOwner = new ClientBuilder().withPhone("81234567").withEmail("other@example.com").build();
+        Pet otherPet = new PetBuilder(otherOwner).withName("BuBu").withRequirement("Sensitive skin").build();
+        model.addClient(otherOwner);
+        model.addPet(otherPet);
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setOwnerPhone(otherOwner.getPhone());
+
+        new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK).execute(model);
+
+        Appointment expected = new Appointment(otherOwner, otherPet, ORIGINAL_DATE, ORIGINAL_START,
+                ORIGINAL_END, Service.FULL_GROOM);
+        assertEquals(List.of(expected), model.getBubuBook().getAppointmentList());
     }
     //@@author
     //@@author chunghean
