@@ -178,6 +178,48 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void execute_equalStartAndEndTimes_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("10:00");
+        descriptor.setStartTime(new StartTime("10:00"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_endBeforeStart_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:00");
+        descriptor.setStartTime(new StartTime("11:30"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_endTimeOnlyEqualsExistingStart_failure() {
+        assertInvalidTiming(descriptorWithEndTime("10:30"));
+    }
+
+    @Test
+    public void execute_startTimeOnlyEqualsExistingEnd_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setStartTime(new StartTime("11:00"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_thirtyMinuteDuration_success() throws Exception {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:30");
+        descriptor.setStartTime(new StartTime("11:00"));
+
+        new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK).execute(model);
+
+        Appointment edited = model.getBubuBook().getAppointmentList().get(0);
+        assertEquals(new StartTime("11:00"), edited.getStartTime());
+        assertEquals(new EndTime("11:30"), edited.getEndTime());
+    }
+
+    @Test
     public void execute_pastStart_failure() {
         EditAppointmentCommand.EditAppointmentDescriptor descriptor =
                 new EditAppointmentCommand.EditAppointmentDescriptor();
@@ -311,6 +353,13 @@ public class EditAppointmentCommandTest {
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setEndTime(new EndTime(endTime));
         return descriptor;
+    }
+
+    private void assertInvalidTiming(EditAppointmentCommand.EditAppointmentDescriptor descriptor) {
+        assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
+                EndTime.MESSAGE_CONSTRAINTS);
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EndTime.MESSAGE_CONSTRAINTS);
     }
 
     private void assertFailure(EditAppointmentCommand command, String expectedMessage) {

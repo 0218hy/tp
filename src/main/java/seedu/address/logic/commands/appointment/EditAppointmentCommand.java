@@ -153,8 +153,8 @@ public class EditAppointmentCommand extends Command {
      *
      * @param model model containing the appointment and participant records
      * @return the result message describing the edited appointment
-     * @throws CommandException if the target or participants cannot be found, the start is not in the future,
-     *                          or the edited appointment overlaps another appointment
+     * @throws CommandException if the target or participants cannot be found, the duration is invalid,
+     *                          the start is not in the future, or the edited appointment overlaps another appointment
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -244,6 +244,11 @@ public class EditAppointmentCommand extends Command {
         if (pet == null) {
             logger.fine("edit-appointment rejected: pet is not registered under the specified owner.");
             throw new CommandException(MESSAGE_PET_NOT_FOUND);
+        }
+
+        if (!endTime.isAtLeastThirtyMinutesAfter(startTime)) {
+            logger.fine("edit-appointment rejected: end time is not at least 30 minutes after start time.");
+            throw new CommandException(EndTime.MESSAGE_CONSTRAINTS);
         }
 
         return new Appointment(owner, pet, date, startTime, endTime, service);
