@@ -8,9 +8,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
@@ -45,7 +43,6 @@ public class AddAppointmentCommand extends Command {
     public static final String MESSAGE_OVERLAP =
             "This appointment overlaps an existing booking for %s on %s, %s–%s.";
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
-    private static final Logger logger = LogsCenter.getLogger(AddAppointmentCommand.class);
 
     private final Phone ownerPhone;
     private final PetName petName;
@@ -100,12 +97,10 @@ public class AddAppointmentCommand extends Command {
         try {
             model.addAppointment(toSchedule);
         } catch (OverlappingAppointmentException e) {
-            logger.fine(() -> "Appointment rejected due to overlap: " + date + " " + startTime + "-" + endTime);
             Appointment conflict = e.getConflictingAppointment();
             throw new CommandException(String.format(MESSAGE_OVERLAP, conflict.getPetName(), conflict.getDate(),
                     conflict.getStartTime(), conflict.getEndTime()), e);
         }
-        logger.info(() -> "Appointment added to model: " + date + " " + startTime + "-" + endTime);
         String details = toSchedule.getPetName() + "; Owner phone: " + toSchedule.getOwnerPhone()
                 + "; Date: " + toSchedule.getDate() + "; Time: " + toSchedule.getStartTime()
                 + "-" + toSchedule.getEndTime() + "; Service: " + toSchedule.getService();

@@ -42,6 +42,47 @@ public class EditClientCommandTest {
     private final Phone secondPhone = model.getBubuBook().getClientList().get(1).getPhone();
 
     @Test
+    public void execute_indexInFilteredList_preservesFilterAndUsesDisplayedOrder() throws Exception {
+        Client first = model.getBubuBook().getClientList().get(0);
+        Client second = model.getBubuBook().getClientList().get(1);
+        showClientAtIndex(model, INDEX_SECOND_CLIENT);
+        new EditClientCommand(INDEX_FIRST_CLIENT,
+                new EditClientDescriptorBuilder().withName("Zoe Tan").build()).execute(model);
+        assertEquals(first, model.getBubuBook().getClientList().get(0));
+        assertEquals(new ClientBuilder(second).withName("Zoe Tan").build(),
+                model.getBubuBook().getClientList().get(1));
+        assertTrue(model.getFilteredClientList().isEmpty());
+    }
+
+    @Test
+    public void execute_indexOutOfRange_failure() {
+        assertCommandFailure(new EditClientCommand(Index.fromOneBased(model.getFilteredClientList().size() + 1),
+                DESC_AMY), model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+        showClientAtIndex(model, INDEX_FIRST_CLIENT);
+        assertCommandFailure(new EditClientCommand(INDEX_SECOND_CLIENT, DESC_AMY),
+                model, Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_indexDuplicateHiddenClient_failure() {
+        Client hidden = model.getBubuBook().getClientList().get(1);
+        showClientAtIndex(model, INDEX_FIRST_CLIENT);
+        assertCommandFailure(new EditClientCommand(INDEX_FIRST_CLIENT,
+                new EditClientDescriptorBuilder().withPhone(hidden.getPhone().value).build()),
+                model, EditClientCommand.MESSAGE_DUPLICATE_PHONE);
+    }
+
+    @Test
+    public void equals_indexTargets() {
+        EditClientCommand command = new EditClientCommand(INDEX_FIRST_CLIENT, DESC_AMY);
+        assertEquals(command, new EditClientCommand(INDEX_FIRST_CLIENT, DESC_AMY));
+        assertFalse(command.equals(new EditClientCommand(INDEX_SECOND_CLIENT, DESC_AMY)));
+        assertFalse(command.equals(new EditClientCommand(firstPhone, DESC_AMY)));
+        assertFalse(new EditClientCommand(firstPhone, DESC_AMY).equals(command));
+        assertFalse(command.equals(new EditClientCommand(INDEX_FIRST_CLIENT, DESC_BOB)));
+    }
+
+    @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
         Client editedClient = new ClientBuilder().build();
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder(editedClient).build();
@@ -196,8 +237,8 @@ public class EditClientCommandTest {
                 new EditClientDescriptorBuilder().withEmail(other.getEmail().value).build());
         EditClientCommand duplicatePhone = new EditClientCommand(firstPhone,
                 new EditClientDescriptorBuilder().withPhone(other.getPhone().value).build());
-        assertCommandFailure(duplicateEmail, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
-        assertCommandFailure(duplicatePhone, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
+        assertCommandFailure(duplicateEmail, model, EditClientCommand.MESSAGE_DUPLICATE_EMAIL);
+        assertCommandFailure(duplicatePhone, model, EditClientCommand.MESSAGE_DUPLICATE_PHONE);
     }
     //@@author
 

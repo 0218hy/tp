@@ -5,9 +5,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
@@ -24,10 +22,9 @@ public class ListClientsCommand extends Command {
     public static final String MESSAGE_FOUND = "Found %d client(s).";
     public static final String MESSAGE_NO_MATCH = "No clients match \"%s\".";
     public static final String MESSAGE_INVALID_KEYWORD =
-            "Search keyword must be 1-60 characters and use valid text characters.";
+            "Search keyword must be 1-60 characters, not blank, and contain no control characters.";
     public static final String MESSAGE_DUPLICATE_QUERY = "Each search field may be specified only once.";
 
-    private static final Logger logger = LogsCenter.getLogger(ListClientsCommand.class);
 
     private final String keyword;
     //@@author
@@ -62,8 +59,6 @@ public class ListClientsCommand extends Command {
         model.updateFilteredClientList(keyword == null ? PREDICATE_SHOW_ALL_CLIENTS : this::matchesKeyword);
         model.sortFilteredClientList();
         int count = model.getFilteredClientList().size();
-        logger.info(() -> "list-clients: " + (keyword == null ? "listed all clients" : "applied contact search")
-                + "; displayed " + count + " client(s) in alphabetical order.");
         if (keyword == null) {
             return new CommandResult(MESSAGE_SUCCESS, CommandResult.DisplayType.CLIENTS);
         }

@@ -18,7 +18,16 @@ import static seedu.address.testutil.TypicalClients.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+//@@author anderschow
+import java.util.ArrayList;
+//@@author
 import java.util.List;
+//@@author anderschow
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+//@@author
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +70,175 @@ public class LogicManagerTest {
 
     private Model model = new ModelManager();
     private Logic logic;
+
+    //@@author anderschow
+    @Test
+    public void execute_editClientIndex_requiresClientPanel() throws Exception {
+        model.addClient(ALICE);
+        for (String listCommand : new String[]{"list-pets", "list-appointments"}) {
+            logic.execute(listCommand);
+            assertCommandException("edit-client 1 n/Zoe Tan", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
+            assertEquals(ALICE, model.getBubuBook().getClientList().get(0));
+        }
+        logic.execute("list-clients");
+        logic.execute("edit-client 1 n/Zoe Tan");
+        assertEquals("Zoe Tan", model.getFilteredClientList().get(0).getName().fullName);
+    }
+
+    @Test
+    public void execute_logsSafeOutcomesAndStorageFailure() throws Exception {
+        Logger logger = Logger.getLogger("ab3");
+        Level previousLevel = logger.getLevel();
+        List<LogRecord> records = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                if (record.getLoggerName().equals("ab3.LogicManager")) {
+                    records.add(record);
+                }
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        logger.addHandler(handler);
+        logger.setLevel(Level.ALL);
+        try {
+            logic.execute("add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive");
+            logic.execute("edit-client i/91234567 p/89998888 a/99 Updated Road");
+            logic.execute("help");
+            assertThrows(ParseException.class, () -> logic.execute("edit-client i/123 n/Amelia Tan"));
+            assertEquals(List.of("add-client saved", "edit-client saved; changedFields=[phone, address]",
+                    "help completed", "edit-client rejected: invalid current phone format"),
+                    records.stream().map(LogRecord::getMessage).toList());
+            assertEquals(Level.FINE, records.get(2).getLevel());
+            assertEquals(Level.FINE, records.get(3).getLevel());
+            assertTrue(records.subList(0, 2).stream().allMatch(record -> record.getLevel() == Level.INFO));
+            records.clear();
+            model = new ModelManager();
+            assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION,
+                    LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
+            assertEquals(1, records.size());
+            assertEquals(Level.WARNING, records.get(0).getLevel());
+            assertSame(DUMMY_IO_EXCEPTION, records.get(0).getThrown());
+            assertTrue(records.get(0).getMessage().contains("save failed; previous model state restored"));
+        } finally {
+            logger.removeHandler(handler);
+            logger.setLevel(previousLevel);
+        }
+    }
+
+    @Test
+    public void execute_clientSaveFailures_preserveCauseAndRestoreRelatedRecords() {
+        model.addClient(ALICE);
+        model.addPet(new PetBuilder(ALICE).build());
+        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        String[] commands = {
+            "add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive",
+            "edit-client i/" + ALICE.getPhone() + " p/89998888",
+            "edit-client 1 p/89998888"
+        };
+        for (IOException failure : new IOException[]{DUMMY_IO_EXCEPTION, DUMMY_AD_EXCEPTION}) {
+            JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("failure.json")) {
+                @Override
+                public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                    throw failure;
+                }
+            };
+            logic = new LogicManager(model, new StorageManager(failingStorage,
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+            for (int i = 0; i < commands.length; i++) {
+                String command = commands[i];
+                CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                        CommandException.class, () -> logic.execute(command));
+                String expectedMessage;
+                if (i == 0) {
+                    expectedMessage = failure instanceof AccessDeniedException
+                            ? LogicManager.MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE
+                            : LogicManager.MESSAGE_CLIENT_SAVE_FAILURE;
+                } else {
+                    expectedMessage = failure instanceof AccessDeniedException
+                            ? LogicManager.MESSAGE_CLIENT_EDIT_SAVE_PERMISSION_FAILURE
+                            : LogicManager.MESSAGE_CLIENT_EDIT_SAVE_FAILURE;
+                }
+                assertEquals(expectedMessage, exception.getMessage());
+                assertSame(failure, exception.getCause());
+                assertEquals(expectedModel, model);
+            }
+        }
+    }
+
+    @Test
+    public void execute_readOnlyCommands_doNotCreateOrRewriteDataFile() throws Exception {
+        Path dataFile = temporaryFolder.resolve("bububook.json");
+        for (String command : List.of("help", "list-clients", "list-clients q/Alice",
+                "list-pets", "list-appointments", "exit")) {
+            logic.execute(command);
+            assertFalse(java.nio.file.Files.exists(dataFile));
+        }
+        logic.execute("add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive");
+        String saved = java.nio.file.Files.readString(dataFile);
+        java.nio.file.attribute.FileTime sentinel = java.nio.file.attribute.FileTime.fromMillis(1000000);
+        java.nio.file.Files.setLastModifiedTime(dataFile, sentinel);
+        for (String command : List.of("help", "list-clients", "list-clients q/Amelia",
+                "list-pets", "list-appointments", "exit")) {
+            logic.execute(command);
+            assertEquals(saved, java.nio.file.Files.readString(dataFile));
+            assertEquals(sentinel, java.nio.file.Files.getLastModifiedTime(dataFile));
+        }
+    }
+
+    @Test
+    public void execute_readOnlyCommands_doNotAttemptSave() throws Exception {
+        JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("readonly.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw DUMMY_AD_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+        for (String command : List.of("help", "list-clients", "list-clients q/Alice",
+                "list-pets", "list-appointments", "exit")) {
+            logic.execute(command);
+        }
+        assertCommandException("add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive",
+                LogicManager.MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE);
+    }
+
+    @Test
+    public void execute_invalidEditClientInput_preservesRecords() {
+        model.addClient(ALICE);
+        Model expected = new ModelManager(model.getBubuBook(), new UserPrefs());
+        for (String arguments : List.of("n/Alice Tan", "i/ n/Alice Tan", "unexpected n/Alice Tan",
+                "i/81112222", "i/123 n/Alice Tan", "i/81112222 p/123", "0 n/Alice Tan")) {
+            assertThrows(ParseException.class, () -> logic.execute("edit-client " + arguments));
+            assertEquals(expected, model);
+        }
+    }
+
+    @Test
+    public void execute_missingBlankRepeatedAddFields_preserveRecords() {
+        model.addClient(ALICE);
+        Model expected = new ModelManager(model.getBubuBook(), new UserPrefs());
+        String[] fields = {" n/Alice Tan", " i/89998888", " e/new@example.com", " a/123 Test Road"};
+        String[] prefixes = {" n/", " i/", " e/", " a/"};
+        for (int i = 0; i < fields.length; i++) {
+            for (String replacement : List.of("", prefixes[i], fields[i] + fields[i])) {
+                String[] inputFields = fields.clone();
+                inputFields[i] = replacement;
+                String command = "add-client" + String.join("", inputFields);
+                assertThrows(ParseException.class, () -> logic.execute(command));
+                assertEquals(expected, model);
+            }
+        }
+    }
+    //@@author
 
     @BeforeEach
     public void setUp() {
@@ -241,7 +419,8 @@ public class LogicManagerTest {
         model.addClient(AMY);
         logic.execute("list-clients q/" + ALICE.getPhone());
         for (String field : List.of("p/" + AMY.getPhone(), "e/" + AMY.getEmail())) {
-            assertThrows(CommandException.class, EditClientCommand.MESSAGE_DUPLICATE_CLIENT, () ->
+            assertThrows(CommandException.class, field.startsWith("p/")
+                    ? EditClientCommand.MESSAGE_DUPLICATE_PHONE : EditClientCommand.MESSAGE_DUPLICATE_EMAIL, () ->
                     logic.execute("edit-client i/" + ALICE.getPhone() + " " + field));
             assertEquals(List.of(ALICE), model.getFilteredClientList());
             assertEquals(List.of(ALICE, AMY), model.getBubuBook().getClientList());
@@ -264,7 +443,7 @@ public class LogicManagerTest {
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
 
         assertCommandException("edit-client i/" + ALICE.getPhone() + " p/89998888",
-                String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+                LogicManager.MESSAGE_CLIENT_EDIT_SAVE_FAILURE);
     }
     //@@author
 
@@ -462,7 +641,8 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION,
+                LogicManager.MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE);
     }
     //@@author
 

@@ -68,61 +68,61 @@ public class AddClientCommandParserTest {
 
         // multiple names
         assertParseFailure(parser, NAME_DESC_AMY + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Name (n/) was supplied more than once. Keep only one n/ field.");
 
         // multiple phones
         assertParseFailure(parser, PHONE_DESC_AMY + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Phone number (i/) was supplied more than once. Keep only one i/ field.");
 
         // multiple emails
         assertParseFailure(parser, EMAIL_DESC_AMY + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Email (e/) was supplied more than once. Keep only one e/ field.");
 
         // multiple addresses
         assertParseFailure(parser, ADDRESS_DESC_AMY + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Address (a/) was supplied more than once. Keep only one a/ field.");
 
         // multiple fields repeated
         assertParseFailure(parser,
                 validExpectedClientString + PHONE_DESC_AMY + EMAIL_DESC_AMY + NAME_DESC_AMY + ADDRESS_DESC_AMY
                         + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Name (n/) was supplied more than once. Keep only one n/ field.");
 
         // invalid value followed by valid value
 
         // invalid name
         assertParseFailure(parser, INVALID_NAME_DESC + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Name (n/) was supplied more than once. Keep only one n/ field.");
 
         // invalid email
         assertParseFailure(parser, INVALID_EMAIL_DESC + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Email (e/) was supplied more than once. Keep only one e/ field.");
 
         // invalid phone
         assertParseFailure(parser, INVALID_PHONE_DESC + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Phone number (i/) was supplied more than once. Keep only one i/ field.");
 
         // invalid address
         assertParseFailure(parser, INVALID_ADDRESS_DESC + validExpectedClientString,
-                "Repeated field: Each client field may be specified only once");
+                "Address (a/) was supplied more than once. Keep only one a/ field.");
 
         // valid value followed by invalid value
 
         // invalid name
         assertParseFailure(parser, validExpectedClientString + INVALID_NAME_DESC,
-                "Repeated field: Each client field may be specified only once");
+                "Name (n/) was supplied more than once. Keep only one n/ field.");
 
         // invalid email
         assertParseFailure(parser, validExpectedClientString + INVALID_EMAIL_DESC,
-                "Repeated field: Each client field may be specified only once");
+                "Email (e/) was supplied more than once. Keep only one e/ field.");
 
         // invalid phone
         assertParseFailure(parser, validExpectedClientString + INVALID_PHONE_DESC,
-                "Repeated field: Each client field may be specified only once");
+                "Phone number (i/) was supplied more than once. Keep only one i/ field.");
 
         // invalid address
         assertParseFailure(parser, validExpectedClientString + INVALID_ADDRESS_DESC,
-                "Repeated field: Each client field may be specified only once");
+                "Address (a/) was supplied more than once. Keep only one a/ field.");
     }
     //@@author
 
@@ -145,15 +145,15 @@ public class AddClientCommandParserTest {
 
         // missing phone prefix
         assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: i/.");
+                "Phone number (i/) is required. Example: i/91234567.");
 
         // missing email prefix
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: e/.");
+                "Email (e/) is required. Example: e/alice@example.com.");
 
         // missing address prefix
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + VALID_ADDRESS_BOB,
-                "Missing required field: a/.");
+                "Address (a/) is required. Example: a/123 Test Road.");
 
         // all prefixes missing
         assertParseFailure(parser, VALID_NAME_BOB + VALID_PHONE_BOB + VALID_EMAIL_BOB + VALID_ADDRESS_BOB,
@@ -164,15 +164,15 @@ public class AddClientCommandParserTest {
     //@@author anderschow
     @Test
     public void parse_emptyRequiredFields_failure() {
-        assertParseFailure(parser, "", "Missing required field: n/.");
+        assertParseFailure(parser, "", "Name (n/) is required. Example: n/Alice Tan.");
         assertParseFailure(parser, " n/ " + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: n/.");
+                "Name (n/) cannot be blank.");
         assertParseFailure(parser, NAME_DESC_BOB + " i/ " + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                "Missing required field: i/.");
+                "Phone number (i/) cannot be blank.");
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " e/ " + ADDRESS_DESC_BOB,
-                "Missing required field: e/.");
+                "Email (e/) cannot be blank.");
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " a/ ",
-                "Missing required field: a/.");
+                "Address (a/) cannot be blank.");
     }
     //@@author
 

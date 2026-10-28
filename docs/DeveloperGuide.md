@@ -1042,7 +1042,7 @@ testers are expected to do more *exploratory* testing.
       Replace only the specified field for each case below.
 
    2. Test case: Replace `n/Test Client` with `n/A` or `n/Test123`.<br>
-      Expected: No client is added. The status message is `Client names must be 2-60 characters and use valid name characters.`
+      Expected: No client is added. The status message is `Client names must be nonblank and contain 2-60 Unicode code points after NFC normalization. Use Unicode letters, combining marks, spaces, apostrophes, hyphens or full stops.`
 
    3. Test case: Replace `i/93456789` with `i/73456789`, `i/9345678`, or `i/9345678a`.<br>
       Expected: No client is added. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
@@ -1051,7 +1051,7 @@ testers are expected to do more *exploratory* testing.
       Expected: No client is added. The status message is `Email must contain one @, no spaces, and a domain with a full stop.`
 
    5. Test case: Replace `a/30 Bedok Road` with `a/1234` or `a/30 Bedok Road!`.<br>
-      Expected: No client is added. The status message is `Addresses must be 5-120 characters and use valid address characters.`
+      Expected: No client is added. The status message is `Addresses must be nonblank and contain 5-120 characters. Use English letters (A-Z, a-z), digits (0-9), spaces, commas, full stops, apostrophes ('), hyphens (-) or #.`
 
 5. Saving added clients
 

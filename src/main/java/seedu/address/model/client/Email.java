@@ -3,8 +3,13 @@ package seedu.address.model.client;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+//@@author anderschow
+import java.util.Locale;
+//@@author
+
 /**
  * Represents a Client's email in the BuBu.
+ * Preserves the entered spelling; equality ignores domain case but preserves local-part case.
  * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
  */
 public class Email {
@@ -21,6 +26,9 @@ public class Email {
     //@@author
 
     public final String value;
+    //@@author anderschow
+    private final String comparisonKey;
+    //@@author
 
     /**
      * Constructs an {@code Email}.
@@ -31,6 +39,10 @@ public class Email {
         requireNonNull(email);
         checkArgument(isValidEmail(email), MESSAGE_CONSTRAINTS);
         value = email;
+        //@@author anderschow
+        int domainStart = email.indexOf('@') + 1;
+        comparisonKey = email.substring(0, domainStart) + email.substring(domainStart).toLowerCase(Locale.ROOT);
+        //@@author
     }
 
     //@@author anderschow
@@ -60,12 +72,16 @@ public class Email {
             return false;
         }
 
-        return value.equals(otherEmail.value);
+        //@@author anderschow
+        return comparisonKey.equals(otherEmail.comparisonKey);
+        //@@author
     }
 
     @Override
     public int hashCode() {
-        return value.hashCode();
+        //@@author anderschow
+        return comparisonKey.hashCode();
+        //@@author
     }
 
 }
