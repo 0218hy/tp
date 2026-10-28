@@ -96,7 +96,7 @@ public class LogicManager implements Logic {
         Command command;
         try {
             command = buBuParser.parseCommand(commandText);
-            if (isBubuBookCorrupted) {
+            if (isBubuBookCorrupted && !(command instanceof HelpCommand)) {
                 throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
             }
             ensureRequiredDisplayTypeIsCurrent(command);
@@ -114,7 +114,7 @@ public class LogicManager implements Logic {
             logger.fine(commandType + " rejected: " + CommandLog.rejectionReason(e));
             throw e;
         }
-        if (isReadOnly(command)) {
+        if (isReadOnly(command) || previousBubuBook.equals(model.getBubuBook())) {
             logger.fine(commandType + " completed");
         } else {
             saveCommandResult(command, previousBubuBook);

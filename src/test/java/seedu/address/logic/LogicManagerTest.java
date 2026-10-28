@@ -174,10 +174,41 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_readOnlyCommands_doNotCreateOrRewriteDataFile() throws Exception {
+    public void execute_help_doesNotCreateOrRewriteDataFile() throws Exception {
+        assertCommandsDoNotCreateOrRewriteDataFile(List.of("help"));
+    }
+
+    @Test
+    public void execute_listCommands_doesNotCreateOrRewriteDataFile() throws Exception {
+        assertCommandsDoNotCreateOrRewriteDataFile(List.of("list-clients", "list-clients q/Alice",
+                "list-pets", "list-appointments"));
+    }
+
+    @Test
+    public void execute_exit_doesNotCreateOrRewriteDataFile() throws Exception {
+        assertCommandsDoNotCreateOrRewriteDataFile(List.of("exit"));
+    }
+
+    @Test
+    public void execute_help_doesNotAttemptSave() throws Exception {
+        assertReadOnlyCommandsDoNotAttemptSave(List.of("help"));
+    }
+
+    @Test
+    public void execute_listCommands_doNotAttemptSave() throws Exception {
+        assertReadOnlyCommandsDoNotAttemptSave(List.of("list-clients", "list-clients q/Alice",
+                "list-pets", "list-appointments"));
+    }
+
+    @Test
+    public void execute_exit_doesNotAttemptSave() throws Exception {
+        assertReadOnlyCommandsDoNotAttemptSave(List.of("exit"));
+    }
+
+    /** Verifies the supplied read-only commands leave an absent or existing data file untouched. */
+    private void assertCommandsDoNotCreateOrRewriteDataFile(List<String> commands) throws Exception {
         Path dataFile = temporaryFolder.resolve("bububook.json");
-        for (String command : List.of("help", "list-clients", "list-clients q/Alice",
-                "list-pets", "list-appointments", "exit")) {
+        for (String command : commands) {
             logic.execute(command);
             assertFalse(java.nio.file.Files.exists(dataFile));
         }
@@ -185,16 +216,15 @@ public class LogicManagerTest {
         String saved = java.nio.file.Files.readString(dataFile);
         java.nio.file.attribute.FileTime sentinel = java.nio.file.attribute.FileTime.fromMillis(1000000);
         java.nio.file.Files.setLastModifiedTime(dataFile, sentinel);
-        for (String command : List.of("help", "list-clients", "list-clients q/Amelia",
-                "list-pets", "list-appointments", "exit")) {
+        for (String command : commands) {
             logic.execute(command);
             assertEquals(saved, java.nio.file.Files.readString(dataFile));
             assertEquals(sentinel, java.nio.file.Files.getLastModifiedTime(dataFile));
         }
     }
 
-    @Test
-    public void execute_readOnlyCommands_doNotAttemptSave() throws Exception {
+    /** Verifies that read-only commands do not invoke a storage implementation that would fail on writes. */
+    private void assertReadOnlyCommandsDoNotAttemptSave(List<String> commands) throws Exception {
         JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("readonly.json")) {
             @Override
             public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
@@ -203,8 +233,7 @@ public class LogicManagerTest {
         };
         logic = new LogicManager(model, new StorageManager(failingStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
-        for (String command : List.of("help", "list-clients", "list-clients q/Alice",
-                "list-pets", "list-appointments", "exit")) {
+        for (String command : commands) {
             logic.execute(command);
         }
         assertCommandException("add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive",
