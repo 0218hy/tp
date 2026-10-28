@@ -1,7 +1,6 @@
 package seedu.address.logic.parser.appointment;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_END_TIME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_NEW_DATE;
@@ -11,7 +10,11 @@ import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_SERVICE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_START_TIME;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.appointment.EditAppointmentCommand;
 import seedu.address.logic.commands.appointment.EditAppointmentCommand.EditAppointmentDescriptor;
 import seedu.address.logic.parser.ArgumentMultimap;
@@ -29,6 +32,22 @@ import seedu.address.model.appointment.StartTime;
 
 /** Parses arguments into an {@link EditAppointmentCommand}. */
 public class EditAppointmentCommandParser implements Parser<EditAppointmentCommand> {
+    public static final String MESSAGE_TARGET_REQUIRED =
+            "Choose an appointment index, or provide both "
+                    + "d/CURRENT_DATE (DD-MM-YYYY) and st/CURRENT_START_TIME (HH:mm).";
+    public static final String MESSAGE_INVALID_INDEX = "Appointment index must be a positive whole number.";
+    public static final String MESSAGE_INVALID_DATE =
+            "Invalid appointment date. Use DD-MM-YYYY and enter a real calendar date.";
+    public static final String MESSAGE_INVALID_START_TIME =
+            "Invalid start time. Use HH:mm; allowed times are 08:00 to 19:30 "
+                    + "in 30-minute intervals.";
+    public static final String MESSAGE_INVALID_END_TIME =
+            "Invalid end time. Use HH:mm; allowed times are 08:30 to 20:00 "
+                    + "in 30-minute intervals.";
+
+    private static final Pattern PARAMETER_PATTERN = Pattern.compile("(?<!\\S)([A-Za-z]+/)");
+    private static final Pattern DATE_SHAPED_VALUE = Pattern.compile("\\S+-\\S*");
+
     private static final Prefix[] PREFIXES = {
         PREFIX_DATE, PREFIX_START_TIME, PREFIX_OWNER_IDENTIFIER, PREFIX_PET_NAME,
         PREFIX_NEW_DATE, PREFIX_NEW_START_TIME, PREFIX_END_TIME, PREFIX_SERVICE
@@ -44,18 +63,37 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
     @Override
     public EditAppointmentCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        Matcher parameterMatcher = PARAMETER_PATTERN.matcher(args);
+        while (parameterMatcher.find()) {
+            String parameter = parameterMatcher.group(1);
+            if (!isKnownParameter(parameter)) {
+                throw new ParseException(Messages.getErrorMessageForUnknownParameter(
+                        parameter, EditAppointmentCommand.MESSAGE_USAGE));
+            }
+        }
+
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIXES);
         arguments.verifyNoDuplicatePrefixesFor(PREFIXES);
 
         boolean hasIndex = !arguments.getPreamble().isEmpty();
         boolean hasTargetDate = arguments.getValue(PREFIX_DATE).isPresent();
         boolean hasTargetStartTime = arguments.getValue(PREFIX_START_TIME).isPresent();
+        if (hasIndex && !hasTargetDate && hasTargetStartTime && looksLikeDate(arguments.getPreamble())) {
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    "d/CURRENT_DATE (DD-MM-YYYY)", EditAppointmentCommand.MESSAGE_USAGE));
+        }
         if (hasIndex && (hasTargetDate || hasTargetStartTime)) {
             throw new ParseException(EditAppointmentCommand.MESSAGE_INDEX_AND_DATE_TIME);
         }
-        if (!hasIndex && (!hasTargetDate || !hasTargetStartTime)) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                    EditAppointmentCommand.MESSAGE_USAGE));
+        if (!hasIndex && !hasTargetDate && !hasTargetStartTime) {
+            throw new ParseException(MESSAGE_TARGET_REQUIRED);
+        }
+        if (!hasIndex && hasTargetDate != hasTargetStartTime) {
+            String missingParameter = hasTargetDate
+                    ? "st/CURRENT_START_TIME (HH:mm)"
+                    : "d/CURRENT_DATE (DD-MM-YYYY)";
+            throw new ParseException(Messages.getErrorMessageForMissingParameter(
+                    missingParameter, EditAppointmentCommand.MESSAGE_USAGE));
         }
 
         EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor();
@@ -84,7 +122,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         }
 
         if (hasIndex) {
-            Index index = ParserUtil.parseIndex(arguments.getPreamble());
+            Index index = parseIndex(arguments.getPreamble());
             return new EditAppointmentCommand(index, descriptor);
         }
         return new EditAppointmentCommand(
@@ -92,12 +130,36 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
                 parseStartTime(arguments.getValue(PREFIX_START_TIME).orElseThrow()), descriptor);
     }
 
+    /** Parses an appointment-list index with an appointment-specific error message. */
+    private static Index parseIndex(String value) throws ParseException {
+        try {
+            return ParserUtil.parseIndex(value);
+        } catch (ParseException e) {
+            throw new ParseException(MESSAGE_INVALID_INDEX, e);
+        }
+    }
+
+    /** Returns whether the supplied parameter is supported by this command. */
+    private static boolean isKnownParameter(String parameter) {
+        for (Prefix prefix : PREFIXES) {
+            if (prefix.toString().equals(parameter)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Returns whether a preamble has the shape of a date, without validating its date components. */
+    private static boolean looksLikeDate(String preamble) {
+        return DATE_SHAPED_VALUE.matcher(preamble).matches();
+    }
+
     /** Parses a replacement or target date. */
     private static AppointmentDate parseDate(String value) throws ParseException {
         try {
             return new AppointmentDate(value);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException(MESSAGE_INVALID_DATE, e);
         }
     }
 
@@ -106,7 +168,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         try {
             return new StartTime(value);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException(MESSAGE_INVALID_START_TIME, e);
         }
     }
 
@@ -115,7 +177,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         try {
             return new EndTime(value);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException(MESSAGE_INVALID_END_TIME, e);
         }
     }
 
