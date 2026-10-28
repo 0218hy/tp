@@ -234,7 +234,8 @@ Index-based commands accept exactly one positive integer index:
 
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
-* `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
+* `delete-appointment INDEX` uses the currently displayed appointment list, whether it is the ongoing/future view or a
+  date-filtered view.
 * `edit-appointment INDEX ...` uses the currently displayed appointment list.
 * Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
   `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
@@ -605,9 +606,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **MSS:**
 
 1. Groomer requests to add a client, providing the client's name, phone number, email and address.
-2. BuBu adds the client and shows a confirmation.
+2. BuBu adds the client.
 3. Groomer requests to add a pet under the client, providing the pet's name, species, optional breed and grooming requirements.
-4. BuBu adds the pet under the client and shows a confirmation.
+4. BuBu adds the pet under the client.
 5. Groomer requests to view the client's pets.
 6. BuBu shows the client's pets and their details.
 
@@ -658,7 +659,7 @@ Use case ends.
 5. Groomer requests to view the appointments on the intended date.
 6. BuBu shows the appointments on that date.
 7. Groomer requests to schedule an appointment for the pet, specifying the date, start time, end time and service.
-8. BuBu adds the appointment, shows a confirmation and shows the updated appointment list.
+8. BuBu adds the appointment and shows the updated appointment list.
 
 Use case ends.
 
@@ -692,58 +693,87 @@ Use case ends.
 
 **System:** BuBu
 
-**Use case:** UC3 - Reschedule an appointment
+**Use case:** UC3 - Edit an appointment
 
 **Actor:** Groomer
 
-**Preconditions:** At least one upcoming appointment is saved in BuBu.
+**Preconditions:** At least one appointment is saved in BuBu.
 
 **Guarantees:**
 
-- The old appointment is removed only after Groomer confirms.
-- The new appointment does not overlap any existing appointment.
+- The appointment is updated only when the complete replacement is valid.
+- The resulting appointment starts in the future and does not overlap any other appointment.
+- If saving fails, the previous appointment remains unchanged.
 
-*BuBu has no appointment-edit feature, so rescheduling is a deletion followed by a new booking.*
+The appointment can be identified by its current date and start time, or by its index in the displayed appointment list.
+Any field that is not supplied remains unchanged.
 
 **MSS:**
 
-1. Groomer requests to view the appointments on the date of the appointment to be moved.
-2. BuBu shows the appointments on that date.
-3. Groomer requests to delete the appointment, identifying it by date and a time within it.
-4. BuBu requests confirmation of the deletion.
-5. Groomer confirms.
-6. BuBu deletes the appointment and shows a confirmation.
-7. Groomer requests to schedule the same pet for the new slot, specifying the date, start time, end time and service.
-8. BuBu adds the appointment and shows a confirmation.
+1. Groomer enters `edit-appointment` with an appointment target and one or more replacement fields.
+2. BuBu resolves the target appointment and validates the replacement owner, pet, date, time, service, duration, and
+   schedule availability.
+3. BuBu replaces the appointment, saves the updated BubuBook, and shows the updated appointment details.
 
 Use case ends.
 
 **Extensions:**
 
-- 1a. The date is not a valid date.
-    - 1a1. BuBu informs Groomer of the problem.
-    - 1a2. Groomer enters a corrected date.
-    - Steps 1a1-1a2 are repeated until the date is valid.
-    - Use case resumes from step 2.
-- 2a. There are no appointments on that date.
-    - 2a1. BuBu informs Groomer that nothing is scheduled.
-    - 2a2. Groomer requests to view the appointments on a different date.
-    - Steps 2a1-2a2 are repeated until a date with appointments is found.
-    - Use case resumes from step 3.
-- 3a. The date or time is invalid.
-    - 3a1. BuBu informs Groomer that no matching appointment was found.
-    - 3a2. Groomer enters a corrected date or time.
-    - Steps 3a1-3a2 are repeated until an appointment is matched.
-    - Use case resumes from step 4.
-- 5a. Groomer cancels the deletion.
-    - 5a1. BuBu leaves the schedule unchanged.
-    - Use case ends.
-- 7a. The new slot is invalid or overlaps another appointment.
-    - 7a1. BuBu informs Groomer of the problem.
-    - 7a2. Groomer enters a different slot.
-    - Steps 7a1-7a2 are repeated until the slot is valid.
-    - The original appointment remains deleted.
-    - Use case resumes from step 8.2
+- 1a. The target is missing, incomplete, duplicated, or invalid, or no replacement field is supplied.
+    - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
+      Use case ends.
+- 1c. No appointment matches the supplied date and start time.
+    - 1c1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
+      Use case ends.
+- 2a. The replacement owner or pet is not registered, the resulting start is not in the future, the duration is too
+  short, or the slot overlaps another appointment.
+    - 2a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-edit records and reports the storage error.
+      Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case: Delete an appointment**
+
+**Actor:** Groomer
+
+**Preconditions:** At least one appointment is saved in BuBu.
+
+**Guarantees:**
+
+- Only the appointment selected by the supplied target is deleted.
+- The linked client, linked pet, and all other appointments remain unchanged.
+- If saving fails, the deleted appointment is restored in memory.
+
+**MSS:**
+
+1. Groomer enters `delete-appointment` with an appointment index or an exact date and start-time pair.
+2. BuBu resolves the selected appointment from the displayed list or complete saved list.
+3. BuBu deletes the appointment, saves the updated BubuBook, and shows the deleted appointment details.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The target is missing, incomplete, duplicated, invalid, or combines an index with date/time identifiers.
+    - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
+      Use case ends.
+- 2a. No appointment starts at the supplied date and start time.
+    - 2a1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
+      Use case ends.
 
 ---
 
@@ -753,54 +783,38 @@ Use case ends.
 
 **Actor:** Groomer
 
-**Preconditions:** The client has at least one saved pet and one upcoming appointment saved in BuBu.
+**Preconditions:** The target client is saved in BuBu. The client may have saved pets and appointments.
 
 **Guarantees:**
 
-- Nothing is deleted without Groomer's confirmation.
-- A client is deleted only when no pets or appointments are linked to them.
+- The target client, all pets owned by that client, and all of the client's appointments are deleted together.
+- Completed and future appointments linked to the client are deleted.
+- Unrelated clients, pets, and appointments remain unchanged.
+- If saving fails, the previous records are restored in memory.
 
 **MSS:**
 
-1. Groomer requests to view the upcoming appointments.
-2. BuBu shows the upcoming appointments.
-3. Groomer requests to delete the client's appointment.
-4. BuBu requests confirmation.
-5. Groomer confirms.
-6. BuBu deletes the appointment and shows a confirmation.
-7. Groomer requests to delete the client's pet.
-8. BuBu requests confirmation.
-9. Groomer confirms.
-10. BuBu deletes the pet and shows a confirmation.
-11. Groomer requests to delete the client.
-12. BuBu requests confirmation.
-13. Groomer confirms.
-14. BuBu deletes the client and shows a confirmation.
+1. Groomer enters `delete-client` with a displayed client index or a client's phone number.
+2. BuBu resolves the target client from the displayed client list or complete saved client list.
+3. BuBu deletes the client and all linked pets and appointments, saves the updated BubuBook, and shows the deleted
+   client details.
 
 Use case ends.
 
 **Extensions:**
 
-- 3a. The date or time is invalid.
-    - 3a1. BuBu informs Groomer that no matching appointment was found.
-    - 3a2. Groomer enters a corrected date or time.
-    - Steps 3a1-3a2 are repeated until an appointment is matched.
-    - Use case resumes from step 4.
-- 5a. Groomer cancels the appointment deletion.
-    - 5a1. BuBu leaves all further records unchanged.
-    - Use case ends.
-- 7a. The pet still has a future appointment.
-    - 7a1. BuBu informs Groomer which appointment must be cancelled first.
-    - Use case resumes from step 3.
-- 9a. Groomer cancels the pet deletion.
-    - 9a1. BuBu leaves all further records unchanged.
-    - Use case ends.
-- 11a. The client still has pets or appointments linked to them.
-    - 11b1. BuBu informs Groomer which linked records remain.
-    - Use case resumes from step 3 (if appointments remain) or step 7 (if only pets remain).
-- 13a. Groomer cancels the client deletion.
-    - 13a1. BuBu leaves all further records unchanged.
-    - Use case ends.
+- 1a. The target is missing, invalid, duplicated, or combines an index with a phone identifier.
+    - 1a1. BuBu reports the validation error and leaves all records unchanged.
+      Use case ends.
+- 1b. An index target is used while the client list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves all records unchanged.
+      Use case ends.
+- 2a. No saved client has the supplied phone number.
+    - 2a1. BuBu reports that no client matches the phone number and leaves all records unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
+      Use case ends.
 
 ---
 
@@ -850,7 +864,7 @@ Use case ends.
 3. BuBu finds the pet matching both the current name and owner phone number in the saved BubuBook.
 4. BuBu creates a replacement pet profile, preserving the owner and any fields that were not supplied.
 5. BuBu verifies that the replacement name does not duplicate another pet belonging to the same owner.
-6. BuBu replaces the saved pet profile, saves the BubuBook, and confirms the edit.
+6. BuBu replaces the saved pet profile and saves the BubuBook.
 
 Use case ends.
 
@@ -933,10 +947,8 @@ Use case ends.
 * **Care Requirements**: Special notes, medical conditions, temperamental traits, behavioral warnings, or styling preferences associated with a pet.
 * **Behavioral Quirks**: Custom tags attached to a pet profile indicating temperamental traits or handling considerations (e.g., `cage-anxious`, `nipper`, `hyperactive`) to help the groomer prepare appropriate equipment.
 * **Client**: A pet owner profile containing  contact information, including name, phone number, email and home address.
-* **Confirmation**: An explicit verification step required by BuBu before completing destructive actions (such as deletions) to avoid accidental data loss.
 * **Groomer**: The primary user and actor of BuBu; an independent mobile pet groomer managing appointments, client contacts, and pet profiles on-the-go.
 * **Pet Profile**: A distinct record belonging to a specific client that tracks the pet's name, species, optional breed, and care requirements.
-* **Rescheduling**: The composite workflow of deleting an existing appointment followed by booking a new slot for the same pet.
 * **Service**: A supported grooming option (e.g., full groom, basic bath, nail trim) assigned to an appointment.
 * **Time Slot**: A continuous duration on a given date during which a grooming appointment takes place, constrained to 30-minute intervals within working hours.
 * **Working Hours**: The allowable operating time frame within which appointments can be booked, defined in BuBu as 08:00 to 20:00.
@@ -1173,17 +1185,21 @@ testers are expected to do more *exploratory* testing.
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all clients using the `list-clients` command, with multiple clients in the list.
+   1. Prerequisites: Add multiple clients, then run `list-clients` so the client panel displays them.
 
    2. Test case: `delete-client 1`<br>
-      Expected: The first client is deleted from the list. The status message shows
-      `Deleted client: ... Removed 0 pets and 0 appointments.` when it has no linked records.
+      Expected: The first displayed client and all of that client's linked pets and appointments are deleted. The
+      status message begins with `Deleted person:` and the selected panel remains unchanged.
 
-   3. Test case: `delete-client 0`<br>
-      Expected: No client is deleted. The status message shows error details.
+   3. Test case: Run `list-pets`, then enter `delete-client 1`.<br>
+      Expected: No client is deleted. BuBu reports that the current displayed list does not match the record type
+      selected by the index.
 
-   4. Test case: `delete-client 999`<br>
-      Expected: No client is deleted. The status message shows error details.
+   4. Test case: `delete-client 0`<br>
+      Expected: No client is deleted. BuBu reports an invalid command format and shows the command usage.
+   
+   5. Test case: `delete-client 999` when fewer than 999 clients are displayed.<br>
+      Expected: No client is deleted. The status message is `The person index provided is invalid.`
 
 2. Deleting by phone number
 
@@ -1420,6 +1436,61 @@ testers are expected to do more *exploratory* testing.
       `list-appointments d/31-02-2026`, or `list-appointments d/01-01-2026 d/02-01-2026`<br>
       Expected: The command is rejected. Only one valid date filter is supported.
 
+### Editing an appointment
+
+1. Editing by date and start time without relying on the displayed panel
+
+   1. Prerequisites: A saved appointment exists on `01-01-9999` from `10:00` to `11:00` for a registered pet, and no
+      other appointment uses the replacement slot.
+
+   2. Test case: Run `list-clients`, then enter `edit-appointment d/01-01-9999 st/10:00 s/Nail trim`.<br>
+      Expected: The edit succeeds even though the client panel is displayed. The appointment's service changes to
+      `Nail trim`; its owner, pet, date, start time, and end time are unchanged. The status message begins with
+      `Edited appointment:`.
+
+2. Editing by displayed appointment index
+
+   1. Prerequisites: Run `list-appointments` and ensure the displayed appointment list contains an appointment whose
+      end time can be changed to `12:00` without overlapping another booking.
+
+   2. Test case: `edit-appointment 1 et/12:00`<br>
+      Expected: The first displayed appointment is updated. Fields not supplied in the command remain unchanged.
+
+   3. Test case: Run `list-appointments d/01-01-9999`, then enter
+      `edit-appointment 1 nd/02-01-9999 nst/10:30 et/11:30`.<br>
+      Expected: The appointment at index 1 is moved to the new date and time, and the date-filtered appointment list
+      is preserved. The updated appointment remains saved even if it no longer matches the active date filter.
+
+3. Rejecting invalid or incomplete edits
+
+   1. Test case: `edit-appointment`, `edit-appointment d/01-01-9999`, or
+      `edit-appointment d/01-01-9999 st/10:00`<br>
+      Expected: No appointment is changed. BuBu reports a missing target, missing start time, or missing replacement
+      field.
+
+   2. Test case: `edit-appointment d/01-01-9999 st/10:00 d/02-01-9999 s/Nail trim` or
+      `edit-appointment 1 d/02-01-9999 s/Nail trim`<br>
+      Expected: No appointment is changed. BuBu rejects duplicate target prefixes or mixing an index with a date/time
+      target.
+
+   3. Test case: Run `list-clients`, then enter `edit-appointment 1 et/12:00`.<br>
+      Expected: No appointment is changed. BuBu rejects the index because the appointment list is not displayed.
+
+   4. Test case: `edit-appointment d/01-01-9998 st/10:00 s/Nail trim` or
+      `edit-appointment d/01-01-9999 st/10:30 s/Nail trim` when no matching appointment exists.<br>
+      Expected: No appointment is changed. BuBu reports that no appointment starts at the specified date and time.
+
+   5. Test case: Supply an unregistered owner phone, a pet not registered under that owner, a past replacement start,
+      an end time less than 30 minutes after the start, or a slot overlapping another appointment.<br>
+      Expected: No appointment is changed. BuBu reports the corresponding validation error.
+
+4. Saving an edited appointment
+
+   1. Prerequisites: A successful `edit-appointment` command has changed an appointment.
+
+   2. Test case: Close and relaunch BuBu, then run `list-appointments d/DD-MM-YYYY` for the edited appointment.<br>
+      Expected: The replacement values persist after restart.
+
 ### Deleting an appointment
 
 1. Deleting by date and start time
@@ -1440,12 +1511,17 @@ testers are expected to do more *exploratory* testing.
 
 2. Deleting by appointment index
 
-   1. Prerequisites: Run `list-appointments` and ensure the displayed ongoing/future appointment list contains at least one appointment.
+   1. Prerequisites: Run `list-appointments` and ensure the displayed appointment list contains at least one appointment.
 
    2. Test case: `delete-appointment 1`<br>
-      Expected: The first appointment is deleted and the status message confirms the deleted appointment.
+      Expected: The first displayed appointment is deleted, the selected panel remains unchanged, and the status
+      message confirms the deleted appointment.
 
-   3. Test case: `delete-appointment 0` or `delete-appointment 999`<br>
+   3. Test case: Run `list-appointments d/01-01-9999`, then enter `delete-appointment 1`.<br>
+      Expected: The first appointment in the date-filtered list is deleted; an index refers to the currently displayed
+      appointment list.
+
+   4. Test case: `delete-appointment 0` or `delete-appointment 999`<br>
       Expected: No appointment is deleted and the status message shows an invalid-index error.
 
 3. Invalid selector combinations and formats
@@ -1454,13 +1530,17 @@ testers are expected to do more *exploratory* testing.
       Expected: The command is rejected because no selector was provided.
 
    2. Test case: `delete-appointment 1 d/01-01-9999 st/10:30`<br>
-      Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
+      Expected: The command is rejected with `Choose either an appointment index or a date and time, not both.`
 
    3. Test case: `delete-appointment 12-12-1234 st/10:30`<br>
       Expected: The command is rejected because the date is missing its `d/` prefix.
 
    4. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
       Expected: The command is rejected because the date or time is invalid.
+
+   5. Test case: `delete-appointment d/01-01-9999 st/10:00 d/02-01-9999` or
+      `delete-appointment x/01-01-9999`<br>
+      Expected: The command is rejected because a prefix is repeated or unsupported.
 
 4. Persistence after deletion
 

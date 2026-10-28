@@ -28,11 +28,11 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
    application session.
    Some example commands you can try:
 
-   * `list-clients` : Lists all contacts.
+   * `list-clients` : Lists all clients.
 
-   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the BuBu.
+   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe` to the BuBu.
 
-   * `delete-client 3` : Deletes the 3rd contact shown in the current list.
+   * `delete-client 3` : Deletes the 3rd client shown in the current list.
 
    * `delete-client i/91234567` : Deletes the client with phone number `91234567`.
 
@@ -273,7 +273,8 @@ The command makes no changes when it cannot be completed.
 
 ### Deleting a client: `delete-client`
 
-Deletes a saved client and their linked pets and appointments. Index-based deletion depends on the displayed client list; phone-based deletion searches all saved clients.
+Deletes a saved client and all pets and appointments linked to that client. Index-based deletion uses the displayed
+client list; phone-based deletion searches all saved clients.
 
 #### Format
 
@@ -284,8 +285,10 @@ delete-client i/PHONE_NUMBER
 
 #### Parameters and validation
 
-* `INDEX` — a positive integer referring to the client's one-based position in the current client list, including any search filter.
-* `i/PHONE_NUMBER` — alternatively, the saved eight-digit phone number starting with `8` or `9`.
+* `INDEX` — a positive integer referring to the client's one-based position in the currently displayed client list,
+  including any search filter. The client panel must be displayed.
+* `i/PHONE_NUMBER` — alternatively, a valid saved eight-digit phone number starting with `8` or `9`. This form can
+  delete a client even when a filter or another panel hides them.
 * Provide either an index or a phone identifier, not both. Specify `i/` only once.
 
 #### Examples
@@ -570,35 +573,43 @@ The command makes no changes when it cannot be completed.
 
 Edits a saved appointment identified by its current date and start time, or by its displayed appointment-list index.
 
-Formats:
+#### Format
 
 ```text
 edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
 edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
 ```
 
+#### Parameters and validation
+
 * `d/` and `st/` identify the existing appointment. Identifier-based edits search all saved appointments.
-* `INDEX` refers to the one-based position in the currently displayed appointment list, so run `list-appointments`
-  first when using this form.
+* `INDEX` refers to the one-based position in the currently displayed appointment list. Run `list-appointments`
+  first when using this form; a date-filtered appointment list may also be used.
 * Provide either the date/start-time identifiers or an index, but not both. Replacement fields can be combined with
   either identification form.
-* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`; `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
+* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`. `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
   `HH:mm`.
+* When supplied, `i/NEW_OWNER_PHONE` must identify a registered client, and `p/NEW_PET_NAME` must identify a pet
+  registered under that client. Pet-name matching ignores letter case and repeated whitespace.
 * Start times must be from `08:00` to `19:30` in 30-minute intervals. End times must be from `08:30` to `20:00`
   in 30-minute intervals and at least 30 minutes after the appointment start time.
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
-* The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
-  appointment.
-* Editing preserves the active appointment filter. Matching appointments show their updated details; appointments
-  that no longer match remain saved but disappear from the view. Completed appointments hidden by `list-appointments`
-  remain hidden after an edit.
+* The resulting appointment must start in the future in Singapore time and must not overlap another appointment.
+  An appointment whose resulting start time is in the past cannot be edited.
 
-Examples:
+#### Examples
 
 * `edit-appointment d/18-09-2027 st/10:00 s/Full groom` changes the service for the appointment starting at 10:00.
 * `edit-appointment d/18-09-2027 st/10:00 nd/19-09-2027 nst/11:00 et/12:00` moves the appointment to a new date
   and time and changes its end time.
 * `edit-appointment 1 et/12:00` changes the end time of the first appointment in the displayed appointment list.
+
+#### Success and other behavior
+
+* On success, BuBu displays `Edited appointment: ...` with the updated booking details.
+* Fields that are not supplied keep their existing values. The selected panel and active appointment filter are
+  preserved; an updated appointment that no longer matches the filter disappears from the view but remains saved.
+* Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
 
@@ -648,10 +659,11 @@ delete-appointment d/DD-MM-YYYY st/HH:mm
 
 #### Parameters and validation
 
-* `INDEX` — a positive integer referring to the appointment's one-based position in the current appointment list. Run `list-appointments` first.
+* `INDEX` — a positive integer referring to the appointment's one-based position in the currently displayed appointment
+  list. Run `list-appointments` first; a date-filtered appointment list may also be used.
 * `d/DD-MM-YYYY` — alternatively, a real calendar date; it need not be in the future.
-* `st/HH:mm` — required with `d/`; use the appointment's exact start time, from `08:00` to `19:30` in 30-minute
-  intervals.
+* `st/HH:mm` — required with `d/`; use the exact start time of the appointment to delete, not any time within its
+  duration. It must be from `08:00` to `19:30` in 30-minute intervals.
 * Provide an index or both date and time, not both formats. Each prefix may appear only once.
 
 #### Examples
@@ -801,16 +813,17 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Edit client** | `edit-client INDEX [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...` or `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`<br> e.g., `edit-client i/91234567 n/Alex Tan`
 **Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
-**List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
 **Edit pet** | `edit-pet INDEX [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]` or `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet 1 n/Mochi Bean`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments [d/DD-MM-YYYY]`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 t/10:30`
+**Edit appointment** | `edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]` or `edit-appointment INDEX [...]`<br> e.g., `edit-appointment d/18-09-2027 st/10:00 et/12:00`
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY st/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 st/10:30`
 **Clear** | `clear`
 **Help** | `help`
 **Exit** | `exit`
