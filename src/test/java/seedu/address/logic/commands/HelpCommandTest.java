@@ -18,6 +18,7 @@ public class HelpCommandTest {
         assertCommandSuccess(new HelpCommand(), model, expectedCommandResult, expectedModel);
     }
 
+    //@@author anderschow
     @Test
     public void getCommandReference_containsAllDocumentedCommands() {
         String commandReference = HelpCommand.getCommandReference();
@@ -44,4 +45,5 @@ public class HelpCommandTest {
         assertTrue(commandReference.contains("clear"));
         assertTrue(commandReference.contains("exit"));
     }
+    //@@author
 }

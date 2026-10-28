@@ -19,6 +19,7 @@ public class AddressTest {
         assertThrows(IllegalArgumentException.class, () -> new Address(invalidAddress));
     }
 
+    //@@author anderschow
     @Test
     public void isValidAddress() {
         // null address
@@ -40,6 +41,7 @@ public class AddressTest {
         assertFalse(Address.isValidAddress("-")); // one character
         assertFalse(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
     }
+    //@@author
 
     @Test
     public void equals() {

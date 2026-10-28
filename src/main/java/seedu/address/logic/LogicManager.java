@@ -30,11 +30,13 @@ import seedu.address.storage.Storage;
 /**
  * The main LogicManager of the app.
  */
-public class LogicManager implements Logic {
+public class  LogicManager implements Logic {
     public static final String MESSAGE_CORRUPTED_RECORDS =
             "Unable to verify existing records. Please contact support.";
     public static final String MESSAGE_UNABLE_TO_SAVE_PET = "Unable to save a pet. Please try again.";
+    //@@author anderschow
     public static final String MESSAGE_CLIENT_SAVE_FAILURE = "Unable to save client.";
+    //@@author
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -110,6 +112,7 @@ public class LogicManager implements Logic {
     }
     //@@author
 
+    //@@author anderschow
     /**
      * Saves the completed command and restores its previous data if saving fails.
      */
@@ -133,6 +136,7 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
     }
+    //@@author
 
     @Override
     public ObservableList<Client> getFilteredClientList() {

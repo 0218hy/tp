@@ -19,6 +19,7 @@ public class EmailTest {
         assertThrows(IllegalArgumentException.class, () -> new Email(invalidEmail));
     }
 
+    //@@author anderschow
     @Test
     public void isValidEmail() {
         // null email
@@ -79,4 +80,5 @@ public class EmailTest {
         // different values -> returns false
         assertFalse(email.equals(new Email("other.valid@email.com")));
     }
+    //@@author
 }

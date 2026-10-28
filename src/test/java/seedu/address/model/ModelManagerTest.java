@@ -190,6 +190,7 @@ public class ModelManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPetList().remove(0));
     }
 
+    //@@author anderschow
     @Test
     public void equals() {
         BubuBook bubuBook = new BubuBookBuilder().withClient(ALICE).withClient(BENSON).build();
@@ -225,4 +226,5 @@ public class ModelManagerTest {
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(bubuBook, differentUserPrefs)));
     }
+    //@@author
 }

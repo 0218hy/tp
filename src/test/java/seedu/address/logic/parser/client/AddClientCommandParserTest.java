@@ -60,6 +60,7 @@ public class AddClientCommandParserTest {
                 new AddClientCommand(expectedClientMultipleTags));
     }
 
+    //@@author anderschow
     @Test
     public void parse_repeatedNonTagValue_failure() {
         String validExpectedClientString = NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB
@@ -123,6 +124,7 @@ public class AddClientCommandParserTest {
         assertParseFailure(parser, validExpectedClientString + INVALID_ADDRESS_DESC,
                 "Repeated field: Each client field may be specified only once");
     }
+    //@@author
 
     @Test
     public void parse_optionalFieldsMissing_success() {
@@ -132,6 +134,7 @@ public class AddClientCommandParserTest {
                 new AddClientCommand(expectedClient));
     }
 
+    //@@author anderschow
     @Test
     public void parse_compulsoryFieldMissing_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddClientCommand.MESSAGE_USAGE);
@@ -156,6 +159,7 @@ public class AddClientCommandParserTest {
         assertParseFailure(parser, VALID_NAME_BOB + VALID_PHONE_BOB + VALID_EMAIL_BOB + VALID_ADDRESS_BOB,
                 expectedMessage);
     }
+    //@@author
 
     //@@author anderschow
     @Test

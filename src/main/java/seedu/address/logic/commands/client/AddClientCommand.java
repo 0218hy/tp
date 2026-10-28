@@ -22,6 +22,7 @@ import seedu.address.model.client.Client;
  */
 public class AddClientCommand extends Command {
 
+    //@@author anderschow
     public static final String COMMAND_WORD = "add-client";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a client to the client list. "
@@ -44,6 +45,7 @@ public class AddClientCommand extends Command {
             "A client with this phone number or email already exists.";
 
     private static final Logger logger = LogsCenter.getLogger(AddClientCommand.class);
+    //@@author
 
     private final Client toAdd;
 
@@ -55,6 +57,7 @@ public class AddClientCommand extends Command {
         toAdd = client;
     }
 
+    //@@author anderschow
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -83,6 +86,7 @@ public class AddClientCommand extends Command {
 
         return toAdd.equals(otherAddClientCommand.toAdd);
     }
+    //@@author
 
     @Override
     public String toString() {

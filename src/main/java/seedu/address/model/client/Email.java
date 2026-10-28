@@ -9,11 +9,13 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Email {
 
+    //@@author anderschow
     public static final String MESSAGE_CONSTRAINTS =
             "Email must contain one @, no spaces, and a domain with a full stop.";
 
     public static final String VALIDATION_REGEX =
             "[^\\s@]+@[^\\s@.]+(?:\\.[^\\s@.]+)+";
+    //@@author
 
     public final String value;
 

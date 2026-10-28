@@ -9,7 +9,9 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.client.ListClientsCommand;
 
 public class ListClientsCommandParserTest {
+    //@@author anderschow
     private final ListClientsCommandParser parser = new ListClientsCommandParser();
+    //@@author
 
     //@@author anderschow
     @Test

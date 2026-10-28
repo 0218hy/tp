@@ -19,12 +19,14 @@ import seedu.address.model.tag.Tag;
  */
 public class ClientUtil {
 
+    //@@author anderschow
     /**
      * Returns an add command string for adding the {@code client}.
      */
     public static String getAddClientCommand(Client client) {
         return AddClientCommand.COMMAND_WORD + " " + getClientDetails(client);
     }
+    //@@author
 
     /**
      * Returns the part of command string for the given {@code client}'s details.
@@ -41,6 +43,7 @@ public class ClientUtil {
         return sb.toString();
     }
 
+    //@@author anderschow
     /**
      * Returns the part of command string for the given {@code EditClientDescriptor}'s details.
      */
@@ -60,4 +63,5 @@ public class ClientUtil {
         }
         return sb.toString();
     }
+    //@@author
 }

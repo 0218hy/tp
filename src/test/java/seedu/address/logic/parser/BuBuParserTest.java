@@ -36,12 +36,14 @@ public class BuBuParserTest {
 
     private final BuBuParser parser = new BuBuParser();
 
+    //@@author anderschow
     @Test
     public void parseCommand_add() throws Exception {
         Client client = new ClientBuilder().build();
         AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddClientCommand(client));
         assertEquals(new AddClientCommand(client), command);
     }
+    //@@author
 
     @Test
     public void parseCommand_clear() throws Exception {
@@ -142,11 +144,13 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
     }
 
+    //@@author anderschow
     @Test
     public void parseCommand_listClients() throws Exception {
         assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListClientsCommand);
         assertTrue(parser.parseCommand(" " + ListClientsCommand.COMMAND_WORD + " ") instanceof ListClientsCommand);
     }
+    //@@author
 
     //@@author 0218hy
     @Test

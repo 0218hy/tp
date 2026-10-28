@@ -37,6 +37,7 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 public class EditClientCommandTest {
 
     private Model model = new ModelManager(getTypicalBubuBook(), new UserPrefs());
+    //@@author anderschow
     private final Phone firstPhone = model.getBubuBook().getClientList().get(0).getPhone();
     private final Phone secondPhone = model.getBubuBook().getClientList().get(1).getPhone();
 
@@ -129,6 +130,7 @@ public class EditClientCommandTest {
 
         assertCommandFailure(editCommand, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
+    //@@author
 
     //@@author anderschow
     @Test
@@ -147,6 +149,7 @@ public class EditClientCommandTest {
         assertEquals("Zoe Tan", model.getBubuBook().getClientList().get(1).getName().fullName);
     }
     //@@author
+    //@@author anderschow
     @Test
     public void equals() {
         final EditClientCommand standardCommand = new EditClientCommand(firstPhone, DESC_AMY);
@@ -181,6 +184,7 @@ public class EditClientCommandTest {
                 + ", editClientDescriptor=" + editClientDescriptor + "}";
         assertEquals(expected, editCommand.toString());
     }
+    //@@author
 
 
     //@@author anderschow

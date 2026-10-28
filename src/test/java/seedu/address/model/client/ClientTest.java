@@ -41,6 +41,7 @@ public class ClientTest {
         assertThrows(UnsupportedOperationException.class, () -> client.getTags().remove(0));
     }
 
+    //@@author anderschow
     @Test
     public void isSameClient() {
         // same object -> returns true
@@ -63,6 +64,7 @@ public class ClientTest {
         assertTrue(ALICE.isSameClient(sameEmail));
 
     }
+    //@@author
 
     @Test
     public void equals() {
