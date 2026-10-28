@@ -2,6 +2,7 @@ package seedu.address.model.appointment;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Clock;
 //@@author anderschow
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -24,9 +25,22 @@ import seedu.address.model.pet.PetName;
  * the scheduling command is responsible for checking owners, pets and future start times.
  */
 public class AppointmentList {
+    private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
+
     private final ObservableList<Appointment> internalList = FXCollections.observableArrayList();
     private final ObservableList<Appointment> unmodifiableAppointments =
             FXCollections.unmodifiableObservableList(internalList);
+    private final Clock clock;
+
+    /** Creates an appointment list using the current Singapore time. */
+    public AppointmentList() {
+        this(Clock.system(SINGAPORE_ZONE));
+    }
+
+    /** Creates an appointment list with a clock, allowing deterministic date-boundary checks. */
+    AppointmentList(Clock clock) {
+        this.clock = requireNonNull(clock);
+    }
 
     //@@author 0218hy
     /**
@@ -96,7 +110,7 @@ public class AppointmentList {
     public void updateOwner(Client currentOwner, Client editedOwner) {
         requireNonNull(currentOwner);
         requireNonNull(editedOwner);
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Singapore"));
+        LocalDateTime now = LocalDateTime.now(clock);
         for (int index = 0; index < internalList.size(); index++) {
             Appointment appointment = internalList.get(index);
             if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
@@ -114,6 +128,9 @@ public class AppointmentList {
     /**
      * Refreshes pet details in ongoing and future appointments while preserving completed booking snapshots.
      * Pet-name changes continue to propagate to completed appointments so linked records remain identifiable.
+     *
+     * @param currentPet the saved pet being replaced
+     * @param editedPet the replacement pet profile
      */
     public void updatePet(Pet currentPet, Pet editedPet) {
         requireNonNull(currentPet);
@@ -127,7 +144,7 @@ public class AppointmentList {
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Singapore"));
+        LocalDateTime now = LocalDateTime.now(clock);
         for (int index = 0; index < internalList.size(); index++) {
             Appointment appointment = internalList.get(index);
             if (appointment.isForPet(currentPet)) {
