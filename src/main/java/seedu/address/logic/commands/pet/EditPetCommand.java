@@ -12,6 +12,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 import java.util.Objects;
 import java.util.Optional;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
@@ -25,24 +26,30 @@ import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 
 /**
- * Edits a pet profile identified by its current name and its owner's phone number.
+ * Edits a pet profile identified by its current name and owner's phone number, or by its displayed index.
  */
 public class EditPetCommand extends Command {
     public static final String COMMAND_WORD = "edit-pet";
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Edits a pet profile identified by its current name and owner's phone number.\n"
-            + "Parameters: " + PREFIX_PET_NAME + "PET_NAME " + PREFIX_OWNER_IDENTIFIER + "OWNER_IDENTIFIER "
+            + ": Edits a pet profile identified by its current name and owner's phone number, or by displayed index.\n"
+            + "Target: INDEX, or " + PREFIX_PET_NAME + "PET_NAME " + PREFIX_OWNER_IDENTIFIER + "OWNER_IDENTIFIER\n"
+            + "Optional changes: "
             + "[" + PREFIX_NEW_PET_NAME + "NEW_PET_NAME] "
             + "[" + PREFIX_SPECIES + "SPECIES] "
             + "[" + PREFIX_BREED + "BREED] "
             + "[" + PREFIX_REQUIREMENTS + "REQUIREMENTS]\n"
-            + "Example: " + COMMAND_WORD + " p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying";
+            + "Examples: " + COMMAND_WORD + " 1 n/Mochi Bean\n"
+            + "          " + COMMAND_WORD + " p/Mochi i/87438807 r/Prefers quiet drying";
     public static final String MESSAGE_SUCCESS = "Edited pet: %s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_PET_NOT_FOUND =
             "No pet with the specified name and owner phone number was found.";
     public static final String MESSAGE_DUPLICATE_PET = "This client already has a pet named %s.";
+    public static final String MESSAGE_INVALID_PET_DISPLAYED_INDEX = "The pet index provided is invalid.";
+    public static final String MESSAGE_INDEX_AND_IDENTIFIERS =
+            "A pet index cannot be combined with pet-name or owner-phone identifiers.";
 
+    private final Index index;
     private final PetName petName;
     private final Phone ownerPhone;
     private final EditPetDescriptor editPetDescriptor;
@@ -55,9 +62,31 @@ public class EditPetCommand extends Command {
      * @param editPetDescriptor the requested optional changes
      */
     public EditPetCommand(PetName petName, Phone ownerPhone, EditPetDescriptor editPetDescriptor) {
+        this.index = null;
         this.petName = requireNonNull(petName);
         this.ownerPhone = requireNonNull(ownerPhone);
         this.editPetDescriptor = new EditPetDescriptor(requireNonNull(editPetDescriptor));
+    }
+
+    /**
+     * Creates an {@code EditPetCommand} for a pet at the given displayed index.
+     *
+     * @param index the one-based index of the pet in the displayed pet list
+     * @param editPetDescriptor the requested optional changes
+     */
+    public EditPetCommand(Index index, EditPetDescriptor editPetDescriptor) {
+        this.index = requireNonNull(index);
+        this.petName = null;
+        this.ownerPhone = null;
+        this.editPetDescriptor = new EditPetDescriptor(requireNonNull(editPetDescriptor));
+    }
+
+    /** Returns the pet-list display requirement for index-based edits. */
+    @Override
+    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
+        return index == null
+                ? Optional.empty()
+                : Optional.of(CommandResult.DisplayType.PETS);
     }
 
     /**
@@ -66,7 +95,7 @@ public class EditPetCommand extends Command {
      *
      * @param model the model containing the pet profiles
      * @return the result describing the edited pet
-     * @throws CommandException if no pet matches the supplied name and owner, or the edit creates a duplicate pet
+     * @throws CommandException if the target is unavailable or the edit creates a duplicate pet
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -85,9 +114,15 @@ public class EditPetCommand extends Command {
      *
      * @param model the model whose saved pets are searched
      * @return the matching pet
-     * @throws CommandException if no saved pet has both the specified normalized name and owner phone number
+     * @throws CommandException if the displayed index is invalid or no pet matches the supplied identifiers
      */
     private Pet findPet(Model model) throws CommandException {
+        if (index != null) {
+            if (index.getZeroBased() >= model.getFilteredPetList().size()) {
+                throw new CommandException(MESSAGE_INVALID_PET_DISPLAYED_INDEX);
+            }
+            return model.getFilteredPetList().get(index.getZeroBased());
+        }
         return model.getBubuBook().getPetList().stream()
                 .filter(pet -> pet.getName().getNormalizedName().equals(petName.getNormalizedName())
                         && pet.getOwner().getPhone().equals(ownerPhone))
@@ -142,8 +177,9 @@ public class EditPetCommand extends Command {
         if (!(other instanceof EditPetCommand otherCommand)) {
             return false;
         }
-        return petName.equals(otherCommand.petName)
-                && ownerPhone.equals(otherCommand.ownerPhone)
+        return Objects.equals(index, otherCommand.index)
+                && Objects.equals(petName, otherCommand.petName)
+                && Objects.equals(ownerPhone, otherCommand.ownerPhone)
                 && editPetDescriptor.equals(otherCommand.editPetDescriptor);
     }
 
@@ -154,6 +190,12 @@ public class EditPetCommand extends Command {
      */
     @Override
     public String toString() {
+        if (index != null) {
+            return new ToStringBuilder(this)
+                    .add("targetIndex", index)
+                    .add("editPetDescriptor", editPetDescriptor)
+                    .toString();
+        }
         return new ToStringBuilder(this)
                 .add("petName", petName)
                 .add("ownerPhone", ownerPhone)
