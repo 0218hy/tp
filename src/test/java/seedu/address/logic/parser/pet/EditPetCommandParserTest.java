@@ -192,5 +192,34 @@ public class EditPetCommandParserTest {
 
         assertEquals(expected, parser.parse("p/Mochi i/91234567 r/Bath/brush carefully"));
     }
+
+    @Test
+    public void parse_requirementContainingWhitespaceBeforeSlashShorthand_createsCommand() {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Wash w/o scented conditioner"));
+
+        assertParseSuccess(parser, "p/Mochi i/91234567 r/Wash w/o scented conditioner",
+                new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor));
+        assertParseSuccess(parser, "1 r/Wash w/o scented conditioner",
+                new EditPetCommand(Index.fromOneBased(1), descriptor));
+    }
+
+    @Test
+    public void parse_requirementShorthandFollowedByRecognizedField_delimitsFields() {
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Wash w/o scented conditioner"));
+        descriptor.setSpecies(Species.CAT);
+
+        assertParseSuccess(parser, "p/Mochi i/91234567 r/Wash w/o scented conditioner s/Cat",
+                new EditPetCommand(new PetName("Mochi"), new Phone("91234567"), descriptor));
+    }
+
+    @Test
+    public void parse_unknownPrefixOutsideRequirements_rejectsCommand() {
+        assertParseFailure(parser, "p/Mochi i/91234567 w/o r/Wash carefully",
+                EditPetCommandParser.MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "p/Mochi i/91234567 r/Wash w/o conditioner s/Cat x/value",
+                EditPetCommandParser.MESSAGE_INVALID_FORMAT);
+    }
     // @@author
 }
