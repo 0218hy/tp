@@ -9,8 +9,10 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class ClientName {
 
+    //@@author anderschow
     public static final String MESSAGE_CONSTRAINTS =
             "Client names must be 2-60 characters and use valid name characters.";
+    //@@author
 
     public final String fullName;
 

@@ -14,10 +14,12 @@ import seedu.address.model.client.Client;
 import seedu.address.testutil.ClientBuilder;
 
 public class ListClientsCommandTest {
+    //@@author anderschow
     private final ModelManager model = new ModelManager();
     private final Client zoe = new ClientBuilder().withName("Zoe").withPhone("91234567").build();
     private final Client amelia = new ClientBuilder().withName("amelia Tan").withPhone("87654321")
             .withEmail("amelia@example.com").withAddress("10 Sunset Road #01-02").build();
+    //@@author
 
     //@@author anderschow
     @Test

@@ -35,6 +35,7 @@ import seedu.address.model.tag.Tag;
  */
 public class EditClientCommand extends Command {
 
+    //@@author anderschow
     public static final String COMMAND_WORD = "edit-client";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the client identified "
@@ -52,15 +53,19 @@ public class EditClientCommand extends Command {
 
     public static final String MESSAGE_EDIT_CLIENT_SUCCESS = "Edited client: %1$s";
     public static final String MESSAGE_CLIENT_NOT_FOUND = "No saved client has this phone number.";
+    //@@author
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    //@@author anderschow
     public static final String MESSAGE_DUPLICATE_CLIENT =
             "A client with this phone number or email already exists.";
 
     private static final Logger logger = LogsCenter.getLogger(EditClientCommand.class);
 
     private final Phone identifier;
+    //@@author
     private final EditClientDescriptor editClientDescriptor;
 
+    //@@author anderschow
     /**
      * @param identifier current phone number of the client to edit
      * @param editClientDescriptor details to edit the client with
@@ -98,6 +103,7 @@ public class EditClientCommand extends Command {
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
                 CommandResult.DisplayType.CLIENTS);
     }
+    //@@author
 
     /**
      * Creates and returns a {@code Client} with the details of {@code clientToEdit}
@@ -115,6 +121,7 @@ public class EditClientCommand extends Command {
         return new Client(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
     }
 
+    //@@author anderschow
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -137,6 +144,7 @@ public class EditClientCommand extends Command {
                 .add("editClientDescriptor", editClientDescriptor)
                 .toString();
     }
+    //@@author
 
     /**
      * Stores the details to edit the client with. Each non-empty field value will replace the

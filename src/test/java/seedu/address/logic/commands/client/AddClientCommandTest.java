@@ -90,10 +90,12 @@ public class AddClientCommandTest {
      * A default model stub that has all of the methods failing.
      */
     private class ModelStub implements Model {
+        //@@author anderschow
         @Override
         public void sortFilteredClientList() {
             throw new AssertionError("This method should not be called.");
         }
+        //@@author
 
         @Override
         public void setAppointments(List<Appointment> appointments) {

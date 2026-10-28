@@ -10,9 +10,11 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Phone {
 
 
+    //@@author anderschow
     public static final String MESSAGE_CONSTRAINTS =
             "The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.";
     public static final String VALIDATION_REGEX = "[89][0-9]{7}";
+    //@@author
     public final String value;
 
     /**

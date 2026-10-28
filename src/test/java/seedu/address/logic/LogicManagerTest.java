@@ -280,11 +280,13 @@ public class LogicManagerTest {
         assertCommandException(deleteClientCommand, MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
     }
 
+    //@@author anderschow
     @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListClientsCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListClientsCommand.MESSAGE_SUCCESS, model);
     }
+    //@@author
 
     @Test
     public void execute_addPet_parsesAddsAndSavesProfile() throws Exception {
@@ -452,6 +454,7 @@ public class LogicManagerTest {
     }
     //@@author
 
+    //@@author anderschow
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
@@ -461,6 +464,7 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE);
     }
+    //@@author
 
     @Test
     public void execute_addPetSaveFails_restoresModel() {

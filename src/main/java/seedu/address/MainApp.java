@@ -32,7 +32,9 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
+    //@@author anderschow
     public static final String VERSION = "V1.4";
+    //@@author
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");

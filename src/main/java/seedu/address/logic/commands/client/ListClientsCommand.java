@@ -15,6 +15,7 @@ import seedu.address.model.client.Client;
 
 /** Lists clients alphabetically, optionally matching a keyword across their contact details. */
 public class ListClientsCommand extends Command {
+    //@@author anderschow
     public static final String COMMAND_WORD = "list-clients";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Lists all clients or searches their name, phone, email and address.\n"
@@ -29,6 +30,7 @@ public class ListClientsCommand extends Command {
     private static final Logger logger = LogsCenter.getLogger(ListClientsCommand.class);
 
     private final String keyword;
+    //@@author
 
     //@@author anderschow
     /** Creates a command that lists every client. */
