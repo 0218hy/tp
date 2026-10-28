@@ -171,7 +171,7 @@ public class AddAppointmentCommandTest {
         // Interval geometry is covered in AppointmentTest; here test exception translation and atomic failure.
         model.updateFilteredAppointmentList(appointment -> false);
         CommandException exception = assertFailure(create("07-10-2026", "10:30", "11:30"), CLOCK,
-                AddAppointmentCommand.MESSAGE_OVERLAP);
+                "This appointment overlaps an existing booking for Mochi on 07-10-2026, 11:00–12:00.");
         assertTrue(exception.getCause() instanceof OverlappingAppointmentException);
     }
 
