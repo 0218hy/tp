@@ -1400,20 +1400,20 @@ testers are expected to do more *exploratory* testing.
 
 ### Deleting an appointment
 
-1. Deleting by date and time
+1. Deleting by date and start time
 
    1. Prerequisites: A saved appointment exists on `01-01-9999` from `10:00` to `11:00`.
 
-   2. Test case: `delete-appointment d/01-01-9999 t/10:30`<br>
-      Expected: The appointment is deleted and the status message confirms the deleted appointment.
+   2. Test case: `delete-appointment d/01-01-9999 st/10:30`<br>
+      Expected: No appointment is deleted because the supplied time is not an appointment start time.
 
-   3. Test case: `delete-appointment d/01-01-9999 t/10:00`<br>
-      Expected: The appointment is deleted; the start time is included in the matching interval.
+   3. Test case: `delete-appointment d/01-01-9999 st/10:00`<br>
+      Expected: The appointment is deleted because the supplied time is its exact start time.
 
-   4. Test case: `delete-appointment d/01-01-9999 t/11:00`<br>
-      Expected: No appointment is deleted; the end time is excluded from the matching interval.
+   4. Test case: `delete-appointment d/01-01-9999 st/11:00`<br>
+      Expected: No appointment is deleted because no appointment starts at the supplied time.
 
-   5. Test case: `delete-appointment d/02-01-9999 t/10:30`<br>
+   5. Test case: `delete-appointment d/02-01-9999 st/10:00`<br>
       Expected: No appointment is deleted because no appointment matches the supplied date and time.
 
 2. Deleting by appointment index
@@ -1431,10 +1431,13 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `delete-appointment`<br>
       Expected: The command is rejected because no selector was provided.
 
-   2. Test case: `delete-appointment 1 d/01-01-9999 t/10:30`<br>
+   2. Test case: `delete-appointment 1 d/01-01-9999 st/10:30`<br>
       Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
 
-   3. Test case: `delete-appointment d/31-02-2026 t/10:30` or `delete-appointment d/01-01-9999 t/25:00`<br>
+   3. Test case: `delete-appointment 12-12-1234 st/10:30`<br>
+      Expected: The command is rejected because the date is missing its `d/` prefix.
+
+   4. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
       Expected: The command is rejected because the date or time is invalid.
 
 4. Persistence after deletion

@@ -40,7 +40,7 @@ public class HelpCommandTest {
                 "add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE"));
         assertTrue(commandReference.contains("list-appointments"));
         assertTrue(commandReference.contains("delete-appointment INDEX"));
-        assertTrue(commandReference.contains("delete-appointment d/DD-MM-YYYY t/HH:mm"));
+        assertTrue(commandReference.contains("delete-appointment d/DD-MM-YYYY st/HH:mm"));
         assertTrue(commandReference.contains("clear"));
         assertTrue(commandReference.contains("exit"));
     }

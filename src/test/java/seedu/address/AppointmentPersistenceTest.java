@@ -102,7 +102,7 @@ public class AppointmentPersistenceTest {
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {
         logic.execute(COMMAND);
 
-        logic.execute("delete-appointment d/01-01-9999 t/10:30");
+        logic.execute("delete-appointment d/01-01-9999 st/10:00");
 
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
         assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
