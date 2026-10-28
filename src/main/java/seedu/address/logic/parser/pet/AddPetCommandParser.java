@@ -1,6 +1,7 @@
 package seedu.address.logic.parser.pet;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_BREED;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
@@ -31,15 +32,16 @@ import seedu.address.model.pet.Species;
  * Owner lookup and duplicate checks are performed when the command executes.
  */
 public class AddPetCommandParser implements Parser<AddPetCommand> {
-    public static final String MESSAGE_MISSING_FIELD = "Missing required field: %s.";
+    public static final String MESSAGE_MISSING_FIELD = "Missing required field: %s.\n"
+            + "Use the command format below:\n" + AddPetCommand.MESSAGE_USAGE;
     public static final String MESSAGE_DUPLICATE_FIELD = "Each pet field may be specified only once.";
     public static final String MESSAGE_INVALID_FORMAT =
-            "Invalid command format. Check the command syntax and try again.";
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddPetCommand.MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_OWNER = Phone.MESSAGE_CONSTRAINTS;
     public static final String MESSAGE_INVALID_SPECIES =
             "Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.";
     private static final String FIELD_PET_NAME = "PET_NAME";
-    private static final String FIELD_OWNER_IDENTIFIER = "OWNER_IDENTIFIER";
+    private static final String FIELD_OWNER_IDENTIFIER = "OWNER_PHONE";
     private static final String FIELD_SPECIES = "SPECIES";
     private static final String FIELD_REQUIREMENTS = "REQUIREMENTS";
     private static final String PARAMETER_PREFIX_REGEX = "(?:^|\\s)[a-zA-Z]/";

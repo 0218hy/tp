@@ -1,6 +1,7 @@
 package seedu.address.logic.parser.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
@@ -93,12 +94,14 @@ public class AddPetCommandParserTest {
     @Test
     public void parse_missingOrRepeatedFields_throwsParseException() {
         // EP: required field omitted
-        assertThrows(ParseException.class, "Missing required field: PET_NAME.", () ->
+        assertThrows(ParseException.class,
+                String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, "PET_NAME"), () ->
                 parser.parse(" i/91234567 s/Dog r/Calm with baths"));
 
         // EP: required pet-name field contains an empty value
         // BVA: zero pet-name characters, immediately below the 1-character minimum
-        assertThrows(ParseException.class, "Missing required field: PET_NAME.", () ->
+        assertThrows(ParseException.class,
+                String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, "PET_NAME"), () ->
                 parser.parse("p/ i/91234567 s/Dog r/Calm with baths"));
 
         // EP: field supplied more than once
@@ -110,7 +113,7 @@ public class AddPetCommandParserTest {
     public void parse_eachRequiredFieldMissing_throwsParseException() {
         // EP: each required field omitted in turn
         List<String> fields = List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths");
-        List<String> labels = List.of("PET_NAME", "OWNER_IDENTIFIER", "SPECIES", "REQUIREMENTS");
+        List<String> labels = List.of("PET_NAME", "OWNER_PHONE", "SPECIES", "REQUIREMENTS");
         for (int index = 0; index < fields.size(); index++) {
             String args = VALID_FIELDS.replace(fields.get(index), "");
             String expectedMessage = String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, labels.get(index));
@@ -213,7 +216,8 @@ public class AddPetCommandParserTest {
     @Test
     public void parse_unknownPrefix_throwsParseException() {
         // EP: unsupported command prefix
-        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddPetCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
                 parser.parse("p/Mochi i/91234567 s/Dog x/extra r/Calm with baths"));
     }
 
