@@ -19,6 +19,7 @@ public class DeleteAppointmentCommandParserTest {
     private static final String VALID_DATE_TIME = "d/01-01-2020 t/10:30";
     private final DeleteAppointmentCommandParser parser = new DeleteAppointmentCommandParser();
 
+    //@@author chunghean
     @Test
     public void parse_validIndex_success() {
         assertParseSuccess(parser, "1", new DeleteAppointmentCommand(Index.fromOneBased(1)));
@@ -55,6 +56,7 @@ public class DeleteAppointmentCommandParserTest {
         assertParseFailure(parser, "1 t/10:30",
                 DeleteAppointmentCommandParser.MESSAGE_INDEX_AND_DATE_TIME);
     }
+    //@@author
 
     //@@author 0218hy
     @Test
@@ -88,6 +90,7 @@ public class DeleteAppointmentCommandParserTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void parse_duplicatePrefix_failure() {
         assertParseFailure(parser, VALID_DATE_TIME + " d/02-01-2020",
@@ -100,4 +103,5 @@ public class DeleteAppointmentCommandParserTest {
     public void parse_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
+    //@@author
 }

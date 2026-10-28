@@ -23,6 +23,7 @@ public class EditClientCommandParserTest {
     private final EditClientCommandParser parser = new EditClientCommandParser();
     private final Phone identifier = new Phone("91234567");
 
+    //@@author anderschow
     @Test
     public void parse_generatedDescriptor_updatesPhoneWithoutReplacingIdentifier() {
         EditClientDescriptor descriptor = new EditClientDescriptorBuilder().withPhone("89998888").build();
@@ -83,4 +84,5 @@ public class EditClientCommandParserTest {
         assertParseFailure(parser, "i/91234567 p/89998888 p/87776666",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NEW_PHONE));
     }
+    //@@author
 }

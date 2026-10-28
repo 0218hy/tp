@@ -21,6 +21,7 @@ public class AppointmentListTest {
     private static final Appointment FIRST = create("10:00", "11:00");
     private static final Appointment SECOND = create("11:00", "12:00");
 
+    //@@author chunghean
     @Test
     public void equalsHashCodeAndToString_compareAppointmentContents() {
         AppointmentList appointments = new AppointmentList();
@@ -53,7 +54,9 @@ public class AppointmentListTest {
         assertEquals(new Phone("99999999"), appointments.getAppointmentList().get(0).getOwnerPhone());
         assertEquals(new Phone("81234567"), appointments.getAppointmentList().get(1).getOwnerPhone());
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void updatePetName_updatesAllMatchingAppointmentsAndPreservesOthers() {
         AppointmentList appointments = new AppointmentList();
@@ -82,9 +85,12 @@ public class AppointmentListTest {
         assertThrows(NullPointerException.class, () -> appointments.updatePetName(null, new PetName("Rex")));
         assertThrows(NullPointerException.class, () -> appointments.updatePetName(pet, null));
     }
+    //@@author
 
+    //@@author chunghean
     private static Appointment create(String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", new AppointmentDate("01-01-2020"),
                 new StartTime(start), new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

@@ -25,6 +25,7 @@ public class ClientName {
         fullName = name;
     }
 
+    //@@author anderschow
     /**
      * Returns true if a given string is a valid name.
      */
@@ -34,6 +35,7 @@ public class ClientName {
         }
         return !test.isBlank() && test.matches("[A-Za-z .'-]+");
     }
+    //@@author
 
 
     @Override

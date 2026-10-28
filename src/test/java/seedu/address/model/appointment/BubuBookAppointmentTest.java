@@ -84,6 +84,7 @@ public class BubuBookAppointmentTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void removeAppointment_existingAppointment_removesOnlyTarget() {
         book.addAppointment(APPOINTMENT);
@@ -98,6 +99,7 @@ public class BubuBookAppointmentTest {
     public void removeAppointment_missingAppointment_throwsException() {
         assertThrows(AppointmentNotFoundException.class, () -> book.removeAppointment(APPOINTMENT));
     }
+    //@@author
 
     //@@author 0218hy
     @Test

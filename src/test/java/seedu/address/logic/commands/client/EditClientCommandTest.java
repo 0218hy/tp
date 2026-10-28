@@ -129,6 +129,7 @@ public class EditClientCommandTest {
         assertCommandFailure(editCommand, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
 
+    //@@author anderschow
     @Test
     public void execute_unknownPhone_failure() {
         EditClientCommand command = new EditClientCommand(new Phone("89998888"),
@@ -144,6 +145,7 @@ public class EditClientCommandTest {
                 new EditClientDescriptorBuilder().withName("Zoe Tan").build()).execute(model);
         assertEquals("Zoe Tan", model.getBubuBook().getClientList().get(1).getName().fullName);
     }
+    //@@author
     @Test
     public void equals() {
         final EditClientCommand standardCommand = new EditClientCommand(firstPhone, DESC_AMY);
@@ -180,6 +182,7 @@ public class EditClientCommandTest {
     }
 
 
+    //@@author anderschow
     @Test
     public void execute_changeOnlyPhoneOrEmailToHiddenClient_failure() {
         Client other = model.getBubuBook().getClientList().get(1);
@@ -191,5 +194,6 @@ public class EditClientCommandTest {
         assertCommandFailure(duplicateEmail, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
         assertCommandFailure(duplicatePhone, model, EditClientCommand.MESSAGE_DUPLICATE_CLIENT);
     }
+    //@@author
 
 }

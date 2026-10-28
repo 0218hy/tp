@@ -19,6 +19,7 @@ public class ListClientsCommandTest {
     private final Client amelia = new ClientBuilder().withName("amelia Tan").withPhone("87654321")
             .withEmail("amelia@example.com").withAddress("10 Sunset Road #01-02").build();
 
+    //@@author anderschow
     @Test
     public void execute_noQuery_resetsFilterAndSortsWithoutChangingRecords() throws Exception {
         model.addClient(zoe);
@@ -46,7 +47,6 @@ public class ListClientsCommandTest {
         }
     }
 
-    //@@author anderschow
     @Test
     public void execute_noMatches_successWithEmptyList() {
         model.addClient(amelia);
@@ -54,11 +54,11 @@ public class ListClientsCommandTest {
                 .execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }
-    //@@author
 
     @Test
     public void execute_emptyBubu_success() {
         assertEquals("Listed all clients.", new ListClientsCommand().execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }
+    //@@author
 }

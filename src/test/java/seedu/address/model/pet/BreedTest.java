@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 public class BreedTest {
 
+    //@@author khangsian0412
     @Test
     public void isValidBreed_boundaryLengths() {
         // BVA: check values immediately below, at, and above the 2- and 50-char limits.
@@ -18,4 +19,5 @@ public class BreedTest {
         assertTrue(Breed.isValidBreed("B".repeat(50)));
         assertFalse(Breed.isValidBreed("B".repeat(51)));
     }
+    //@@author
 }

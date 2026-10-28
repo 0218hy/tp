@@ -30,6 +30,7 @@ public class ListClientsCommand extends Command {
 
     private final String keyword;
 
+    //@@author anderschow
     /** Creates a command that lists every client. */
     public ListClientsCommand() {
         keyword = null;
@@ -68,7 +69,6 @@ public class ListClientsCommand extends Command {
                 : String.format(MESSAGE_FOUND, count), CommandResult.DisplayType.CLIENTS);
     }
 
-    //@@author anderschow
     /**
      * Checks whether the client's name, phone, email or address contains the search keyword, ignoring case.
      * Only called when this command has a non-null keyword.
@@ -83,11 +83,11 @@ public class ListClientsCommand extends Command {
                 || client.getEmail().value.toLowerCase(Locale.ROOT).contains(query)
                 || client.getAddress().value.toLowerCase(Locale.ROOT).contains(query);
     }
-    //@@author
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ListClientsCommand otherCommand
                 && Objects.equals(keyword, otherCommand.keyword);
     }
+    //@@author
 }

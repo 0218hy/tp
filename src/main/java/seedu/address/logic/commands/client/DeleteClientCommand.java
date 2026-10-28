@@ -54,9 +54,7 @@ public class DeleteClientCommand extends Command {
         this.phoneNumber = requireNonNull(phoneNumber);
         this.targetIndex = null;
     }
-    //@@author
 
-    //@@author chunghean
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null

@@ -84,6 +84,7 @@ public class ResultDisplay extends UiPart<Region> {
         helpDisplay.setVvalue(0);
     }
 
+    //@@author khangsian0412
     private void showFeedbackDisplay() {
         resultDisplay.setManaged(true);
         resultDisplay.setVisible(true);
@@ -110,5 +111,6 @@ public class ResultDisplay extends UiPart<Region> {
         }
         return "help-command-name";
     }
+    //@@author
 
 }

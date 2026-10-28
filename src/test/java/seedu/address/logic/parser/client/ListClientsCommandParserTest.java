@@ -19,9 +19,7 @@ public class ListClientsCommandParserTest {
             assertParseSuccess(parser, " q/" + keyword + "  ", new ListClientsCommand(keyword));
         }
     }
-    //@@author
 
-    //@@author anderschow
     @Test
     public void parse_invalidQuery_failure() {
         for (String keyword : new String[]{"", "   ", "a".repeat(61), "a_b", "a/b", "a!", "é", "a\tb"}) {

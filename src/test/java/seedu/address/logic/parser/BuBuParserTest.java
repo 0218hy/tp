@@ -56,13 +56,16 @@ public class BuBuParserTest {
         assertEquals(new DeleteClientCommand(INDEX_FIRST_CLIENT), command);
     }
 
+    //@@author khangsian0412
     @Test
     public void parseCommand_deletePet() throws Exception {
         DeletePetCommand command = (DeletePetCommand) parser.parseCommand(
                 DeletePetCommand.COMMAND_WORD + " p/Milo i/98765432");
         assertEquals(new DeletePetCommand(new PetName("Milo"), new Phone("98765432")), command);
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void parseCommand_deleteAppointmentByIndex() throws Exception {
         DeleteAppointmentCommand command = (DeleteAppointmentCommand) parser.parseCommand(
@@ -107,6 +110,7 @@ public class BuBuParserTest {
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD + " i/12"));
     }
+    //@@author
 
     //@@author 0218hy
     @Test
@@ -123,12 +127,14 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
     }
 
+    //@@author anderschow
     @Test
     public void parseCommand_removedClientCommands_throwsUnknownCommand() {
         for (String input : List.of("find", "find Alex", "list", "list q/Alex")) {
             assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(input));
         }
     }
+    //@@author
 
     @Test
     public void parseCommand_help() throws Exception {

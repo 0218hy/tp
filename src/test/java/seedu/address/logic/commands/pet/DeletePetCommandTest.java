@@ -34,6 +34,7 @@ public class DeletePetCommandTest {
     private final Pet miloWithDifferentOwner = new PetBuilder(BOB).build();
     private Model model;
 
+    //@@author khangsian0412
     @BeforeEach
     public void setUp() {
         BubuBook bubuBook = new BubuBook();
@@ -53,7 +54,9 @@ public class DeletePetCommandTest {
         assertCommandSuccess(deletePetCommand, model,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void execute_nameWithDifferentCase_deletesMatchingPet() {
         // EP: pet-name lookup ignores case, matching edit-pet behavior.
@@ -87,6 +90,7 @@ public class DeletePetCommandTest {
         assertCommandSuccess(deletePetCommand, model,
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
+    //@@author
 
     //@@author khangsian0412
     @Test
@@ -100,9 +104,7 @@ public class DeletePetCommandTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, miloWithDifferentOwner.getName()),
                 expectedModel);
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void execute_indexTargetsFirstPetInFilteredList_notFirstPetInAllPets() {
         // EP: index deletion uses the visible filtered list, not the full pet list.
@@ -118,9 +120,7 @@ public class DeletePetCommandTest {
         assertTrue(model.hasPet(milo));
         assertFalse(model.hasPet(miloWithDifferentOwner));
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void execute_matchingNameWithDifferentOwner_deletesOnlyMatchingPet() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());
@@ -130,27 +130,21 @@ public class DeletePetCommandTest {
         assertFalse(model.hasPet(milo));
         assertTrue(model.hasPet(miloWithDifferentOwner));
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void execute_petDoesNotExist_throwsCommandException() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(new PetName("Luna"), ALICE.getPhone());
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void execute_matchingNameWithWrongOwnerPhone_throwsCommandException() {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), new Phone("81111112"));
 
         assertCommandFailure(deletePetCommand, model, DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
-    //@@author khangsian0412
     @Test
     public void execute_emptyPetList_throwsCommandException() {
         Model emptyModel = new ModelManager();
@@ -168,6 +162,7 @@ public class DeletePetCommandTest {
     }
     //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_petHiddenByFilter_deletesPet() {
         model.updateFilteredPetList(pet -> false);
@@ -180,7 +175,6 @@ public class DeletePetCommandTest {
                 String.format(DeletePetCommand.MESSAGE_DELETE_PET_SUCCESS, milo.getName()), expectedModel);
     }
 
-    //@@author khangsian0412
     @Test
     public void execute_deletedPetAgain_throwsCommandException() throws CommandException {
         DeletePetCommand deletePetCommand = new DeletePetCommand(milo.getName(), ALICE.getPhone());

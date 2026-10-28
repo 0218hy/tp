@@ -20,6 +20,7 @@ import seedu.address.model.pet.Species;
 public class EditPetCommandParserTest {
     private final EditPetCommandParser parser = new EditPetCommandParser();
 
+    //@@author khangsian0412
     @Test
     public void parse_optionalFields_createsCommand() throws Exception {
         EditPetDescriptor descriptor = new EditPetDescriptor();
@@ -121,4 +122,5 @@ public class EditPetCommandParserTest {
     public void parse_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
+    //@@author
 }

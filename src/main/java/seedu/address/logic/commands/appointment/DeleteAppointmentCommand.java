@@ -57,12 +57,14 @@ public class DeleteAppointmentCommand extends Command {
         this.targetTime = requireNonNull(targetTime);
     }
 
+    //@@author chunghean
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null
                 ? Optional.empty()
                 : Optional.of(CommandResult.DisplayType.APPOINTMENTS);
     }
+    //@@author
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
