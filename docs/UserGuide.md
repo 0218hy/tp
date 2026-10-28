@@ -63,7 +63,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
   For example, if the command specifies `n/NAME i/PHONE_NUMBER`, `i/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extra arguments after `help`, `exit`, and `clear` are ignored.<br>
-  For example, `help 123` is interpreted as `help`. However, `list-appointments` rejects extra arguments.
+  For example, `help 123` is interpreted as `help`. However, `list-appointments` accepts only an optional `d/` date filter.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -503,34 +503,40 @@ The command makes no changes when it cannot be completed.
 
 ### Listing appointments: `list-appointments`
 
-Shows ongoing and future appointments in the appointment panel, ordered by date and start time. It reads all saved bookings rather than depending on the currently displayed list.
+Shows ongoing and future appointments in the appointment panel, or all appointments on a specified date, ordered by date and start time. It reads all saved bookings rather than depending on the currently displayed list.
 
 #### Format
 
 ```text
-list-appointments
+list-appointments [d/DD-MM-YYYY]
 ```
 
 #### Parameters and validation
 
-* This command takes no parameters. Extra arguments are rejected; a `d/` date filter is not supported.
+* Without a date filter, only ongoing and future appointments are shown, using Singapore time. Appointments that have already ended, including earlier today or exactly now, are excluded.
+* `d/` — optional date in `DD-MM-YYYY` format. Shows every appointment on that date, including completed appointments. Past dates are allowed.
+* Only one date may be supplied. Invalid dates, extra arguments, phone filters, and pet-name filters are rejected.
 
 #### Examples
 
 * `list-appointments` — displays the current ongoing and future schedule.
+* `list-appointments d/28-10-2026` — displays all appointments on 28 October 2026, including any that have already ended.
 
 #### Success and other behavior
 
 * On success, BuBu displays `Ongoing or future appointments found: N.` or `No ongoing or future appointments.`
-* An appointment is included if its end time is after the time when the command runs, using Singapore time. Run the command again to refresh this time-based selection.
+* With a date filter, BuBu displays `Appointments on DD-MM-YYYY found: N.` or `No appointments on DD-MM-YYYY.`
+* Without a date filter, an appointment is included if its end time is after the time when the command runs, using Singapore time. Run the command again to refresh this time-based selection.
 * Appointments have date headings and continuous record numbers. Cards show service and timing, pet and owner details, address and care notes saved with the booking.
-* Completed appointments remain saved but are hidden. No matches is a successful result; this command does not save or change records.
+* Completed appointments remain saved and can be viewed with the date filter. No matches is a successful result; this command does not save or change records.
 
 #### Error handling
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format — any argument is supplied.
+* Invalid command format — unsupported arguments or extra text are supplied.
+* Invalid date — the date is missing, impossible, or not in `DD-MM-YYYY` format.
+* Duplicate date prefix — more than one `d/` parameter is supplied.
 * `Unable to verify existing records. Please contact support.` — commands are blocked because the data file was invalid at startup.
 
 ### Editing an appointment: `edit-appointment`
@@ -727,7 +733,7 @@ Action | Format, Examples
 **Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
-**List appointments** | `list-appointments`
+**List appointments** | `list-appointments [d/DD-MM-YYYY]`
 **Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 t/10:30`
 **Clear** | `clear`
 **Help** | `help`
