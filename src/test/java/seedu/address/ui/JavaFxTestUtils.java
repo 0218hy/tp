@@ -4,6 +4,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 
 /**
  * Utilities for executing assertions on the JavaFX application thread.
@@ -40,6 +44,23 @@ public final class JavaFxTestUtils {
         if (thrown.get() != null) {
             throw new AssertionError(thrown.get());
         }
+    }
+
+    /** Applies CSS and lays out the root of the given scene. */
+    public static void layoutScene(Scene scene) {
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+    }
+
+    /** Returns the visible list cell at the given index. */
+    public static <T extends ListCell<?>> T getCellAt(ListView<?> listView, int index,
+            Class<T> cellClass) {
+        for (Node node : listView.lookupAll(".list-cell")) {
+            if (cellClass.isInstance(node) && ((ListCell<?>) node).getIndex() == index) {
+                return cellClass.cast(node);
+            }
+        }
+        throw new AssertionError("No visible list cell at index " + index);
     }
 
     private static void startToolkitIfNeeded() {
