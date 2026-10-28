@@ -103,6 +103,7 @@ public class EditClientCommandTest {
                 Messages.format(editedClient));
 
         Model expectedModel = new ModelManager(new BubuBook(model.getBubuBook()), new UserPrefs());
+        expectedModel.updateFilteredClientList(clientInFilteredList::equals);
         expectedModel.setClient(model.getFilteredClientList().get(0), editedClient);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel, CommandResult.DisplayType.CLIENTS);

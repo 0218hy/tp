@@ -260,7 +260,7 @@ or search filter. It rejects unknown identifiers and phone/email conflicts with 
 appointment owner snapshots while retaining their other saved owner details.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
-Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
+Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
 records and restores the previous records if saving fails. No client-panel guard is needed because selection does
 not depend on a displayed index.
 
@@ -285,7 +285,7 @@ The execution flow is:
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
 5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. If the pet name
    changed, `BubuBook` also updates that pet's name in matching appointment snapshots; the other appointment snapshot
-   details remain unchanged. The command then resets the pet filter to show all pets and returns a success
+   details remain unchanged. The command preserves the active pet filter and returns a success
    `CommandResult`.
 6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
    failed write does not leave an in-memory edit that was not persisted.
@@ -683,7 +683,7 @@ Use case ends.
     - Steps 7a1-7a2 are repeated until the details are valid.
     - Use case resumes from step 8.
 - 7b. The time slot overlaps an existing appointment.
-    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b1. BuBu identifies one conflicting saved appointment by pet name, date, and time range, even if it is hidden by the current list filter.
     - 7b2. Groomer enters a different time slot.
     - Steps 7b1-7b2 are repeated until the slot is free.
     - Use case resumes from step 8.
@@ -1126,10 +1126,10 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: Run `list-pets`, then `edit-client i/91234567 n/Zoe Tan`.<br>
       Expected: The client's name changes to Zoe Tan, with all other details unchanged. The status message
-      begins with `Edited client:` and the full client list is displayed.
+      begins with `Edited client:` and the client panel is displayed with its existing filter preserved.
 
    3. Test case: Run `list-clients q/zzzznomatch` to hide the client, then `edit-client i/91234567 t/`.<br>
-      Expected: The same client's tags are cleared despite being hidden. The full client list is displayed again.
+      Expected: The same client's tags are cleared despite being hidden. The client panel remains filtered with no matches.
 
    4. Test case: Run `list-appointments`, then `edit-client i/91234567 n/Zoe Lim`.<br>
       Expected: The edit succeeds and the client list replaces the appointment panel.
@@ -1391,12 +1391,22 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `list-appointments`<br>
       Expected: Only ongoing and future appointments are shown, ordered by date and start time. Completed appointments
-      remain saved but are not displayed.
+      remain saved but are not displayed, including appointments that ended earlier today or exactly now.
 
-2. Listing with parameters
+2. Listing by date
 
    1. Test case: `list-appointments d/01-01-9999`<br>
-      Expected: The command is rejected because `list-appointments` does not accept parameters.
+      Expected: Only appointments on 1 January 9999 are shown in start-time order, or a date-specific empty message.
+
+   2. Test case: Use `list-appointments d/DD-MM-YYYY` with a saved past date or today's date.<br>
+      Expected: All appointments on that date are shown, including completed appointments.
+
+   3. Test case: Run `list-appointments` after viewing a date.<br>
+      Expected: The date filter is replaced by the ongoing/future view; completed appointments are hidden again.
+
+   4. Test case: `list-appointments i/91234567`, `list-appointments p/BuBu`,
+      `list-appointments d/31-02-2026`, or `list-appointments d/01-01-2026 d/02-01-2026`<br>
+      Expected: The command is rejected. Only one valid date filter is supported.
 
 ### Deleting an appointment
 

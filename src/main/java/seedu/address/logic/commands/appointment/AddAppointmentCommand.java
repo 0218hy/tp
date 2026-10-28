@@ -42,7 +42,8 @@ public class AddAppointmentCommand extends Command {
             "This phone number does not identify a unique registered owner.";
     public static final String MESSAGE_PET_NOT_FOUND = "This pet is not registered under the specified owner.";
     public static final String MESSAGE_PAST_START = "Appointment must start in the future (Singapore time).";
-    public static final String MESSAGE_OVERLAP = "This appointment overlaps an existing appointment.";
+    public static final String MESSAGE_OVERLAP =
+            "This appointment overlaps an existing booking for %s on %s, %s–%s.";
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
     private static final Logger logger = LogsCenter.getLogger(AddAppointmentCommand.class);
 
@@ -100,7 +101,9 @@ public class AddAppointmentCommand extends Command {
             model.addAppointment(toSchedule);
         } catch (OverlappingAppointmentException e) {
             logger.fine(() -> "Appointment rejected due to overlap: " + date + " " + startTime + "-" + endTime);
-            throw new CommandException(MESSAGE_OVERLAP, e);
+            Appointment conflict = e.getConflictingAppointment();
+            throw new CommandException(String.format(MESSAGE_OVERLAP, conflict.getPetName(), conflict.getDate(),
+                    conflict.getStartTime(), conflict.getEndTime()), e);
         }
         logger.info(() -> "Appointment added to model: " + date + " " + startTime + "-" + endTime);
         String details = toSchedule.getPetName() + "; Owner phone: " + toSchedule.getOwnerPhone()

@@ -153,11 +153,12 @@ public class BuBuParserTest {
     public void parseCommand_listAppointments() throws Exception {
         assertTrue(parser.parseCommand("list-appointments") instanceof ListAppointmentsCommand);
         assertTrue(parser.parseCommand("  list-appointments  \t") instanceof ListAppointmentsCommand);
+        assertTrue(parser.parseCommand("list-appointments d/18-09-2026") instanceof ListAppointmentsCommand);
     }
 
     @Test
     public void parseCommand_listAppointmentsWithArguments_throwsParseException() {
-        for (String arguments : List.of("d/18-09-2026", "unexpected", "18-09-2026", "i/91234567")) {
+        for (String arguments : List.of("unexpected", "18-09-2026", "i/91234567", "p/BuBu")) {
             String message = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListAppointmentsCommand.MESSAGE_USAGE);
             assertThrows(ParseException.class, message, () -> parser.parseCommand("list-appointments " + arguments));
         }

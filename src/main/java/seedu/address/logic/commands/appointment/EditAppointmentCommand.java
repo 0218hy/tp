@@ -10,7 +10,6 @@ import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_SERVICE;
 import static seedu.address.logic.parser.appointment.AppointmentCliSyntax.PREFIX_START_TIME;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_APPOINTMENTS;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -168,8 +167,8 @@ public class EditAppointmentCommand extends Command {
      *
      * @param model model containing the appointment and participant records
      * @return the result message describing the edited appointment
-     * @throws CommandException if the target or participants cannot be found, the start is not in the future,
-     *                          or the edited appointment overlaps another appointment
+     * @throws CommandException if the target or participants cannot be found, the duration is invalid,
+     *                          the start is not in the future, or the edited appointment overlaps another appointment
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
@@ -206,7 +205,6 @@ public class EditAppointmentCommand extends Command {
                     + "-" + editedAppointment.getEndTime());
             throw new CommandException(MESSAGE_OVERLAP, e);
         }
-        model.updateFilteredAppointmentList(PREDICATE_SHOW_ALL_APPOINTMENTS);
         logger.info(() -> "edit-appointment: appointment updated in model; slot changed="
                 + !appointmentToEdit.isSameAppointment(editedAppointment) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(editedAppointment)));

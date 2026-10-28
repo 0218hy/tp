@@ -134,6 +134,53 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void execute_ongoingFutureFilter_keepsCompletedAppointmentsHidden() throws Exception {
+        Appointment yesterday = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("06-10-2026"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        Appointment earlierToday = createAppointment(OWNER_PHONE, "BuBu", ORIGINAL_DATE,
+                new StartTime("08:00"), new EndTime("09:00"), Service.FULL_GROOM);
+        Appointment endingNow = createAppointment(OWNER_PHONE, "BuBu", ORIGINAL_DATE,
+                new StartTime("09:00"), new EndTime("10:00"), Service.FULL_GROOM);
+        Appointment startingNow = createAppointment(OWNER_PHONE, "BuBu", ORIGINAL_DATE,
+                new StartTime("10:00"), new EndTime("10:30"), Service.FULL_GROOM);
+        model.addAppointment(yesterday);
+        model.addAppointment(earlierToday);
+        model.addAppointment(endingNow);
+        model.addAppointment(startingNow);
+        new ListAppointmentsCommand(CLOCK).execute(model);
+
+        new EditAppointmentCommand(Index.fromOneBased(2), descriptorWithEndTime("11:30"), CLOCK).execute(model);
+
+        Appointment edited = model.getBubuBook().getAppointmentList().getFirst();
+        assertEquals(new EndTime("11:30"), edited.getEndTime());
+        assertEquals(List.of(startingNow, edited), model.getFilteredAppointmentList());
+        assertEquals(5, model.getBubuBook().getAppointmentList().size());
+    }
+
+    @Test
+    public void execute_dateFilter_reevaluatesRescheduledAppointment() throws Exception {
+        Appointment tomorrow = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("08-10-2026"),
+                new StartTime("12:00"), new EndTime("13:00"), Service.FULL_GROOM);
+        model.addAppointment(tomorrow);
+        model.updateFilteredAppointmentList(appointment -> appointment.getDate().equals(ORIGINAL_DATE));
+        new EditAppointmentCommand(Index.fromOneBased(1), descriptorWithEndTime("11:30"), CLOCK).execute(model);
+        assertEquals(1, model.getFilteredAppointmentList().size());
+        assertEquals(new EndTime("11:30"), model.getFilteredAppointmentList().getFirst().getEndTime());
+
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setDate(tomorrow.getDate());
+        new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK).execute(model);
+        assertTrue(model.getFilteredAppointmentList().isEmpty());
+        assertEquals(2, model.getBubuBook().getAppointmentList().size());
+
+        descriptor.setDate(ORIGINAL_DATE);
+        new EditAppointmentCommand(tomorrow.getDate(), ORIGINAL_START, descriptor, CLOCK).execute(model);
+        assertEquals(1, model.getFilteredAppointmentList().size());
+        assertEquals(ORIGINAL_DATE, model.getFilteredAppointmentList().getFirst().getDate());
+    }
+
+    @Test
     public void execute_identifierEdit_worksWhenAppointmentIsFilteredOut() throws Exception {
         model.updateFilteredAppointmentList(appointment -> false);
         EditAppointmentCommand command = new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START,
@@ -142,6 +189,7 @@ public class EditAppointmentCommandTest {
         command.execute(model);
 
         assertEquals(new EndTime("11:30"), model.getBubuBook().getAppointmentList().get(0).getEndTime());
+        assertTrue(model.getFilteredAppointmentList().isEmpty());
         assertTrue(command.getRequiredDisplayType().isEmpty());
     }
 
@@ -186,6 +234,48 @@ public class EditAppointmentCommandTest {
 
         assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
                 EditAppointmentCommand.MESSAGE_PET_NOT_FOUND);
+    }
+
+    @Test
+    public void execute_equalStartAndEndTimes_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("10:00");
+        descriptor.setStartTime(new StartTime("10:00"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_endBeforeStart_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:00");
+        descriptor.setStartTime(new StartTime("11:30"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_endTimeOnlyEqualsExistingStart_failure() {
+        assertInvalidTiming(descriptorWithEndTime("10:30"));
+    }
+
+    @Test
+    public void execute_startTimeOnlyEqualsExistingEnd_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setStartTime(new StartTime("11:00"));
+
+        assertInvalidTiming(descriptor);
+    }
+
+    @Test
+    public void execute_thirtyMinuteDuration_success() throws Exception {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor = descriptorWithEndTime("11:30");
+        descriptor.setStartTime(new StartTime("11:00"));
+
+        new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK).execute(model);
+
+        Appointment edited = model.getBubuBook().getAppointmentList().get(0);
+        assertEquals(new StartTime("11:00"), edited.getStartTime());
+        assertEquals(new EndTime("11:30"), edited.getEndTime());
     }
 
     @Test
@@ -353,6 +443,13 @@ public class EditAppointmentCommandTest {
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setEndTime(new EndTime(endTime));
         return descriptor;
+    }
+
+    private void assertInvalidTiming(EditAppointmentCommand.EditAppointmentDescriptor descriptor) {
+        assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
     }
 
     private void assertFailure(EditAppointmentCommand command, String expectedMessage) {

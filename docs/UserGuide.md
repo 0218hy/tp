@@ -63,7 +63,7 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
   For example, if the command specifies `n/NAME i/PHONE_NUMBER`, `i/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extra arguments after `help`, `exit`, and `clear` are ignored.<br>
-  For example, `help 123` is interpreted as `help`. However, `list-appointments` rejects extra arguments.
+  For example, `help 123` is interpreted as `help`. However, `list-appointments` accepts only an optional `d/` date filter.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -163,7 +163,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 #### Success and other behavior
 
 * On success, BuBu displays `Client added: NAME (PHONE).`
-* The client filter is reset to include all clients. The command does not switch away from a pet or appointment panel; use `list-clients` to view clients.
+* The active client filter is preserved. The new client appears only if it matches the filter. The command does not switch away from a pet or appointment panel; use `list-clients` to view all clients.
 * Changes are saved automatically. A save failure restores the previous records and displays `Unable to save client.`
 
 #### Error handling
@@ -241,7 +241,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 
 #### Success and other behavior
 
-* On success, BuBu displays `Edited client: ...` and selects the full client list.
+* On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
 * Linked pet owner profiles are updated. A phone-number change also updates linked appointment owner identifiers; other booking details remain as recorded.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
@@ -322,7 +322,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 #### Success and other behavior
 
 * On success, BuBu displays `Pet added: PET_NAME (SPECIES, BREED) under OWNER.` The breed is omitted from the message when not supplied.
-* The pet filter is reset to include all pets. The client filter and selected panel are unchanged; use `list-pets` to view pets.
+* The active pet filter is preserved. A new pet appears only if it matches the filter. The client filter and selected panel are unchanged; use `list-pets` to view all pets.
 * Changes are saved automatically. A save failure restores the previous records and displays `Unable to save a pet. Please try again.`
 
 #### Error handling
@@ -401,7 +401,7 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 #### Success and other behavior
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
-* The pet filter is reset to include all pets; the selected panel does not change.
+* The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
 * Existing appointments retain their recorded pet details. The owner is unchanged.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
@@ -498,39 +498,45 @@ The command makes no changes when it cannot be completed.
 * `This phone number does not identify a unique registered owner.` — the owner cannot be resolved.
 * `This pet is not registered under the specified owner.` — the pet does not belong to that client.
 * `Appointment must start in the future (Singapore time).` — the requested start has passed or is the current time.
-* `This appointment overlaps an existing appointment.` — the slot conflicts with a saved booking.
+* `This appointment overlaps an existing booking for PET_NAME on DD-MM-YYYY, HH:mm–HH:mm.` — the slot conflicts with the identified saved booking, even if that booking is hidden by the current list filter. If several bookings overlap, one conflicting booking is shown.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Listing appointments: `list-appointments`
 
-Shows ongoing and future appointments in the appointment panel, ordered by date and start time. It reads all saved bookings rather than depending on the currently displayed list.
+Shows ongoing and future appointments in the appointment panel, or all appointments on a specified date, ordered by date and start time. It reads all saved bookings rather than depending on the currently displayed list.
 
 #### Format
 
 ```text
-list-appointments
+list-appointments [d/DD-MM-YYYY]
 ```
 
 #### Parameters and validation
 
-* This command takes no parameters. Extra arguments are rejected; a `d/` date filter is not supported.
+* Without a date filter, only ongoing and future appointments are shown, using Singapore time. Appointments that have already ended, including earlier today or exactly now, are excluded.
+* `d/` — optional date in `DD-MM-YYYY` format. Shows every appointment on that date, including completed appointments. Past dates are allowed.
+* Only one date may be supplied. Invalid dates, extra arguments, phone filters, and pet-name filters are rejected.
 
 #### Examples
 
 * `list-appointments` — displays the current ongoing and future schedule.
+* `list-appointments d/28-10-2026` — displays all appointments on 28 October 2026, including any that have already ended.
 
 #### Success and other behavior
 
 * On success, BuBu displays `Ongoing or future appointments found: N.` or `No ongoing or future appointments.`
-* An appointment is included if its end time is after the time when the command runs, using Singapore time. Run the command again to refresh this time-based selection.
+* With a date filter, BuBu displays `Appointments on DD-MM-YYYY found: N.` or `No appointments on DD-MM-YYYY.`
+* Without a date filter, an appointment is included if its end time is after the time when the command runs, using Singapore time. Run the command again to refresh this time-based selection.
 * Appointments have date headings and continuous record numbers. Cards show service and timing, pet and owner details, address and care notes saved with the booking.
-* Completed appointments remain saved but are hidden. No matches is a successful result; this command does not save or change records.
+* Completed appointments remain saved and can be viewed with the date filter. No matches is a successful result; this command does not save or change records.
 
 #### Error handling
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format — any argument is supplied.
+* Invalid command format — unsupported arguments or extra text are supplied.
+* Invalid date — the date is missing, impossible, or not in `DD-MM-YYYY` format.
+* Duplicate date prefix — more than one `d/` parameter is supplied.
 * `Unable to verify existing records. Please contact support.` — commands are blocked because the data file was invalid at startup.
 
 ### Editing an appointment: `edit-appointment`
@@ -556,6 +562,9 @@ edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/N
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
 * The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
   appointment.
+* Editing preserves the active appointment filter. Matching appointments show their updated details; appointments
+  that no longer match remain saved but disappear from the view. Completed appointments hidden by `list-appointments`
+  remain hidden after an edit.
 
 Examples:
 
@@ -773,8 +782,8 @@ Action | Format, Examples
 **Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
-**List appointments** | `list-appointments`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY st/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 st/10:30`
+**List appointments** | `list-appointments [d/DD-MM-YYYY]`
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 t/10:30`
 **Clear** | `clear`
 **Help** | `help`
 **Exit** | `exit`
