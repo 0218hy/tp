@@ -225,6 +225,14 @@ public class EditClientCommandTest {
                 + ", editClientDescriptor=" + editClientDescriptor + "}";
         assertEquals(expected, editCommand.toString());
     }
+
+    @Test
+    public void toString_indexTarget_identifiesDisplayedIndex() {
+        EditClientDescriptor descriptor = new EditClientDescriptor();
+        EditClientCommand command = new EditClientCommand(INDEX_FIRST_CLIENT, descriptor);
+        assertEquals(EditClientCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_CLIENT
+                + ", editClientDescriptor=" + descriptor + "}", command.toString());
+    }
     //@@author
 
 

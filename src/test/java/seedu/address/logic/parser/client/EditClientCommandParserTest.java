@@ -93,6 +93,12 @@ public class EditClientCommandParserTest {
     }
 
     @Test
+    public void parse_singleTag_replacesTags() {
+        assertParseSuccess(parser, "i/91234567 t/regular",
+                new EditClientCommand(identifier, new EditClientDescriptorBuilder().withTags("regular").build()));
+    }
+
+    @Test
     public void parse_invalidFields_failure() {
         assertParseFailure(parser, "i/123 n/Alex Tan", EditClientCommandParser.MESSAGE_INVALID_CURRENT_PHONE);
         assertParseFailure(parser, "i/91234567 p/123", EditClientCommandParser.MESSAGE_INVALID_NEW_PHONE);
