@@ -149,7 +149,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 * `n/NAME` — required; 2–60 letters, spaces, apostrophes, hyphens or full stops.
 * `i/PHONE_NUMBER` — required; exactly eight digits starting with `8` or `9`, without spaces or hyphens.
-* `e/EMAIL` — required; exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
+* `e/EMAIL` — required; at most 254 characters, exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
 * `a/ADDRESS` — required; 5–120 letters, digits, spaces, commas, full stops, hyphens or `#`.
 * `t/TAG` — optional; a non-empty alphanumeric label without spaces. Repeat `t/` for multiple tags; omit it for no tags. Duplicate tags are stored once.
 * Each required prefix may appear only once. Surrounding whitespace is trimmed; blank required values are rejected.
@@ -242,7 +242,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles are updated. A phone-number change also updates linked appointment owner identifiers; other booking details remain as recorded.
+* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment times, services and other pet details remain unchanged. Completion is determined by the appointment's end time in Singapore.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -734,8 +734,9 @@ commands only update the display and do not save the file.
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
-details recorded when it was made, even when pet details or non-phone client details are later edited.
+Bookings use the same data file as their registered clients and pets. Editing a client refreshes owner details
+in ongoing and future bookings. Completed bookings preserve their recorded client details, except phone identifiers.
+Other pet details remain as recorded when the booking was made.
 Changing a client's phone number updates linked booking identifiers. Deleting a client or pet also deletes their
 linked bookings. The pet's recorded name is used for display, including its original capitalization.
 

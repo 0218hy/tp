@@ -2,6 +2,10 @@ package seedu.address.model.appointment;
 
 import static java.util.Objects.requireNonNull;
 
+//@@author anderschow
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+//@@author
 import java.util.List;
 
 import javafx.collections.FXCollections;
@@ -81,17 +85,25 @@ public class AppointmentList {
         internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
     }
 
-    /** Updates appointments when their owner's client record is replaced. */
+    //@@author
+
+    //@@author anderschow
+    /**
+     * Refreshes owner details for ongoing and future bookings in Singapore time.
+     * Completed bookings retain their details, except phone identifiers used to link records.
+     */
     public void updateOwner(Client currentOwner, Client editedOwner) {
         requireNonNull(currentOwner);
         requireNonNull(editedOwner);
-        if (currentOwner.getPhone().equals(editedOwner.getPhone())) {
-            return;
-        }
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Singapore"));
         for (int index = 0; index < internalList.size(); index++) {
             Appointment appointment = internalList.get(index);
             if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
-                internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+                if (appointment.getDate().value.atTime(appointment.getEndTime().value).isAfter(now)) {
+                    internalList.set(index, appointment.withOwner(editedOwner));
+                } else if (!currentOwner.getPhone().equals(editedOwner.getPhone())) {
+                    internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+                }
             }
         }
     }
