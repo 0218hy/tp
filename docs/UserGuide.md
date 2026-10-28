@@ -375,28 +375,31 @@ The command makes no changes when it cannot be completed.
 
 ### Editing a pet: `edit-pet`
 
-Edits a saved pet identified by its current name and owner's phone number. It searches all saved pets, regardless of the displayed list, and never transfers ownership.
+Edits a saved pet identified by its current name and owner's phone number, or by its one-based index in the displayed pet list. Name-and-phone lookup searches all saved pets, regardless of the displayed list; index lookup requires the pet list to be displayed. The command never transfers ownership.
 
 #### Format
 
 ```text
+edit-pet INDEX [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
 edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
 ```
 
 #### Parameters and validation
 
-* `p/PET_NAME` — required current name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. Lookup ignores case and extra whitespace.
-* `i/OWNER_IDENTIFIER` — required current owner's eight-digit phone number starting with `8` or `9`.
+* `INDEX` — alternatively, a positive integer referring to the pet's one-based position in the currently displayed pet list, including any owner filter. The pet list must be the active display.
+* `p/PET_NAME` — required for name-and-phone targeting; the current name must contain 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. Lookup ignores case and extra whitespace.
+* `i/OWNER_IDENTIFIER` — required with `p/`; the current owner's eight-digit phone number starting with `8` or `9`.
 * `n/NEW_PET_NAME` — optional replacement name with the same constraints. It must not match another pet under the owner after case and whitespace normalisation.
 * `s/SPECIES` — optional; `Dog`, `Cat`, `Rabbit`, `Guinea Pig` or `Other`, ignoring case. `Guinea_Pig` is also accepted.
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Use `b/` alone to remove the breed.
 * `r/REQUIREMENTS` — optional; 5–240 characters, without `/`.
-* Supply at least one update. Omitted fields are unchanged. Every prefix may appear only once.
+* Supply either `INDEX` or both `p/PET_NAME` and `i/OWNER_IDENTIFIER`, not both targeting forms. Supply at least one update. Omitted fields are unchanged. Every prefix may appear only once.
 
 #### Examples
 
 * `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` — changes the pet's name and requirements.
 * `edit-pet p/Mochi Bean i/87438807 b/` — removes the saved breed after that rename.
+* `edit-pet 1 n/Mochi Bean` — changes the name of the first pet in the displayed pet list.
 
 #### Success and other behavior
 
@@ -409,12 +412,15 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 
 The command makes no changes when it cannot be completed.
 
-* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` — a selector is absent or empty.
+* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` — the name-and-phone targeting form is incomplete.
 * `At least one field to edit must be provided.` — no update was supplied.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a supplied name, phone, species, breed or requirement is invalid.
 * `Invalid command format. Check the command syntax and try again.` — unsupported prefixes or text outside a field are supplied.
-* `No pet with the specified name and owner phone number was found.` — the selectors do not identify a saved pet.
+* `A pet index cannot be combined with pet-name or owner-phone identifiers.` — both targeting forms were supplied.
+* `The current displayed list does not match the record type selected by the index.` — the pet list is not currently displayed.
+* `The pet index provided is invalid.` — the index is outside the displayed pet list.
+* `No pet with the specified name and owner phone number was found.` — the name-and-phone selectors do not identify a saved pet.
 * `This client already has a pet named PET_NAME.` — the new name conflicts with another pet under the owner.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
@@ -724,7 +730,7 @@ Action | Format, Examples
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
-**Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
+**Edit pet** | `edit-pet INDEX [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]` or `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet 1 n/Mochi Bean`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments`
