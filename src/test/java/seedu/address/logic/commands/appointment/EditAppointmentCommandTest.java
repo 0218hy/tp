@@ -379,9 +379,9 @@ public class EditAppointmentCommandTest {
 
     private void assertInvalidTiming(EditAppointmentCommand.EditAppointmentDescriptor descriptor) {
         assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
-                EndTime.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
         assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
-                EndTime.MESSAGE_CONSTRAINTS);
+                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
     }
 
     private void assertFailure(EditAppointmentCommand command, String expectedMessage) {
