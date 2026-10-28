@@ -22,8 +22,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
     public static final String MESSAGE_DUPLICATE_OWNER = "Each owner identifier may be specified only once.";
     public static final String MESSAGE_INVALID_FORMAT =
             "Invalid command format. Check the command syntax and try again.";
-    public static final String MESSAGE_INVALID_OWNER =
-            "Owner identifier must be a valid phone number belonging to the specified client.";
+    public static final String MESSAGE_INVALID_OWNER = Phone.MESSAGE_CONSTRAINTS;
     private static final int MAX_OWNER_FIELDS = 1;
 
     /**

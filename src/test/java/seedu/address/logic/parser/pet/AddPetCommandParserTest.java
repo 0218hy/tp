@@ -155,6 +155,26 @@ public class AddPetCommandParserTest {
     }
 
     @Test
+    public void parse_invalidOwnerAndMissingPetName_reportsInvalidOwnerFirst() {
+        // EP: invalid supplied owner phone with earlier and later required fields omitted
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
+                parser.parse("i/1111"));
+    }
+
+    @Test
+    public void parse_otherInvalidSuppliedFieldsAndMissingFields_reportsInvalidValues() {
+        // EP: each supplied field is invalid while other required fields are omitted
+        assertThrows(ParseException.class, PetName.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Bad@Name"));
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_SPECIES, () ->
+                parser.parse("s/Horse"));
+        assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("b/X"));
+        assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("r/Care"));
+    }
+
+    @Test
     public void parse_requirementContainingSlashes_createsCommand() throws Exception {
         // EP: requirements containing ordinary and prefix-like slashes
         String requirements = "Use shampoo/conditioner and allow x/ extra breaks";

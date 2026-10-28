@@ -317,7 +317,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 * `i/OWNER_IDENTIFIER` — required; an existing client's eight-digit phone number starting with `8` or `9`.
 * `s/SPECIES` — required; `Dog`, `Cat`, `Rabbit`, `Guinea Pig` or `Other`, ignoring case. `Guinea_Pig` is also accepted.
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Omit it when unknown; an empty supplied value is invalid.
-* `r/REQUIREMENTS` — required; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`.
+* `r/REQUIREMENTS` — required; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`. A space followed by a recognised prefix starts another field.
 * Each prefix may appear only once. Under one owner, pet names must be unique after ignoring case and extra whitespace. Different owners may have pets with the same name.
 
 #### Examples
@@ -338,8 +338,9 @@ The command makes no changes when it cannot be completed.
 * `Missing required field: FIELD.` — a required field is absent or empty.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a name, owner phone, species, breed or requirement is invalid.
+* After the command structure is accepted, supplied non-empty fields are validated before missing fields are reported.
 * `Invalid command format. Check the command syntax and try again.` — unsupported prefixes or text outside a field are supplied.
-* `The owner identifier does not belong to the specified client.` — the owner is not registered.
+* `No saved client has this phone number. Add the client before adding a pet.` — the phone format is valid, but no registered client has that number.
 * `This client already has a pet named PET_NAME.` — the name conflicts with another pet under that owner.
 * `Unable to save a pet. Please try again.` — the updated records could not be saved.
 
@@ -376,7 +377,7 @@ The command makes no changes when it cannot be completed.
 
 * `No saved client has this phone number.` — the supplied phone has no registered client.
 * `Each owner identifier may be specified only once.` — `i/` is repeated.
-* `Owner identifier must be a valid phone number belonging to the specified client.` — the phone format is invalid.
+* `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone format is invalid.
 * `Invalid command format. Check the command syntax and try again.` — unsupported fields or extra text are supplied.
 
 ### Editing a pet: `edit-pet`
@@ -396,7 +397,7 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 * `n/NEW_PET_NAME` — optional replacement name with the same constraints. It must not match another pet under the owner after case and whitespace normalisation.
 * `s/SPECIES` — optional; `Dog`, `Cat`, `Rabbit`, `Guinea Pig` or `Other`, ignoring case. `Guinea_Pig` is also accepted.
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Use `b/` alone to remove the breed.
-* `r/REQUIREMENTS` — optional; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`.
+* `r/REQUIREMENTS` — optional; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`. A space followed by a recognised prefix starts another field.
 * Supply at least one update. Omitted fields are unchanged. Every prefix may appear only once.
 
 #### Examples

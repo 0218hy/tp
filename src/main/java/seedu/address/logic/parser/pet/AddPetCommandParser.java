@@ -35,8 +35,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     public static final String MESSAGE_DUPLICATE_FIELD = "Each pet field may be specified only once.";
     public static final String MESSAGE_INVALID_FORMAT =
             "Invalid command format. Check the command syntax and try again.";
-    public static final String MESSAGE_INVALID_OWNER =
-            "Owner identifier must be a valid phone number belonging to the specified client.";
+    public static final String MESSAGE_INVALID_OWNER = Phone.MESSAGE_CONSTRAINTS;
     public static final String MESSAGE_INVALID_SPECIES =
             "Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.";
     private static final String FIELD_PET_NAME = "PET_NAME";
@@ -64,13 +63,18 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + args.trim(), PET_FIELD_PREFIXES);
         validateStructure(args, fields);
 
-        PetName name = parsePetName(getRequiredValue(fields, PREFIX_PET_NAME, FIELD_PET_NAME));
-        String ownerPhone = parseOwnerPhone(
-                getRequiredValue(fields, PREFIX_OWNER_IDENTIFIER, FIELD_OWNER_IDENTIFIER));
-        Species species = parseSpecies(getRequiredValue(fields, PREFIX_SPECIES, FIELD_SPECIES));
+        String nameValue = getFieldValue(fields, PREFIX_PET_NAME);
+        String ownerPhoneValue = getFieldValue(fields, PREFIX_OWNER_IDENTIFIER);
+        String speciesValue = getFieldValue(fields, PREFIX_SPECIES);
+        String requirementValue = getFieldValue(fields, PREFIX_REQUIREMENTS);
+
+        PetName name = nameValue.isEmpty() ? null : parsePetName(nameValue);
+        String ownerPhone = ownerPhoneValue.isEmpty() ? null : parseOwnerPhone(ownerPhoneValue);
+        Species species = speciesValue.isEmpty() ? null : parseSpecies(speciesValue);
         Breed breed = parseBreed(fields);
-        Requirement requirement = parseRequirement(
-                getRequiredValue(fields, PREFIX_REQUIREMENTS, FIELD_REQUIREMENTS));
+        Requirement requirement = requirementValue.isEmpty() ? null : parseRequirement(requirementValue);
+
+        ensureRequiredFieldsPresent(name, ownerPhone, species, requirement);
         return new AddPetCommand(name, ownerPhone, species, breed, requirement);
     }
 
@@ -127,19 +131,32 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         return new Requirement(value);
     }
 
-    /**
-     * Returns a required field's value.
-     *
-     * @throws ParseException if the field is absent or empty.
-     */
-    private String getRequiredValue(ArgumentMultimap fields, Prefix prefix, String label) throws ParseException {
+    /** Returns the supplied field value, or an empty string if the field is missing. */
+    private String getFieldValue(ArgumentMultimap fields, Prefix prefix) {
         assert fields.getAllValues(prefix).size() <= MAX_FIELD_OCCURRENCES
                 : "Repeated fields must be rejected before reading their values";
-        String value = fields.getValue(prefix).orElse("");
-        if (value.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, label));
+        return fields.getValue(prefix).orElse("");
+    }
+
+    /**
+     * Reports the first missing required field after all supplied values have been validated.
+     *
+     * @throws ParseException if a required field is missing.
+     */
+    private void ensureRequiredFieldsPresent(PetName name, String ownerPhone, Species species,
+                                             Requirement requirement) throws ParseException {
+        if (name == null) {
+            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, FIELD_PET_NAME));
         }
-        return value;
+        if (ownerPhone == null) {
+            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, FIELD_OWNER_IDENTIFIER));
+        }
+        if (species == null) {
+            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, FIELD_SPECIES));
+        }
+        if (requirement == null) {
+            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, FIELD_REQUIREMENTS));
+        }
     }
 
     /**
