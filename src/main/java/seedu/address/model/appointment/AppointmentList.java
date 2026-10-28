@@ -54,8 +54,10 @@ public class AppointmentList {
      */
     public void addAppointment(Appointment appointment) {
         requireNonNull(appointment);
-        if (hasOverlappingAppointment(appointment)) {
-            throw new OverlappingAppointmentException();
+        for (Appointment existing : internalList) {
+            if (appointment.overlaps(existing)) {
+                throw new OverlappingAppointmentException(existing);
+            }
         }
         internalList.add(appointment);
     }

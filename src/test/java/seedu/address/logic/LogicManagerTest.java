@@ -260,6 +260,13 @@ public class LogicManagerTest {
         assertEquals(ListAppointmentsCommand.MESSAGE_NO_APPOINTMENTS, result.getFeedbackToUser());
         assertEquals(1, model.getBubuBook().getAppointmentList().size());
         assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
+
+        CommandResult dateResult = logic.execute("list-appointments d/01-01-2000");
+
+        assertEquals("Appointments on 01-01-2000 found: 1.", dateResult.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS, dateResult.getDisplayType());
+        assertEquals(model.getBubuBook().getAppointmentList(), model.getFilteredAppointmentList());
+        assertFalse(temporaryFolder.resolve("bububook.json").toFile().exists());
     }
 
     @Test

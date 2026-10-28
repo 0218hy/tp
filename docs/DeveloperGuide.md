@@ -683,7 +683,7 @@ Use case ends.
     - Steps 7a1-7a2 are repeated until the details are valid.
     - Use case resumes from step 8.
 - 7b. The time slot overlaps an existing appointment.
-    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b1. BuBu identifies one conflicting saved appointment by pet name, date, and time range, even if it is hidden by the current list filter.
     - 7b2. Groomer enters a different time slot.
     - Steps 7b1-7b2 are repeated until the slot is free.
     - Use case resumes from step 8.
@@ -1391,12 +1391,22 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `list-appointments`<br>
       Expected: Only ongoing and future appointments are shown, ordered by date and start time. Completed appointments
-      remain saved but are not displayed.
+      remain saved but are not displayed, including appointments that ended earlier today or exactly now.
 
-2. Listing with parameters
+2. Listing by date
 
    1. Test case: `list-appointments d/01-01-9999`<br>
-      Expected: The command is rejected because `list-appointments` does not accept parameters.
+      Expected: Only appointments on 1 January 9999 are shown in start-time order, or a date-specific empty message.
+
+   2. Test case: Use `list-appointments d/DD-MM-YYYY` with a saved past date or today's date.<br>
+      Expected: All appointments on that date are shown, including completed appointments.
+
+   3. Test case: Run `list-appointments` after viewing a date.<br>
+      Expected: The date filter is replaced by the ongoing/future view; completed appointments are hidden again.
+
+   4. Test case: `list-appointments i/91234567`, `list-appointments p/BuBu`,
+      `list-appointments d/31-02-2026`, or `list-appointments d/01-01-2026 d/02-01-2026`<br>
+      Expected: The command is rejected. Only one valid date filter is supported.
 
 ### Deleting an appointment
 
