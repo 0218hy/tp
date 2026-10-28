@@ -26,6 +26,7 @@ import seedu.address.ui.JavaFxTestUtils;
 @EnabledOnOs(OS.LINUX)
 public class AppointmentListPanelTest {
 
+    //@@author chunghean
     @Test
     public void constructorAndCell_updateGraphicForEmptyAndPopulatedItems() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -52,6 +53,7 @@ public class AppointmentListPanelTest {
             assertNull(cell.getText());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test

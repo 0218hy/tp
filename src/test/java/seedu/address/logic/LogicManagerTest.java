@@ -71,6 +71,7 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
     }
 
+    //@@author anderschow
     @Test
     public void execute_editClientFromFilteredList_updatesLinksAndSaves() throws Exception {
         model.addClient(AMY);
@@ -139,6 +140,7 @@ public class LogicManagerTest {
         assertCommandException("edit-client i/" + ALICE.getPhone() + " p/89998888",
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
+    //@@author
 
     @Test
     public void execute_invalidCommandFormat_throwsParseException() {
@@ -197,6 +199,7 @@ public class LogicManagerTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void execute_indexDeletionRequiresMatchingDisplayedList() throws Exception {
         Appointment appointment = createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
@@ -253,7 +256,9 @@ public class LogicManagerTest {
                 + "Time: 10:00-11:00; Service: Full groom", result.getFeedbackToUser());
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
     }
+    //@@author
 
+    //@@author khangsian0412
     @Test
     public void execute_deletePet_successAndSavesUpdatedBubuBook() throws Exception {
         Pet pet = new PetBuilder(AMY).build();
@@ -270,13 +275,11 @@ public class LogicManagerTest {
         assertEquals(expectedModel.getBubuBook(), savedBubuBook);
     }
 
-    //@@author khangsian0412
     @Test
     public void execute_deletePetWithNoMatch_throwsCommandException() {
         assertCommandException("delete-pet p/Milo i/" + AMY.getPhone().value,
                 DeletePetCommand.MESSAGE_PET_NOT_FOUND);
     }
-    //@@author
 
     @Test
     public void execute_editPet_updatesAndSavesProfile() throws Exception {
@@ -314,6 +317,7 @@ public class LogicManagerTest {
         assertCommandException("edit-pet p/Milo i/" + ALICE.getPhone() + " r/Needs a short walk",
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
+    //@@author
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
@@ -362,6 +366,7 @@ public class LogicManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredClientList().remove(0));
     }
 
+    //@@author chunghean
     @Test
     public void accessors_delegateToModel() {
         assertSame(model.getFilteredClientList(), logic.getFilteredClientList());
@@ -374,6 +379,7 @@ public class LogicManagerTest {
         assertSame(guiSettings, model.getGuiSettings());
         assertSame(guiSettings, logic.getGuiSettings());
     }
+    //@@author
 
     /**
      * Executes the command and confirms that
@@ -458,6 +464,7 @@ public class LogicManagerTest {
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 
+    //@@author anderschow
     @Test
     public void execute_addClient_savesAndDisplaysClient() throws Exception {
         model.updateFilteredClientList(client -> false);
@@ -468,5 +475,6 @@ public class LogicManagerTest {
         JsonBubuBookStorage saved = new JsonBubuBookStorage(temporaryFolder.resolve("bububook.json"));
         assertEquals(model.getBubuBook(), saved.readBubuBook().orElseThrow());
     }
+    //@@author
 
 }

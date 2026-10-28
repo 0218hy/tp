@@ -14,6 +14,7 @@ public final class JavaFxTestUtils {
 
     private JavaFxTestUtils() {}
 
+    //@@author khangsian0412
     /** Executes the action on the JavaFX application thread and waits for it to finish. */
     public static synchronized void runAndWait(Runnable action) {
         startToolkitIfNeeded();
@@ -64,4 +65,5 @@ public final class JavaFxTestUtils {
             throw new AssertionError("Interrupted while waiting for the JavaFX application thread.", exception);
         }
     }
+    //@@author
 }

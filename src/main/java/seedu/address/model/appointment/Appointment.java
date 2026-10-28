@@ -93,6 +93,7 @@ public class Appointment {
         //@@author
     }
 
+    //@@author khangsian0412
     /**
      * Returns a copy with the pet's current name, preserving the appointment's remaining snapshot details.
      */
@@ -100,6 +101,7 @@ public class Appointment {
         requireNonNull(newPetName);
         return new Appointment(owner, pet.withName(newPetName), date, startTime, endTime, service);
     }
+    //@@author
 
     /**
      * Returns whether this appointment belongs to the given pet.

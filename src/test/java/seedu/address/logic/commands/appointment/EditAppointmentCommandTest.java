@@ -50,6 +50,7 @@ public class EditAppointmentCommandTest {
     private Client owner;
     private Pet pet;
 
+    //@@author chunghean
     @BeforeEach
     public void setUp() {
         owner = new ClientBuilder().withPhone(OWNER_PHONE.value).build();
@@ -340,4 +341,5 @@ public class EditAppointmentCommandTest {
         assertEquals(expectedMessage, exception.getMessage());
         assertEquals(before, model.getBubuBook());
     }
+    //@@author
 }

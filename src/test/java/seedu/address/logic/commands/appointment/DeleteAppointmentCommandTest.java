@@ -36,6 +36,7 @@ public class DeleteAppointmentCommandTest {
 
     private Model model;
 
+    //@@author chunghean
     @BeforeEach
     public void setUp() {
         BubuBook bubuBook = new BubuBook();
@@ -142,6 +143,7 @@ public class DeleteAppointmentCommandTest {
                         + "{targetDate=01-01-2020, targetTime=10:30}",
                 new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)).toString());
     }
+    //@@author
 
     private static String successMessage(Appointment appointment) {
         return String.format(DeleteAppointmentCommand.MESSAGE_SUCCESS,
@@ -150,8 +152,10 @@ public class DeleteAppointmentCommandTest {
                         + "-" + appointment.getEndTime() + "; Service: " + appointment.getService());
     }
 
+    //@@author chunghean
     private static Appointment create(String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", DATE, new StartTime(start),
                 new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

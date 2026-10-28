@@ -157,6 +157,7 @@ public class AddClientCommandParserTest {
                 expectedMessage);
     }
 
+    //@@author anderschow
     @Test
     public void parse_emptyRequiredFields_failure() {
         assertParseFailure(parser, "", "Missing required field: n/.");
@@ -169,6 +170,7 @@ public class AddClientCommandParserTest {
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + " a/ ",
                 "Missing required field: a/.");
     }
+    //@@author
 
     @Test
     public void parse_invalidValue_failure() {

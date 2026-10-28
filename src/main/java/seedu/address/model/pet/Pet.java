@@ -78,6 +78,7 @@ public class Pet {
         return requirement;
     }
 
+    //@@author khangsian0412
     /**
      * Returns a copy of this pet with the given owner.
      * The pet's name, species, breed, and care requirements are preserved.
@@ -93,6 +94,7 @@ public class Pet {
     public Pet withName(PetName newName) {
         return new Pet(newName, owner, species, breed, requirement);
     }
+    //@@author
 
     /** Returns whether this pet has the given owner phone and normalized name. */
     public boolean isIdentifiedBy(Phone ownerPhone, PetName petName) {

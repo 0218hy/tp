@@ -37,6 +37,7 @@ public class EditPetCommandTest {
     private final Pet miloWithDifferentOwner = new PetBuilder(BOB).build();
     private Model model;
 
+    //@@author khangsian0412
     @BeforeEach
     public void setUp() {
         BubuBook bubuBook = new BubuBook();
@@ -308,4 +309,5 @@ public class EditPetCommandTest {
                         + "requirement=Needs gentle drying}}",
                 command.toString());
     }
+    //@@author
 }

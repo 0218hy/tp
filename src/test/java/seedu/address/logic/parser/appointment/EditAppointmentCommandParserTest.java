@@ -23,6 +23,7 @@ import seedu.address.model.pet.PetName;
 public class EditAppointmentCommandParserTest {
     private final EditAppointmentCommandParser parser = new EditAppointmentCommandParser();
 
+    //@@author chunghean
     @Test
     public void parse_byDateAndStartTime_success() {
         EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor();
@@ -137,4 +138,5 @@ public class EditAppointmentCommandParserTest {
         assertParseFailure(parser, "1 t/10:00",
                 getErrorMessageForUnknownParameter("t/", EditAppointmentCommand.MESSAGE_USAGE));
     }
+    //@@author
 }

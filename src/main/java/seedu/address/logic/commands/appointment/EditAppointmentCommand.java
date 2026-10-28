@@ -149,6 +149,7 @@ public class EditAppointmentCommand extends Command {
         this.clock = clock.withZone(SINGAPORE_ZONE);
     }
 
+    //@@author chunghean
     /** Returns the appointment display requirement for index-based edits. */
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
@@ -156,6 +157,7 @@ public class EditAppointmentCommand extends Command {
                 ? Optional.empty()
                 : Optional.of(CommandResult.DisplayType.APPOINTMENTS);
     }
+    //@@author
 
     /**
      * Finds and edits the selected appointment, validating participants, timing, and overlap constraints.
@@ -347,10 +349,12 @@ public class EditAppointmentCommand extends Command {
             this.petName = petName;
         }
 
+        //@@author chunghean
         /** Parses and sets the replacement pet name from text. */
         public void setPetName(String petName) {
             this.petName = petName == null ? null : new PetName(petName);
         }
+        //@@author
 
         /** Returns the replacement pet name, if one was supplied. */
         public Optional<PetName> getPetName() {

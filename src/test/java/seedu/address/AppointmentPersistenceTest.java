@@ -97,6 +97,7 @@ public class AppointmentPersistenceTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {
         logic.execute(COMMAND);
@@ -106,6 +107,7 @@ public class AppointmentPersistenceTest {
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
         assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
+    //@@author
 
     //@@author 0218hy
     @Test

@@ -38,6 +38,7 @@ import seedu.address.ui.pet.PetListPanel;
 @EnabledOnOs(OS.LINUX)
 public class MainWindowTest {
 
+    //@@author khangsian0412
     @Test
     public void executeCommand_helpAndRegularCommand_updatesResultDisplay() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -62,7 +63,9 @@ public class MainWindowTest {
             assertEquals(100, resultDisplayPlaceholder.getPrefHeight());
         });
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void executeCommand_displayTypeSwitchesVisibleListPanel() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -91,6 +94,7 @@ public class MainWindowTest {
             assertTrue(appointmentListPanel.getRoot().isVisible());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test
@@ -139,6 +143,7 @@ public class MainWindowTest {
     }
     // @@author
 
+    //@@author khangsian0412
     private static void executeCommand(MainWindow mainWindow, String commandText) {
         try {
             Method executeCommand = MainWindow.class.getDeclaredMethod("executeCommand", String.class);
@@ -160,6 +165,7 @@ public class MainWindowTest {
             throw new AssertionError(exception);
         }
     }
+    //@@author
 
     private static class StubLogic implements Logic {
         private final ObservableList<Client> clients = FXCollections.observableArrayList();
@@ -169,11 +175,13 @@ public class MainWindowTest {
         private GuiSettings guiSettings = new GuiSettings();
         private String lastCommand;
 
+        //@@author khangsian0412
         @Override
         public CommandResult execute(String commandText) throws CommandException, ParseException {
             lastCommand = commandText;
             return nextResult;
         }
+        //@@author
 
         @Override
         public ObservableList<Client> getFilteredClientList() {

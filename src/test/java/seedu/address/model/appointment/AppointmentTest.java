@@ -115,6 +115,7 @@ public class AppointmentTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void isForPet_matchesOwnerAndNormalizedName() {
         Appointment appointment = new Appointment(ALICE, new PetBuilder(ALICE).withName("milo").build(), DATE,
@@ -125,6 +126,7 @@ public class AppointmentTest {
         assertFalse(appointment.isForPet(new PetBuilder(ALICE).withName("Luna").build()));
         assertThrows(NullPointerException.class, () -> appointment.isForPet(null));
     }
+    //@@author
 
     //@@author 0218hy
     @Test
@@ -144,6 +146,7 @@ public class AppointmentTest {
     }
     //@@author
 
+    //@@author khangsian0412
     @Test
     public void withPetName_preservesAppointmentSnapshotDetails() {
         Appointment original = create("10:30", "12:00");
@@ -159,6 +162,7 @@ public class AppointmentTest {
         assertEquals(new PetName("BuBu"), original.getPetName());
         assertThrows(NullPointerException.class, () -> original.withPetName(null));
     }
+    //@@author
 
     //@@author 0218hy
     @Test

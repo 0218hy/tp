@@ -72,13 +72,13 @@ public class AppointmentList {
         }
     }
 
+    //@@author chunghean
     /** Removes every appointment belonging to the given owner phone number. */
     public void removeAppointmentsForOwner(Phone ownerPhone) {
         requireNonNull(ownerPhone);
         internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
     }
 
-    //@@author chunghean
     /** Updates appointments when their owner's client record is replaced. */
     public void updateOwner(Client currentOwner, Client editedOwner) {
         requireNonNull(currentOwner);
@@ -95,6 +95,7 @@ public class AppointmentList {
     }
     //@@author
 
+    //@@author khangsian0412
     /**
      * Updates every appointment belonging to {@code currentPet} with its replacement name.
      * Other appointment snapshot details remain unchanged.
@@ -109,12 +110,15 @@ public class AppointmentList {
             }
         }
     }
+    //@@author
 
+    //@@author chunghean
     /** Removes every appointment belonging to the given pet. */
     public void removeAppointmentsForPet(Pet pet) {
         requireNonNull(pet);
         internalList.removeIf(appointment -> appointment.isForPet(pet));
     }
+    //@@author
 
     //@@author 0218hy
     public ObservableList<Appointment> getAppointmentList() {

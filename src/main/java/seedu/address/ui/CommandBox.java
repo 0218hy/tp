@@ -60,6 +60,7 @@ public class CommandBox extends UiPart<Region> {
         }
     }
 
+    //@@author khangsian0412
     /**
      * Loads earlier or later submitted commands when the user presses the Up or Down arrow key.
      * The history stops at its oldest entry and at the blank position after its newest entry.
@@ -126,6 +127,7 @@ public class CommandBox extends UiPart<Region> {
         commandTextField.setText(commandText);
         commandTextField.positionCaret(commandText.length());
     }
+    //@@author
 
     /**
      * Sets the command box style to use the default style.
