@@ -254,7 +254,9 @@ public class EditAppointmentCommandTest {
 
     @Test
     public void execute_endTimeOnlyEqualsExistingStart_failure() {
-        assertInvalidTiming(descriptorWithEndTime("10:30"));
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START,
+                        descriptorWithEndTime("10:30"), CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_END_TIME);
     }
 
     @Test
@@ -263,7 +265,8 @@ public class EditAppointmentCommandTest {
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         descriptor.setStartTime(new StartTime("11:00"));
 
-        assertInvalidTiming(descriptor);
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_START_TIME);
     }
 
     @Test
