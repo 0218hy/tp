@@ -24,6 +24,7 @@ import seedu.address.logic.commands.client.ListClientsCommand;
 //@@author
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
+import seedu.address.logic.commands.pet.ListPetsCommand;
 import seedu.address.logic.parser.BuBuParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.BubuBook;
