@@ -613,6 +613,27 @@ public class LogicManagerTest {
         assertEquals(expectedModel.getBubuBook(), savedBubuBook);
     }
 
+    /** Verifies index-based editing works through the parser, selects the pet display, and saves the edit. */
+    @Test
+    public void execute_editPetByIndex_updatesAndSavesProfile() throws Exception {
+        // EP: a valid index command is accepted end-to-end and requests the pet list display.
+        Pet pet = new PetBuilder(ALICE).withBreed("Golden retriever").build();
+        model.addClient(ALICE);
+        model.addPet(pet);
+        Pet editedPet = new PetBuilder(pet).withName("Milo Bean").withRequirement("Prefers quiet drying").build();
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        expectedModel.setPet(pet, editedPet);
+
+        assertCommandException("edit-pet 1 n/Milo Bean", LogicManager.MESSAGE_INVALID_DISPLAY_TYPE);
+        logic.execute("list-pets");
+        CommandResult result = logic.execute("edit-pet 1 n/Milo Bean r/Prefers quiet drying");
+
+        assertEquals(String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), result.getFeedbackToUser());
+        assertEquals(expectedModel, model);
+        assertEquals(expectedModel.getBubuBook(), new JsonBubuBookStorage(
+                temporaryFolder.resolve("bububook.json")).readBubuBook().orElseThrow());
+    }
+
     @Test
     public void execute_editPetSaveFails_restoresModel() {
         Pet pet = new PetBuilder(ALICE).build();
