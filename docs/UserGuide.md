@@ -625,10 +625,11 @@ delete-appointment d/DD-MM-YYYY st/HH:mm
 
 #### Parameters and validation
 
-* `INDEX` — a positive integer referring to the appointment's one-based position in the current appointment list. Run `list-appointments` first.
+* `INDEX` — a positive integer referring to the appointment's one-based position in the currently displayed appointment
+  list. Run `list-appointments` first; a date-filtered appointment list may also be used.
 * `d/DD-MM-YYYY` — alternatively, a real calendar date; it need not be in the future.
-* `st/HH:mm` — required with `d/`; use the appointment's exact start time, from `08:00` to `19:30` in 30-minute
-  intervals.
+* `st/HH:mm` — required with `d/`; use the exact start time of the appointment to delete, not any time within its
+  duration. It must be from `08:00` to `19:30` in 30-minute intervals.
 * Provide an index or both date and time, not both formats. Each prefix may appear only once.
 
 #### Examples
@@ -639,7 +640,8 @@ delete-appointment d/DD-MM-YYYY st/HH:mm
 #### Success and other behavior
 
 * On success, BuBu displays `Deleted appointment: ...` with the booking details.
-* Client and pet profiles and other appointments are preserved. The selected panel does not change.
+* Client and pet profiles and other appointments are preserved. The selected panel does not change, and there is no
+  confirmation prompt.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling

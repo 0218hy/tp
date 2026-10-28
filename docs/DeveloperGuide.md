@@ -234,7 +234,8 @@ Index-based commands accept exactly one positive integer index:
 
 * `delete-client INDEX` uses the currently displayed client list.
 * `delete-pet INDEX` uses the currently displayed pet list.
-* `delete-appointment INDEX` uses the currently displayed ongoing/future appointment list.
+* `delete-appointment INDEX` uses the currently displayed appointment list, whether it is the ongoing/future view or a
+  date-filtered view.
 * `edit-appointment INDEX ...` uses the currently displayed appointment list.
 * Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
   `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
@@ -319,6 +320,26 @@ The execution flow is:
    before changing the observable model, so a failed validation does not partially update the schedule.
 6. The command returns a success result without changing the selected display type. `LogicManager` saves the updated
    `BubuBook`; if saving fails, it restores the pre-command snapshot and reports a storage error.
+
+#### Appointment deletion
+
+The `delete-appointment` command also supports two mutually exclusive target forms:
+
+* `d/DATE st/START_TIME` identifies an appointment by its exact start time in the complete saved appointment list.
+* `INDEX` identifies an appointment in the currently displayed appointment list and requires
+  `DisplayType.APPOINTMENTS`.
+
+The execution flow is:
+
+1. `BuBuParser` routes the command to `DeleteAppointmentCommandParser`. The parser validates that exactly one target
+   form is supplied, rejects duplicate or unknown prefixes, and validates the date, start time, and positive index.
+2. `DeleteAppointmentCommand` resolves an index through `Model.getFilteredAppointmentList()`. For a date/time target,
+   it searches `BubuBook.getAppointmentList()`, so completed or otherwise hidden appointments can still be deleted.
+3. `Model.deleteAppointment()` delegates to `BubuBook.removeAppointment()` and `AppointmentList.removeAppointment()`.
+   Only the matching appointment is removed; client, pet, and other appointment records are unaffected.
+4. `LogicManager` saves the updated `BubuBook` after execution. If saving fails, it restores the pre-command snapshot and
+   reports a storage error. The command returns an unchanged display type, so the selected appointment panel remains
+   selected.
 
 ### Model component
 
@@ -759,6 +780,45 @@ Use case ends.
       Use case ends.
 - 3a. The updated BubuBook cannot be saved.
     - 3a1. BuBu restores the pre-edit records and reports the storage error.
+      Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case: Delete an appointment**
+
+**Actor:** Groomer
+
+**Preconditions:** At least one appointment is saved in BuBu.
+
+**Guarantees:**
+
+- Only the appointment selected by the supplied target is deleted.
+- The linked client, linked pet, and all other appointments remain unchanged.
+- If saving fails, the deleted appointment is restored in memory.
+
+**MSS:**
+
+1. Groomer enters `delete-appointment` with an appointment index or an exact date and start-time pair.
+2. BuBu resolves the selected appointment from the displayed list or complete saved list.
+3. BuBu deletes the appointment, saves the updated BubuBook, and shows the deleted appointment details.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The target is missing, incomplete, duplicated, invalid, or combines an index with date/time identifiers.
+    - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
+      Use case ends.
+- 2a. No appointment starts at the supplied date and start time.
+    - 2a1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
       Use case ends.
 
 ---
@@ -1497,14 +1557,25 @@ testers are expected to do more *exploratory* testing.
    5. Test case: `delete-appointment d/02-01-9999 st/10:00`<br>
       Expected: No appointment is deleted because no appointment matches the supplied date and time.
 
+   6. Prerequisites: A completed appointment exists on `01-01-2020` starting at `10:00`. Run `list-appointments` and
+      verify that it is hidden from the ongoing/future list.<br>
+      Test case: `delete-appointment d/01-01-2020 st/10:00`<br>
+      Expected: The hidden completed appointment is deleted successfully because date-and-start-time lookup searches
+      the complete saved appointment list.
+
 2. Deleting by appointment index
 
-   1. Prerequisites: Run `list-appointments` and ensure the displayed ongoing/future appointment list contains at least one appointment.
+   1. Prerequisites: Run `list-appointments` and ensure the displayed appointment list contains at least one appointment.
 
    2. Test case: `delete-appointment 1`<br>
-      Expected: The first appointment is deleted and the status message confirms the deleted appointment.
+      Expected: The first displayed appointment is deleted, the selected panel remains unchanged, and the status
+      message confirms the deleted appointment.
 
-   3. Test case: `delete-appointment 0` or `delete-appointment 999`<br>
+   3. Test case: Run `list-appointments d/01-01-9999`, then enter `delete-appointment 1`.<br>
+      Expected: The first appointment in the date-filtered list is deleted; an index refers to the currently displayed
+      appointment list.
+
+   4. Test case: `delete-appointment 0` or `delete-appointment 999`<br>
       Expected: No appointment is deleted and the status message shows an invalid-index error.
 
 3. Invalid selector combinations and formats
@@ -1513,13 +1584,17 @@ testers are expected to do more *exploratory* testing.
       Expected: The command is rejected because no selector was provided.
 
    2. Test case: `delete-appointment 1 d/01-01-9999 st/10:30`<br>
-      Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
+      Expected: The command is rejected with `Choose either an appointment index or a date and time, not both.`
 
    3. Test case: `delete-appointment 12-12-1234 st/10:30`<br>
       Expected: The command is rejected because the date is missing its `d/` prefix.
 
    4. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
       Expected: The command is rejected because the date or time is invalid.
+
+   5. Test case: `delete-appointment d/01-01-9999 st/10:00 d/02-01-9999` or
+      `delete-appointment x/01-01-9999`<br>
+      Expected: The command is rejected because a prefix is repeated or unsupported.
 
 4. Persistence after deletion
 
