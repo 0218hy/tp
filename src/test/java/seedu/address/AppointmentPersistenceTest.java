@@ -61,6 +61,8 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleSaveAndRestart_preservesAppointmentsAndDetectsOverlap() throws Exception {
+        // State EPs: new booking and duplicate after restart. This tests persisted conflict detection,
+        // not interval geometry (covered by AppointmentTest).
         BubuBook before = new BubuBook(model.getBubuBook());
         logic.execute(COMMAND);
         assertEquals(before.getClientList(), model.getBubuBook().getClientList());
@@ -71,7 +73,8 @@ public class AppointmentPersistenceTest {
         assertEquals(model.getBubuBook(), restarted.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
-        assertEquals(AddAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
+        assertEquals("This appointment overlaps an existing booking for BuBu on 01-01-9999, 10:00–11:00.",
+                exception.getMessage());
         assertEquals(1, restarted.getBubuBook().getAppointmentList().size());
     }
 
@@ -97,19 +100,76 @@ public class AppointmentPersistenceTest {
     }
     //@@author
 
+    //@@author anderschow
+    @Test
+    public void editClient_refreshesListedBookingAndPersistsWithoutChangingHistory() throws Exception {
+        Appointment historical = historicalBook().getAppointmentList().getFirst();
+        model.setAppointments(List.of(historical));
+        logic.execute(COMMAND);
+        Appointment original = model.getBubuBook().getAppointmentList().getLast();
+        logic.execute("add-client n/Bob Tan i/82223333 e/bob@example.com a/Other Road");
+        logic.execute("add-pet p/Milo i/82223333 s/Dog r/No special requirements");
+        logic.execute("add-appointment i/82223333 p/Milo d/02-01-9999 st/10:00 et/11:00 s/Full groom");
+        Appointment unrelated = model.getBubuBook().getAppointmentList().getLast();
+        model.updateFilteredAppointmentList(unused -> false);
+
+        logic.execute("edit-client i/" + ALICE.getPhone() + " n/Alice Lim a/456 New Road");
+        logic.execute("list-appointments");
+
+        var editedOwner = model.getBubuBook().getClientList().getFirst();
+        Appointment expected = new Appointment(editedOwner, original.getPet().withOwner(editedOwner),
+                original.getDate(), original.getStartTime(), original.getEndTime(), original.getService());
+        assertEquals("456 New Road", model.getFilteredAppointmentList().getFirst().getOwner().getAddress().value);
+        assertEquals(List.of(expected, unrelated), model.getFilteredAppointmentList());
+        assertEquals(List.of(historical, expected, unrelated), model.getBubuBook().getAppointmentList());
+        assertEquals(editedOwner, model.getBubuBook().getPetList().getFirst().getOwner());
+        assertEquals(model.getBubuBook(), storage.readBubuBook().orElseThrow());
+
+        Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
+        logicFor(restarted, storage).execute("list-appointments");
+        assertEquals(List.of(expected, unrelated), restarted.getFilteredAppointmentList());
+        assertEquals(model.getBubuBook(), restarted.getBubuBook());
+    }
+
+    @Test
+    public void editClient_phoneThenAddressChange_keepsFutureBookingLinkedAndHistoryRecorded() throws Exception {
+        Appointment historical = historicalBook().getAppointmentList().getFirst();
+        model.setAppointments(List.of(historical));
+        logic.execute(COMMAND);
+
+        logic.execute("edit-client i/" + ALICE.getPhone() + " p/89998888 a/456 New Road");
+        logic.execute("edit-client i/89998888 a/789 Latest Road");
+        logic.execute("list-appointments");
+
+        var currentOwner = model.getBubuBook().getClientList().getFirst();
+        Appointment upcoming = model.getFilteredAppointmentList().getFirst();
+        assertEquals(currentOwner, upcoming.getOwner());
+        assertEquals(currentOwner, upcoming.getPet().getOwner());
+        assertEquals("789 Latest Road", upcoming.getOwner().getAddress().value);
+        Appointment savedHistory = model.getBubuBook().getAppointmentList().getFirst();
+        assertEquals(currentOwner.getPhone(), savedHistory.getOwnerPhone());
+        assertEquals(historical.getOwner().getAddress(), savedHistory.getOwner().getAddress());
+        assertEquals(historical.getOwner().getName(), savedHistory.getOwner().getName());
+        assertEquals(model.getBubuBook(), storage.readBubuBook().orElseThrow());
+    }
+    //@@author
+
+    //@@author chunghean
     @Test
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {
         logic.execute(COMMAND);
 
-        logic.execute("delete-appointment d/01-01-9999 t/10:30");
+        logic.execute("delete-appointment d/01-01-9999 st/10:00");
 
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
         assertTrue(storage.readBubuBook().orElseThrow().getAppointmentList().isEmpty());
     }
+    //@@author
 
     //@@author 0218hy
     @Test
     public void startup_missingBubuBook_usesSampleDataWithoutCreatingFiles() throws Exception {
+        // Storage-state EP: no file. Missing and corrupt files have different recovery requirements.
         Files.delete(storage.getBubuBookFilePath());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertTrue(restarted.getBubuBook().getAppointmentList().isEmpty());
@@ -119,6 +179,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void startup_invalidBubuBook_preservesFileAndBlocksCommands() throws Exception {
+        // Storage-state EP: corrupt file; commands must not overwrite the evidence needed for recovery.
         Files.writeString(storage.getBubuBookFilePath(), "broken data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertEquals(new BubuBook(), restarted.getBubuBook());
@@ -179,6 +240,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleWithMissingPet_rejectsAndDoesNotSave() throws Exception {
+        // Failure-stage EP: valid syntax, invalid model state. Check the file as well as in-memory records.
         String before = Files.readString(storage.getBubuBookFilePath());
         model.deletePet(model.getBubuBook().getPetList().getFirst());
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(COMMAND));
@@ -189,6 +251,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleWithInvalidArguments_doesNotSave() throws Exception {
+        // Failure-stage EP: parsing fails before execution; a representative off-grid time is sufficient here.
         String before = Files.readString(storage.getBubuBookFilePath());
         assertThrows(ParseException.class, () -> logic.execute(COMMAND.replace("10:00", "10:15")));
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
@@ -197,12 +260,14 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleSaveFails_restoresModelAndAllowsRetry() throws Exception {
+        // Failure-stage EP: execution succeeded but persistence failed. Verify rollback and a subsequent retry.
         assertSaveFailure(new IOException("write failed"),
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "write failed"));
     }
 
     @Test
     public void scheduleSaveDenied_restoresModelAndReportsPermissionError() throws Exception {
+        // Separate I/O EP: permission denial has its own user-facing message.
         assertSaveFailure(new AccessDeniedException("bububook.json"),
                 String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, "bububook.json"));
     }

@@ -34,11 +34,13 @@ Add appointment
   add-appointment i/OWNER_IDENTIFIER p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE
 
 List appointments
-  list-appointments
+  list-appointments [d/DD-MM-YYYY]
+  Without a date: ongoing and future appointments only.
+  With a date: all appointments on that date, including completed appointments.
 
 Delete appointment
   delete-appointment INDEX
-  delete-appointment d/DD-MM-YYYY t/HH:mm
+  delete-appointment d/DD-MM-YYYY st/HH:mm
 
 Edit appointment
   edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]

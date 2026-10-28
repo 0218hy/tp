@@ -14,10 +14,28 @@ import seedu.address.model.client.Client;
 import seedu.address.testutil.ClientBuilder;
 
 public class ListClientsCommandTest {
+    //@@author anderschow
     private final ModelManager model = new ModelManager();
     private final Client zoe = new ClientBuilder().withName("Zoe").withPhone("91234567").build();
     private final Client amelia = new ClientBuilder().withName("amelia Tan").withPhone("87654321")
             .withEmail("amelia@example.com").withAddress("10 Sunset Road #01-02").build();
+    //@@author
+
+    //@@author anderschow
+    @Test
+    public void execute_queryWithContactPunctuation_matchesLiteralSubstring() throws Exception {
+        Client sam = new ClientBuilder().withName("Sam Tan").withPhone("89998888")
+                .withEmail("sam+grooming_test!/care@example.com").withAddress("10 Sunset Road, #01-02").build();
+        model.addClient(sam);
+        model.addClient(amelia);
+        for (String query : List.of("SAM+GROOMING", "grooming_test!", "/care", "Road, #01-02")) {
+            new BuBuParser().parseCommand("list-clients q/" + query).execute(model);
+            assertEquals(List.of(sam), model.getFilteredClientList());
+            assertEquals(List.of(sam, amelia), model.getBubuBook().getClientList());
+        }
+        new BuBuParser().parseCommand("list-clients q/.*").execute(model);
+        assertEquals(List.of(), model.getFilteredClientList());
+    }
 
     @Test
     public void execute_noQuery_resetsFilterAndSortsWithoutChangingRecords() throws Exception {
@@ -46,7 +64,6 @@ public class ListClientsCommandTest {
         }
     }
 
-    //@@author anderschow
     @Test
     public void execute_noMatches_successWithEmptyList() {
         model.addClient(amelia);
@@ -54,11 +71,11 @@ public class ListClientsCommandTest {
                 .execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }
-    //@@author
 
     @Test
     public void execute_emptyBubu_success() {
         assertEquals("Listed all clients.", new ListClientsCommand().execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredClientList());
     }
+    //@@author
 }

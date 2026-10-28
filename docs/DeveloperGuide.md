@@ -260,7 +260,7 @@ or search filter. It rejects unknown identifiers and phone/email conflicts with 
 appointment owner snapshots while retaining their other saved owner details.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
-Successful edits restore the full client list and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
+Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
 records and restores the previous records if saving fails. No client-panel guard is needed because selection does
 not depend on a displayed index.
 
@@ -285,7 +285,7 @@ The execution flow is:
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
 5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. If the pet name
    changed, `BubuBook` also updates that pet's name in matching appointment snapshots; the other appointment snapshot
-   details remain unchanged. The command then resets the pet filter to show all pets and returns a success
+   details remain unchanged. The command preserves the active pet filter and returns a success
    `CommandResult`.
 6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
    failed write does not leave an in-memory edit that was not persisted.
@@ -463,11 +463,11 @@ Step 1. The user launches the application for the first time. The `VersionedBubu
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete-client 5` command to delete the 5th person in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
+Step 2. The user executes `delete-client 5` command to delete the 5th client in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new client. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
@@ -475,7 +475,7 @@ Step 3. The user executes `add n/David …​` to add a new person. The `add` co
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
+Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
@@ -524,7 +524,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete-client`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete-client`, just save the client being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -566,24 +566,24 @@ and schedule upcoming appointments faster than with a typical mouse-driven GUI a
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                                                    | So that I can…​                                                                |
-| -------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `* * *`  | new user                                   | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
-| `* * *`  | mobile pet groomer                         | add a new client and their pet’s basic information              | start building my digital roster                                               |
-| `* * *`  | mobile pet groomer                         | list all pets or one client's pets                               | review their care requirements before a visit                                  |
-| `* * *`  | user                                       | add a new person                                                |                                                                                |
-| `* * *`  | user                                       | find a person by name                                           | locate details of persons without having to go through the entire list         |
-| `* * *`  | mobile pet groomer                         | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
-| `* * *`  | mobile pet groomer                         | easily find the address for my next appointment                 | know exactly where to drive                                                    |
-| `* * *`  | user                                       | delete a person                                                 | remove entries that I no longer need                                           |
-| `* * *`  | user                                       | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                      |
-| `* *`    | mobile pet groomer                         | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
-| `* *`    | mobile pet groomer                         | make changes to my upcoming appointments easily                 |                                                                                |
-| `* *`    | mobile pet groomer                         | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
-| `* *`    | user                                       | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
-| `*`      | mobile pet groomer                         | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
-| `*`      | mobile pet groomer                         | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
-| `*`      | user with many persons in the BubuBook | sort persons by name                                            | locate a person easily                                                         |
+| Priority | As a …​                                | I want to …​                                                    | So that I can…​                                                                |
+| -------- |----------------------------------------|-----------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `* * *`  | new user                               | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
+| `* * *`  | mobile pet groomer                     | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | mobile pet groomer                     | list all pets or one client's pets                              | review their care requirements before a visit                                  |
+| `* * *`  | user                                   | add a new client                                                |                                                                                |
+| `* * *`  | user                                   | find a client by name                                           | locate details of clients without having to go through the entire list         |
+| `* * *`  | mobile pet groomer                     | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
+| `* * *`  | mobile pet groomer                     | easily find the address for my next appointment                 | know exactly where to drive                                                    |
+| `* * *`  | user                                   | delete a client                                                 | remove entries that I no longer need                                           |
+| `* * *`  | user                                   | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                       |
+| `* *`    | mobile pet groomer                     | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
+| `* *`    | mobile pet groomer                     | make changes to my upcoming appointments easily                 |                                                                                |
+| `* *`    | mobile pet groomer                     | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
+| `* *`    | user                                   | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
+| `*`      | mobile pet groomer                     | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
+| `*`      | mobile pet groomer                     | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
+| `*`      | user with many clients in the BubuBook | sort clients by name                                            | locate a client easily                                                         |
 
 *{More to be added}*
 
@@ -625,7 +625,7 @@ Use case ends.
     - 1b2. Groomer enters a different phone number or email.
     - Steps 1b1-1b2 are repeated until the phone number and email are unique.
     - Use case resumes from step 2.
-- 3a. A pet detail is missing, repeated or invalid (e.g. unsupported species, requirements containing a slash).
+- 3a. A pet detail is missing, repeated or invalid (e.g. an unsupported species or an invalid field length).
     - 3b1. BuBu informs Groomer of the problem.
     - 3b2. Groomer enters the corrected details.
     - Steps 3b1-3b2 are repeated until the details are valid.
@@ -683,7 +683,7 @@ Use case ends.
     - Steps 7a1-7a2 are repeated until the details are valid.
     - Use case resumes from step 8.
 - 7b. The time slot overlaps an existing appointment.
-    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b1. BuBu identifies one conflicting saved appointment by pet name, date, and time range, even if it is hidden by the current list filter.
     - 7b2. Groomer enters a different time slot.
     - Steps 7b1-7b2 are repeated until the slot is free.
     - Use case resumes from step 8.
@@ -1042,7 +1042,7 @@ testers are expected to do more *exploratory* testing.
       Replace only the specified field for each case below.
 
    2. Test case: Replace `n/Test Client` with `n/A` or `n/Test123`.<br>
-      Expected: No client is added. The status message is `Client names must be 2-60 characters and use valid name characters.`
+      Expected: No client is added. The status message is `Client names must be nonblank and contain 2-60 Unicode code points after NFC normalization. Use Unicode letters, combining marks, spaces, apostrophes, hyphens or full stops.`
 
    3. Test case: Replace `i/93456789` with `i/73456789`, `i/9345678`, or `i/9345678a`.<br>
       Expected: No client is added. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
@@ -1051,7 +1051,7 @@ testers are expected to do more *exploratory* testing.
       Expected: No client is added. The status message is `Email must contain one @, no spaces, and a domain with a full stop.`
 
    5. Test case: Replace `a/30 Bedok Road` with `a/1234` or `a/30 Bedok Road!`.<br>
-      Expected: No client is added. The status message is `Addresses must be 5-120 characters and use valid address characters.`
+      Expected: No client is added. The status message is `Addresses must be nonblank and contain 5-120 characters. Use English letters (A-Z, a-z), digits (0-9), spaces, commas, full stops, apostrophes ('), hyphens (-) or #.`
 
 5. Saving added clients
 
@@ -1126,10 +1126,10 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: Run `list-pets`, then `edit-client i/91234567 n/Zoe Tan`.<br>
       Expected: The client's name changes to Zoe Tan, with all other details unchanged. The status message
-      begins with `Edited client:` and the full client list is displayed.
+      begins with `Edited client:` and the client panel is displayed with its existing filter preserved.
 
    3. Test case: Run `list-clients q/zzzznomatch` to hide the client, then `edit-client i/91234567 t/`.<br>
-      Expected: The same client's tags are cleared despite being hidden. The full client list is displayed again.
+      Expected: The same client's tags are cleared despite being hidden. The client panel remains filtered with no matches.
 
    4. Test case: Run `list-appointments`, then `edit-client i/91234567 n/Zoe Lim`.<br>
       Expected: The edit succeeds and the client list replaces the appointment panel.
@@ -1169,46 +1169,58 @@ testers are expected to do more *exploratory* testing.
    4. Test case: Close and relaunch BuBu, then inspect the client, pet, and appointment.<br>
       Expected: The updated phone and links persist after restart.
 
-### Deleting a person
+### Deleting a client
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all persons using the `list-clients` command, with multiple persons in the list.
+   1. Prerequisites: List all clients using the `list-clients` command, with multiple clients in the list.
 
    2. Test case: `delete-client 1`<br>
-      Expected: The first person is deleted from the list. The status message shows the deleted person's details.
+      Expected: The first client is deleted from the list. The status message shows
+      `Deleted client: ... Removed 0 pets and 0 appointments.` when it has no linked records.
 
    3. Test case: `delete-client 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No client is deleted. The status message shows error details.
 
    4. Test case: `delete-client 999`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No client is deleted. The status message shows error details.
 
 2. Deleting by phone number
 
-   1. Prerequisites: A person with phone number `91234567` exists.
+   1. Prerequisites: A client with phone number `91234567` exists.
 
    2. Test case: `delete-client i/91234567`<br>
-      Expected: The matching person is deleted. The status message shows the deleted person's details.
+      Expected: The matching client is deleted. The status message reports the number of linked pets and appointments removed.
 
    3. Test case: `delete-client i/00000000`<br>
-      Expected: No person is deleted because no matching person exists.
+      Expected: No client is deleted. The status message is `No client with the given phone number exists.`.
 
    4. Test case: `delete-client i/12`<br>
-      Expected: No person is deleted because the phone number is invalid.
+      Expected: No client is deleted. The status message explains that the phone must be an 8-digit Singapore mobile number beginning with 8 or 9.
 
-3. Invalid identifier combinations
+3. Cascade deletion feedback
+
+   1. Prerequisites: A client owns two pets and has two appointments, while another client has at least one independent record.
+
+   2. Test case: Delete the first client by index or with `delete-client i/PHONE_NUMBER`.<br>
+      Expected: The selected client, both pets and both appointments are removed. The success message reports `2 pets` and
+      `2 appointments`; the other client's records remain.
+
+4. Invalid identifiers and parameters
 
    1. Test case: `delete-client`<br>
-      Expected: The command is rejected because no identifier was provided.
+      Expected: The command is rejected with `Choose a client index or provide i/PHONE_NUMBER.`.
 
    2. Test case: `delete-client 1 i/91234567`<br>
-      Expected: The command is rejected because both identifiers were provided.
+      Expected: The command is rejected with `Choose either a client index or a phone identifier, not both.`.
 
-   3. Other incorrect delete commands to try: `delete-client x`, `delete-client i/abc`<br>
-      Expected: Similar to previous.
+   3. Test case: `delete-client x/91234567`<br>
+      Expected: The command is rejected with an unknown-parameter message naming `x/`.
 
-4. _{ more test cases …​ }_
+   4. Test case: `delete-client i/91234567 i/92345678`<br>
+      Expected: The command is rejected with a duplicate-prefix message for `i/`.
+
+   5. _{ more test cases …​ }_
 
 ### Adding a pet
 
@@ -1391,29 +1403,39 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `list-appointments`<br>
       Expected: Only ongoing and future appointments are shown, ordered by date and start time. Completed appointments
-      remain saved but are not displayed.
+      remain saved but are not displayed, including appointments that ended earlier today or exactly now.
 
-2. Listing with parameters
+2. Listing by date
 
    1. Test case: `list-appointments d/01-01-9999`<br>
-      Expected: The command is rejected because `list-appointments` does not accept parameters.
+      Expected: Only appointments on 1 January 9999 are shown in start-time order, or a date-specific empty message.
+
+   2. Test case: Use `list-appointments d/DD-MM-YYYY` with a saved past date or today's date.<br>
+      Expected: All appointments on that date are shown, including completed appointments.
+
+   3. Test case: Run `list-appointments` after viewing a date.<br>
+      Expected: The date filter is replaced by the ongoing/future view; completed appointments are hidden again.
+
+   4. Test case: `list-appointments i/91234567`, `list-appointments p/BuBu`,
+      `list-appointments d/31-02-2026`, or `list-appointments d/01-01-2026 d/02-01-2026`<br>
+      Expected: The command is rejected. Only one valid date filter is supported.
 
 ### Deleting an appointment
 
-1. Deleting by date and time
+1. Deleting by date and start time
 
    1. Prerequisites: A saved appointment exists on `01-01-9999` from `10:00` to `11:00`.
 
-   2. Test case: `delete-appointment d/01-01-9999 t/10:30`<br>
-      Expected: The appointment is deleted and the status message confirms the deleted appointment.
+   2. Test case: `delete-appointment d/01-01-9999 st/10:30`<br>
+      Expected: No appointment is deleted because the supplied time is not an appointment start time.
 
-   3. Test case: `delete-appointment d/01-01-9999 t/10:00`<br>
-      Expected: The appointment is deleted; the start time is included in the matching interval.
+   3. Test case: `delete-appointment d/01-01-9999 st/10:00`<br>
+      Expected: The appointment is deleted because the supplied time is its exact start time.
 
-   4. Test case: `delete-appointment d/01-01-9999 t/11:00`<br>
-      Expected: No appointment is deleted; the end time is excluded from the matching interval.
+   4. Test case: `delete-appointment d/01-01-9999 st/11:00`<br>
+      Expected: No appointment is deleted because no appointment starts at the supplied time.
 
-   5. Test case: `delete-appointment d/02-01-9999 t/10:30`<br>
+   5. Test case: `delete-appointment d/02-01-9999 st/10:00`<br>
       Expected: No appointment is deleted because no appointment matches the supplied date and time.
 
 2. Deleting by appointment index
@@ -1431,10 +1453,13 @@ testers are expected to do more *exploratory* testing.
    1. Test case: `delete-appointment`<br>
       Expected: The command is rejected because no selector was provided.
 
-   2. Test case: `delete-appointment 1 d/01-01-9999 t/10:30`<br>
+   2. Test case: `delete-appointment 1 d/01-01-9999 st/10:30`<br>
       Expected: The command is rejected with `An appointment index cannot be combined with date/time identifiers.`
 
-   3. Test case: `delete-appointment d/31-02-2026 t/10:30` or `delete-appointment d/01-01-9999 t/25:00`<br>
+   3. Test case: `delete-appointment 12-12-1234 st/10:30`<br>
+      Expected: The command is rejected because the date is missing its `d/` prefix.
+
+   4. Test case: `delete-appointment d/31-02-2026 st/10:30` or `delete-appointment d/01-01-9999 st/25:00`<br>
       Expected: The command is rejected because the date or time is invalid.
 
 4. Persistence after deletion

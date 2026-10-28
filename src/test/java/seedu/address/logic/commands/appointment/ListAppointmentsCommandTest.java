@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -50,11 +51,29 @@ public class ListAppointmentsCommandTest {
     //@@author 0218hy
     @Test
     public void execute_exactBoundaries_excludesEndingNowAndIncludesStartingNow() {
-        model.setAppointments(List.of(create("07-10-2026", "09:00", "10:00"),
-                create("07-10-2026", "10:00", "11:00")));
+        // BVA: end == now is completed; start == now is ongoing. Assert identity, not just the count.
+        Appointment endingNow = create("07-10-2026", "09:00", "10:00");
+        Appointment startingNow = create("07-10-2026", "10:00", "11:00");
+        model.setAppointments(List.of(endingNow, startingNow));
 
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(CLOCK).execute(model).getFeedbackToUser());
+        assertEquals(List.of(startingNow), model.getFilteredAppointmentList());
+        assertEquals(List.of(endingNow, startingNow), model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_aroundEndBoundary_excludesAppointmentOnlyOnceItEnds() {
+        Appointment appointment = create("07-10-2026", "09:00", "10:00");
+        model.setAppointments(List.of(appointment));
+        // BVA: one second before/after the end. The exact end is covered above.
+        Clock beforeEnd = Clock.offset(CLOCK, Duration.ofSeconds(-1));
+        new ListAppointmentsCommand(beforeEnd).execute(model);
+        assertEquals(List.of(appointment), model.getFilteredAppointmentList());
+        Clock afterEnd = Clock.offset(CLOCK, Duration.ofSeconds(1));
+        new ListAppointmentsCommand(afterEnd).execute(model);
+        assertEquals(List.of(), model.getFilteredAppointmentList());
+        assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
     //@@author
 
@@ -76,12 +95,15 @@ public class ListAppointmentsCommandTest {
     //@@author 0218hy
     @Test
     public void execute_singaporeDateAheadOfUtc_usesSingaporeDate() {
+        // Clock-state EP: UTC and Singapore have different dates (catches reliance on the clock's own zone).
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
+        Appointment nextDay = create("08-10-2026", "08:00", "09:00");
         model.setAppointments(List.of(create("07-10-2026", "19:00", "20:00"),
-                create("08-10-2026", "08:00", "09:00")));
+                nextDay));
 
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(midnight).execute(model).getFeedbackToUser());
+        assertEquals(List.of(nextDay), model.getFilteredAppointmentList());
     }
 
     @Test
@@ -105,8 +127,87 @@ public class ListAppointmentsCommandTest {
     }
 
     @Test
+    public void execute_dateFilter_listsEntireDayChronologicallyWithoutMutation() {
+        // #132 EPs on the selected day: completed, ending now, starting now, later. Exclude adjacent dates.
+        // Different owner/pet/service values must not restrict this date-only filter.
+        Appointment completed = create("07-10-2026", "08:00", "09:00");
+        Appointment endingNow = create("07-10-2026", "09:00", "10:00");
+        Appointment ongoing = create("07-10-2026", "10:00", "11:00");
+        Appointment later = createAppointment(new Phone("81234567"), "Mochi", new AppointmentDate("07-10-2026"),
+                new StartTime("12:00"), new EndTime("13:00"), Service.NAIL_TRIM);
+        Appointment yesterday = create("06-10-2026", "12:00", "13:00");
+        Appointment tomorrow = create("08-10-2026", "12:00", "13:00");
+        List<Appointment> saved = List.of(later, tomorrow, endingNow, yesterday, ongoing, completed);
+        model.setAppointments(saved);
+        new ListAppointmentsCommand(CLOCK).execute(model);
+
+        CommandResult result = new ListAppointmentsCommand(new AppointmentDate("07-10-2026"), CLOCK).execute(model);
+
+        assertEquals("Appointments on 07-10-2026 found: 4.", result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
+        assertEquals(List.of(completed, endingNow, ongoing, later), model.getFilteredAppointmentList());
+        assertEquals(saved, model.getBubuBook().getAppointmentList());
+
+        // Interior ongoing EP: move now inside 10:00-11:00; the date-filter result must remain unchanged.
+        new ListAppointmentsCommand(new AppointmentDate("07-10-2026"),
+                Clock.offset(CLOCK, Duration.ofMinutes(15))).execute(model);
+        assertEquals(List.of(completed, endingNow, ongoing, later), model.getFilteredAppointmentList());
+
+        // Switching back to plain listing must replace the date predicate and hide completed records again.
+        new ListAppointmentsCommand(CLOCK).execute(model);
+        assertEquals(List.of(ongoing, later, tomorrow), model.getFilteredAppointmentList());
+        assertEquals(saved, model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_pastAndFutureDateFilters_showOnlyMatchingDate() {
+        // EPs: selected date before/after today. Changing dates replaces the previous predicate.
+        Appointment past = create("06-10-2026", "12:00", "13:00");
+        Appointment future = create("08-10-2026", "12:00", "13:00");
+        model.setAppointments(List.of(past, future));
+
+        new ListAppointmentsCommand(new AppointmentDate("06-10-2026"), CLOCK).execute(model);
+        assertEquals(List.of(past), model.getFilteredAppointmentList());
+
+        new ListAppointmentsCommand(new AppointmentDate("08-10-2026"), CLOCK).execute(model);
+        assertEquals(List.of(future), model.getFilteredAppointmentList());
+        assertEquals(List.of(past, future), model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_dateFilter_comparesDayMonthAndYear() {
+        // Vary month and year separately: matching the day number alone must not include these records.
+        Appointment selected = create("07-10-2026", "12:00", "13:00");
+        Appointment otherMonth = create("07-11-2026", "12:00", "13:00");
+        Appointment otherYear = create("07-10-2027", "12:00", "13:00");
+        List<Appointment> saved = List.of(otherYear, selected, otherMonth);
+        model.setAppointments(saved);
+
+        new ListAppointmentsCommand(selected.getDate(), CLOCK).execute(model);
+
+        assertEquals(List.of(selected), model.getFilteredAppointmentList());
+        assertEquals(saved, model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_dateWithoutAppointments_returnsDateSpecificEmptyMessage() {
+        // No-match EPs: empty store and nonempty store with only another date. Neither may mutate storage.
+        for (List<Appointment> saved : List.of(List.<Appointment>of(),
+                List.of(create("07-10-2026", "12:00", "13:00")))) {
+            model.setAppointments(saved);
+            CommandResult result = new ListAppointmentsCommand(new AppointmentDate("06-10-2026"), CLOCK).execute(model);
+
+            assertEquals("No appointments on 06-10-2026.", result.getFeedbackToUser());
+            assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
+            assertEquals(List.of(), model.getFilteredAppointmentList());
+            assertEquals(saved, model.getBubuBook().getAppointmentList());
+        }
+    }
+
+    @Test
     public void constructorAndExecute_nullArguments_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(null));
+        assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand((Clock) null));
+        assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand((AppointmentDate) null));
         assertThrows(NullPointerException.class, () -> new ListAppointmentsCommand(CLOCK).execute(null));
     }
 

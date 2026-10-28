@@ -171,6 +171,7 @@ public class UniqueClientListTest {
         assertEquals(uniqueClientList.asUnmodifiableObservableList().toString(), uniqueClientList.toString());
     }
 
+    //@@author anderschow
     @Test
     public void setClient_changeOnlyPhoneOrEmailToExistingClient_throwsDuplicateClientException() {
         uniqueClientList.add(ALICE);
@@ -181,5 +182,6 @@ public class UniqueClientListTest {
         assertThrows(DuplicateClientException.class, () -> uniqueClientList.setClient(ALICE, duplicatePhone));
         assertEquals(List.of(ALICE, BOB), uniqueClientList.asUnmodifiableObservableList());
     }
+    //@@author
 
 }

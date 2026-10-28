@@ -3,6 +3,7 @@ package seedu.address.model.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
@@ -54,11 +55,14 @@ public class BubuBookAppointmentTest {
     @Test
     public void addAppointment_duplicateOrOverlappingSlot_rejectedWithoutMutation() {
         book.addAppointment(APPOINTMENT);
+        // EPs: same reference, equal value, distinct intersecting slot. Geometry is covered in AppointmentTest.
         for (Appointment overlap : List.of(APPOINTMENT, create("10:00", "11:00"),
-                create("09:30", "10:30"), create("10:30", "11:30"),
-                create("09:30", "11:30"), create("10:00", "10:30"))) {
+                create("10:30", "11:30"))) {
             assertTrue(book.hasOverlappingAppointment(overlap));
-            assertThrows(OverlappingAppointmentException.class, () -> book.addAppointment(overlap));
+            OverlappingAppointmentException exception = assertThrows(OverlappingAppointmentException.class, () ->
+                    book.addAppointment(overlap));
+            // #163: carry the stored record, not the rejected candidate, to the command's message formatter.
+            assertSame(APPOINTMENT, exception.getConflictingAppointment());
             assertEquals(List.of(APPOINTMENT), book.getAppointmentList());
         }
     }
@@ -84,6 +88,7 @@ public class BubuBookAppointmentTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void removeAppointment_existingAppointment_removesOnlyTarget() {
         book.addAppointment(APPOINTMENT);
@@ -98,6 +103,7 @@ public class BubuBookAppointmentTest {
     public void removeAppointment_missingAppointment_throwsException() {
         assertThrows(AppointmentNotFoundException.class, () -> book.removeAppointment(APPOINTMENT));
     }
+    //@@author
 
     //@@author 0218hy
     @Test
@@ -125,9 +131,11 @@ public class BubuBookAppointmentTest {
 
     @Test
     public void setAppointments_invalidReplacement_preservesExistingAppointments() {
+        // Invalid collection EPs: conflicting elements and a null element. Each failed replacement must be atomic.
         book.addAppointment(ADJACENT);
         assertThrows(OverlappingAppointmentException.class, () ->
                 book.setAppointments(List.of(APPOINTMENT, create("10:30", "11:30"))));
+        assertEquals(List.of(ADJACENT), book.getAppointmentList());
         assertThrows(NullPointerException.class, () -> book.setAppointments(Arrays.asList(APPOINTMENT, null)));
         assertEquals(List.of(ADJACENT), book.getAppointmentList());
     }

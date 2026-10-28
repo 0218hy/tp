@@ -29,6 +29,9 @@ checkstyle {
 }
 
 test {
+    //@@author anderschow
+    enableAssertions = true
+    //@@author
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 }

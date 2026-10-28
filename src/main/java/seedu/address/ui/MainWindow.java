@@ -166,6 +166,7 @@ public class MainWindow extends UiPart<Stage> {
         }
     }
 
+    //@@author khangsian0412
     /**
      * Displays the command reference in the result display.
      */
@@ -174,9 +175,12 @@ public class MainWindow extends UiPart<Stage> {
         try {
             executeCommand(HelpCommand.COMMAND_WORD);
         } catch (CommandException | ParseException exception) {
-            logger.warning("Unable to display the command reference: " + exception.getMessage());
+            //@@author anderschow
+            logger.log(java.util.logging.Level.WARNING, "Unable to display the command reference", exception);
+            //@@author khangsian0412
         }
     }
+    //@@author
 
     void show() {
         primaryStage.show();
@@ -236,10 +240,12 @@ public class MainWindow extends UiPart<Stage> {
     }
     // @@author
 
+    //@@author chunghean
     private static void setListVisibility(Region listRoot, boolean visible) {
         listRoot.setVisible(visible);
         listRoot.setManaged(visible);
     }
+    //@@author
 
     /**
      * Executes the command and returns the result.
@@ -249,7 +255,6 @@ public class MainWindow extends UiPart<Stage> {
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
             showList(commandResult.getDisplayType());
             if (commandResult.isShowHelp()) {
                 resultDisplay.setHelpContent(commandResult.getFeedbackToUser());
@@ -265,13 +270,13 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setErrorFeedbackToUser(e.getMessage());
             setResultDisplayHeight(DEFAULT_RESULT_DISPLAY_HEIGHT);
             throw e;
         }
     }
 
+    //@@author khangsian0412
     /**
      * Sets the height of the result display area.
      */
@@ -280,4 +285,5 @@ public class MainWindow extends UiPart<Stage> {
         resultDisplayPlaceholder.setPrefHeight(height);
         resultDisplayPlaceholder.setMaxHeight(height);
     }
+    //@@author
 }

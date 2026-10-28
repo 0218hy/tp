@@ -20,6 +20,7 @@ import seedu.address.model.pet.Species;
 public class EditPetCommandParserTest {
     private final EditPetCommandParser parser = new EditPetCommandParser();
 
+    //@@author khangsian0412
     @Test
     public void parse_optionalFields_createsCommand() throws Exception {
         EditPetDescriptor descriptor = new EditPetDescriptor();
@@ -113,12 +114,24 @@ public class EditPetCommandParserTest {
                 parser.parse("p/Mochi i/91234567 s/Horse"));
         assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
                 parser.parse("p/Mochi i/91234567 b/X"));
-        assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
-                parser.parse("p/Mochi i/91234567 r/Bad/care"));
     }
 
     @Test
     public void parse_nullArguments_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
+    //@@author
+
+    // @@author xinyu-zxy
+    @Test
+    public void parse_requirementContainingSlash_createsCommand() throws Exception {
+        // EP: valid updated requirements containing a slash
+        EditPetDescriptor descriptor = new EditPetDescriptor();
+        descriptor.setRequirement(new Requirement("Bath/brush carefully"));
+        EditPetCommand expected = new EditPetCommand(
+                new PetName("Mochi"), new Phone("91234567"), descriptor);
+
+        assertEquals(expected, parser.parse("p/Mochi i/91234567 r/Bath/brush carefully"));
+    }
+    // @@author
 }

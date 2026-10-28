@@ -9,10 +9,14 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Address {
 
+    //@@author anderschow
     public static final String MESSAGE_CONSTRAINTS =
-            "Addresses must be 5-120 characters and use valid address characters.";
+            "Addresses must be nonblank and contain 5-120 characters. "
+            + "Use English letters (A-Z, a-z), digits (0-9), spaces, commas, full stops, "
+            + "apostrophes ('), hyphens (-) or #.";
 
-    public static final String VALIDATION_REGEX = "[A-Za-z0-9 ,.#-]{5,120}";
+    public static final String VALIDATION_REGEX = "[A-Za-z0-9 ,.'#-]{5,120}";
+    //@@author
 
     public final String value;
 
@@ -27,12 +31,14 @@ public class Address {
         value = address;
     }
 
+    //@@author anderschow
     /**
      * Returns true if a given string is a valid address.
      */
     public static boolean isValidAddress(String test) {
         return !test.isBlank() && test.matches(VALIDATION_REGEX);
     }
+    //@@author
 
     @Override
     public String toString() {

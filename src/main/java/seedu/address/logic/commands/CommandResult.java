@@ -55,12 +55,14 @@ public class CommandResult {
         this(feedbackToUser, false, false);
     }
 
+    //@@author chunghean
     /**
      * Constructs a result that asks the UI to display the specified record list.
      */
     public CommandResult(String feedbackToUser, DisplayType displayType) {
         this(feedbackToUser, false, false, displayType);
     }
+    //@@author
 
     public String getFeedbackToUser() {
         return feedbackToUser;
@@ -74,9 +76,11 @@ public class CommandResult {
         return exit;
     }
 
+    //@@author chunghean
     public DisplayType getDisplayType() {
         return displayType;
     }
+    //@@author
 
     @Override
     public boolean equals(Object other) {

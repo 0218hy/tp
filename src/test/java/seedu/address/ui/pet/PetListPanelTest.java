@@ -22,6 +22,7 @@ import seedu.address.ui.JavaFxTestUtils;
 @EnabledOnOs(OS.LINUX)
 public class PetListPanelTest {
 
+    //@@author chunghean
     @Test
     public void constructorAndCell_updateGraphicForEmptyAndPopulatedItems() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -46,6 +47,7 @@ public class PetListPanelTest {
             assertNull(cell.getText());
         });
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test

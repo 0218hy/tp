@@ -1,6 +1,7 @@
 package seedu.address.logic.parser.pet;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIER;
 
 import java.util.regex.Matcher;
@@ -19,11 +20,10 @@ import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
  * Parses the optional owner phone number for {@code list-pets}.
  */
 public class ListPetsCommandParser implements Parser<ListPetsCommand> {
-    public static final String MESSAGE_DUPLICATE_OWNER = "Each owner identifier may be specified only once.";
+    public static final String MESSAGE_DUPLICATE_OWNER = "The owner phone may be specified only once.";
     public static final String MESSAGE_INVALID_FORMAT =
-            "Invalid command format. Check the command syntax and try again.";
-    public static final String MESSAGE_INVALID_OWNER =
-            "Owner identifier must be a valid phone number belonging to the specified client.";
+            String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListPetsCommand.MESSAGE_USAGE);
+    public static final String MESSAGE_INVALID_OWNER = Phone.MESSAGE_CONSTRAINTS;
     private static final int MAX_OWNER_FIELDS = 1;
 
     /**

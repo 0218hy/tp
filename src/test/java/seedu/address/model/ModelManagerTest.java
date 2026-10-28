@@ -93,6 +93,7 @@ public class ModelManagerTest {
         assertFalse(modelManager.hasPet(new PetBuilder(ALICE).build()));
     }
 
+    //@@author khangsian0412
     @Test
     public void addPet_petAdded_isPresentAndShown() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -130,7 +131,9 @@ public class ModelManagerTest {
         assertFalse(modelManager.hasPet(pet));
         assertEquals(List.of(), modelManager.getFilteredPetList());
     }
+    //@@author
 
+    //@@author chunghean
     @Test
     public void deleteAppointment_appointmentInBubuBook_removesAppointment() {
         Appointment appointment = createAppointment(new Phone("91234567"), "BuBu",
@@ -180,12 +183,14 @@ public class ModelManagerTest {
 
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredAppointmentList().remove(0));
     }
+    //@@author
 
     @Test
     public void getFilteredPetList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPetList().remove(0));
     }
 
+    //@@author anderschow
     @Test
     public void equals() {
         BubuBook bubuBook = new BubuBookBuilder().withClient(ALICE).withClient(BENSON).build();
@@ -221,4 +226,5 @@ public class ModelManagerTest {
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(bubuBook, differentUserPrefs)));
     }
+    //@@author
 }

@@ -56,6 +56,7 @@ public class AddAppointmentCommandParserTest {
 
     @Test
     public void parse_eachSupportedService_success() {
+        // EP: each enum value has its own expected command value; all services must remain reachable via parsing.
         for (Service service : Service.values()) {
             assertParseSuccess(parser, VALID_ARGS.replace("Full groom", service.toString()),
                     expected("BuBu", "01-01-9999", "10:00", "11:00", service));
@@ -74,6 +75,7 @@ public class AddAppointmentCommandParserTest {
 
     @Test
     public void parse_missingFieldsOrPreamble_failure() {
+        // EPs: empty command, unexpected preamble, and each compulsory field missing independently.
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddAppointmentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "", usage);
         assertParseFailure(parser, "  ", usage);
@@ -85,6 +87,7 @@ public class AddAppointmentCommandParserTest {
 
     @Test
     public void parse_duplicateFieldsEvenWithSameValues_failure() {
+        // EPs: repeated identical/conflicting values. Reject both instead of silently keeping one occurrence.
         for (int i = 0; i < FIELDS.size(); i++) {
             String message = Messages.getErrorMessageForDuplicatePrefixes(PREFIXES.get(i));
             assertParseFailure(parser, VALID_ARGS + " " + FIELDS.get(i), message);
@@ -108,21 +111,32 @@ public class AddAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidOrEmptyDate_failure() {
-        for (String date : List.of("", "31-02-2026", "29-02-2027", "1-01-9999", "9999-01-01")) {
+        // EPs: missing value, impossible calendar date, malformed format. Detailed BVA is in AppointmentDateTest.
+        for (String date : List.of("", "31-02-2026", "1-01-9999")) {
             assertInvalid("01-01-9999", date, AppointmentDate.MESSAGE_CONSTRAINTS);
         }
     }
 
     @Test
     public void parse_invalidOrEmptyStartTime_failure() {
-        for (String start : List.of("", "07:30", "20:00", "10:15", "9:00", "24:00")) {
+        // Parser responsibility: report the right constraint for missing, out-of-range, off-grid, malformed values.
+        for (String start : List.of("", "07:30", "10:15", "9:00")) {
             assertInvalid("10:00", start, StartTime.MESSAGE_CONSTRAINTS);
         }
     }
 
     @Test
-    public void parse_invalidEndTimeOrDuration_failure() {
-        for (String end : List.of("", "08:00", "20:30", "11:15", "9:30", "09:30", "10:00")) {
+    public void parse_invalidOrEmptyEndTime_failure() {
+        // Same parser EPs as start time; detailed working-hour boundaries belong to EndTimeTest.
+        for (String end : List.of("", "20:30", "11:15", "9:30")) {
+            assertInvalid("11:00", end, EndTime.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_invalidDuration_failure() {
+        // #124: each field is valid alone, but the pair has negative/zero duration. Change only the end time.
+        for (String end : List.of("09:30", "10:00")) {
             assertInvalid("11:00", end, EndTime.MESSAGE_CONSTRAINTS);
         }
     }

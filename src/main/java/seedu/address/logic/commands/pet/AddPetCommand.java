@@ -27,11 +27,16 @@ import seedu.address.model.pet.Species;
  */
 public class AddPetCommand extends Command {
     public static final String COMMAND_WORD = "add-pet";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + " " + PREFIX_PET_NAME + "PET_NAME "
-            + PREFIX_OWNER_IDENTIFIER + "OWNER_IDENTIFIER " + PREFIX_SPECIES + "SPECIES ["
-            + PREFIX_BREED + "BREED] " + PREFIX_REQUIREMENTS + "REQUIREMENTS";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a pet to a registered client. "
+            + "Parameters: " + PREFIX_PET_NAME + "PET_NAME "
+            + PREFIX_OWNER_IDENTIFIER + "OWNER_PHONE "
+            + PREFIX_SPECIES + "SPECIES ["
+            + PREFIX_BREED + "BREED] " + PREFIX_REQUIREMENTS + "REQUIREMENTS\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_PET_NAME + "Mochi "
+            + PREFIX_OWNER_IDENTIFIER + "91234567 " + PREFIX_SPECIES + "Dog "
+            + PREFIX_REQUIREMENTS + "Calm during grooming";
     public static final String MESSAGE_OWNER_NOT_FOUND =
-            "The owner identifier does not belong to the specified client.";
+            "No saved client has this phone number. Add the client before adding a pet.";
     public static final String MESSAGE_DUPLICATE_PET = "This client already has a pet named %s.";
     public static final String MESSAGE_SUCCESS = "Pet added: %s (%s) under %s.";
     public static final String MESSAGE_SUCCESS_WITH_BREED = "Pet added: %s (%s, %s) under %s.";

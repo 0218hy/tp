@@ -5,9 +5,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import java.util.Locale;
 import java.util.Objects;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.model.Model;
@@ -15,6 +13,7 @@ import seedu.address.model.client.Client;
 
 /** Lists clients alphabetically, optionally matching a keyword across their contact details. */
 public class ListClientsCommand extends Command {
+    //@@author anderschow
     public static final String COMMAND_WORD = "list-clients";
     public static final String MESSAGE_USAGE = COMMAND_WORD
             + ": Lists all clients or searches their name, phone, email and address.\n"
@@ -23,13 +22,14 @@ public class ListClientsCommand extends Command {
     public static final String MESSAGE_FOUND = "Found %d client(s).";
     public static final String MESSAGE_NO_MATCH = "No clients match \"%s\".";
     public static final String MESSAGE_INVALID_KEYWORD =
-            "Search keyword must be 1-60 characters and use valid text characters.";
+            "Search keyword must be 1-60 characters, not blank, and contain no control characters.";
     public static final String MESSAGE_DUPLICATE_QUERY = "Each search field may be specified only once.";
 
-    private static final Logger logger = LogsCenter.getLogger(ListClientsCommand.class);
 
     private final String keyword;
+    //@@author
 
+    //@@author anderschow
     /** Creates a command that lists every client. */
     public ListClientsCommand() {
         keyword = null;
@@ -59,8 +59,6 @@ public class ListClientsCommand extends Command {
         model.updateFilteredClientList(keyword == null ? PREDICATE_SHOW_ALL_CLIENTS : this::matchesKeyword);
         model.sortFilteredClientList();
         int count = model.getFilteredClientList().size();
-        logger.info(() -> "list-clients: " + (keyword == null ? "listed all clients" : "applied contact search")
-                + "; displayed " + count + " client(s) in alphabetical order.");
         if (keyword == null) {
             return new CommandResult(MESSAGE_SUCCESS, CommandResult.DisplayType.CLIENTS);
         }
@@ -68,7 +66,6 @@ public class ListClientsCommand extends Command {
                 : String.format(MESSAGE_FOUND, count), CommandResult.DisplayType.CLIENTS);
     }
 
-    //@@author anderschow
     /**
      * Checks whether the client's name, phone, email or address contains the search keyword, ignoring case.
      * Only called when this command has a non-null keyword.
@@ -83,11 +80,11 @@ public class ListClientsCommand extends Command {
                 || client.getEmail().value.toLowerCase(Locale.ROOT).contains(query)
                 || client.getAddress().value.toLowerCase(Locale.ROOT).contains(query);
     }
-    //@@author
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ListClientsCommand otherCommand
                 && Objects.equals(keyword, otherCommand.keyword);
     }
+    //@@author
 }

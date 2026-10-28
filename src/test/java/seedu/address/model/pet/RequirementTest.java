@@ -33,14 +33,14 @@ public class RequirementTest {
         // BVA: four characters (just below the minimum length)
         assertFalse(Requirement.isValidRequirement("Care"));
 
-        // EP: requirements within the length limits and without unsupported characters
+        // EP: requirements within the length limits
         // BVA: five characters (minimum valid length)
         assertTrue(Requirement.isValidRequirement("Brush"));
         assertTrue(Requirement.isValidRequirement("Daily brushing"));
         assertTrue(Requirement.isValidRequirement("Bath every 2 weeks"));
 
-        // EP: requirements containing an unsupported slash
-        assertFalse(Requirement.isValidRequirement("Bath/brush"));
+        // EP: requirements containing slashes
+        assertTrue(Requirement.isValidRequirement("Bath/brush"));
 
         // BVA: 240 characters (maximum valid length)
         assertTrue(Requirement.isValidRequirement("A".repeat(240)));
@@ -48,6 +48,7 @@ public class RequirementTest {
         assertFalse(Requirement.isValidRequirement("A".repeat(241)));
     }
 
+    //@@author khangsian0412
     @Test
     public void isValidRequirement_boundaryLengths() {
         // BVA: check values immediately below, at, and above the 5- and 240-char limits.
@@ -59,6 +60,7 @@ public class RequirementTest {
         assertTrue(Requirement.isValidRequirement("R".repeat(240)));
         assertFalse(Requirement.isValidRequirement("R".repeat(241)));
     }
+    //@@author
 
     @Test
     public void equals() {

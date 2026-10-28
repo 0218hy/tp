@@ -77,6 +77,30 @@ public class JsonAdaptedClientTest {
         assertThrows(IllegalValueException.class, expectedMessage, client::toModelType);
     }
 
+    //@@author anderschow
+    @Test
+    public void toModelType_oversizedEmail_throwsIllegalValueException() {
+        for (String email : List.of("a".repeat(Email.MAX_LENGTH - 5) + "@b.com",
+                "a@" + "b.".repeat(6000) + "com")) {
+            JsonAdaptedClient client =
+                    new JsonAdaptedClient(VALID_NAME, VALID_PHONE, email, VALID_ADDRESS, VALID_TAGS);
+            assertThrows(IllegalValueException.class, Email.MESSAGE_CONSTRAINTS, client::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_unicodeWhitespaceEmail_throwsIllegalValueException() {
+        for (String space : new String[]{"\u00a0", "\u2003", "\u202f", "\u3000"}) {
+            for (String email : new String[]{"alice" + space + "tan@example.com",
+                "alice@exam" + space + "ple.com", "alice@example.c" + space + "om"}) {
+                JsonAdaptedClient client =
+                        new JsonAdaptedClient(VALID_NAME, VALID_PHONE, email, VALID_ADDRESS, VALID_TAGS);
+                assertThrows(IllegalValueException.class, Email.MESSAGE_CONSTRAINTS, client::toModelType);
+            }
+        }
+    }
+    //@@author
+
     @Test
     public void toModelType_nullEmail_throwsIllegalValueException() {
         JsonAdaptedClient client = new JsonAdaptedClient(VALID_NAME, VALID_PHONE, null, VALID_ADDRESS, VALID_TAGS);
