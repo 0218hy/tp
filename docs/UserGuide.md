@@ -280,7 +280,8 @@ delete-client i/PHONE_NUMBER
 
 #### Success and other behavior
 
-* On success, BuBu displays `Deleted person: ...` (the current application wording).
+* On success, BuBu displays `Deleted client: CLIENT_DETAILS. Removed PET_COUNT and APPOINTMENT_COUNT.`
+  The counts use singular or plural wording, such as `1 pet` or `2 appointments`.
 * All pets and appointments belonging to that client are also deleted, including completed appointments. Other clients' records are preserved.
 * The selected panel does not change. There is no confirmation prompt.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
@@ -289,9 +290,14 @@ delete-client i/PHONE_NUMBER
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format — the target is missing, an index or phone is invalid, `i/` is repeated, or both target formats are combined.
-* Invalid displayed client index — the index is outside the current client list.
-* `No person with the given phone number exists.` — no saved client has the supplied phone number.
+* `Choose a client index or provide i/PHONE_NUMBER.` — no deletion target was supplied.
+* `Choose either a client index or a phone identifier, not both.` — both target formats were supplied.
+* `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format is shown.
+* `Multiple values specified for the following single-valued field(s): i/` — the phone identifier was repeated.
+* `Client index must be a positive whole number.` — the index is malformed or not positive.
+* `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone identifier is invalid.
+* `The person index provided is invalid.` — the index is outside the current displayed client list.
+* `No client with the given phone number exists.` — no saved client has the supplied phone number.
 * Wrong displayed list — index-based deletion requires the matching record panel; run the corresponding list command first.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
@@ -598,7 +604,12 @@ The command makes no changes when it cannot be completed.
 * `This pet is not registered under the specified owner.` — the replacement pet cannot be found for that owner.
 * `No changes were made. The appointment already has these details.` — all requested values match the existing
   appointment.
-* `End time must be at least 30 minutes after the appointment start time.` — the edited time range is too short.
+* `The new start time must be at least 30 minutes before the existing end time.` — only the replacement start time
+  makes the duration too short.
+* `The new end time must be at least 30 minutes after the existing start time.` — only the replacement end time makes
+  the duration too short.
+* `The appointment duration must be at least 30 minutes.` — both replacement times were supplied but form an invalid
+  duration.
 * `The updated appointment must start in the future (Singapore time).` — the new start has passed.
 * `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
   with an existing appointment.
@@ -650,7 +661,7 @@ The command makes no changes when it cannot be completed.
 * `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
 * `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
   using an index.
-* `No appointment starts at the specified date and time.` — no booking starts at that date and time.
+* `No appointment starts at the specified date and start time.` — no booking starts at that date and start time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`

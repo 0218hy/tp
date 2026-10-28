@@ -463,11 +463,11 @@ Step 1. The user launches the application for the first time. The `VersionedBubu
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete-client 5` command to delete the 5th person in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
+Step 2. The user executes `delete-client 5` command to delete the 5th client in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new client. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
 
 ![UndoRedoState2](images/UndoRedoState2.png)
 
@@ -475,7 +475,7 @@ Step 3. The user executes `add n/David …​` to add a new person. The `add` co
 
 </div>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
+Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
@@ -524,7 +524,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete-client`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete-client`, just save the client being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -566,24 +566,24 @@ and schedule upcoming appointments faster than with a typical mouse-driven GUI a
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …​                                    | I want to …​                                                    | So that I can…​                                                                |
-| -------- | ------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `* * *`  | new user                                   | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
-| `* * *`  | mobile pet groomer                         | add a new client and their pet’s basic information              | start building my digital roster                                               |
-| `* * *`  | mobile pet groomer                         | list all pets or one client's pets                               | review their care requirements before a visit                                  |
-| `* * *`  | user                                       | add a new person                                                |                                                                                |
-| `* * *`  | user                                       | find a person by name                                           | locate details of persons without having to go through the entire list         |
-| `* * *`  | mobile pet groomer                         | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
-| `* * *`  | mobile pet groomer                         | easily find the address for my next appointment                 | know exactly where to drive                                                    |
-| `* * *`  | user                                       | delete a person                                                 | remove entries that I no longer need                                           |
-| `* * *`  | user                                       | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                      |
-| `* *`    | mobile pet groomer                         | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
-| `* *`    | mobile pet groomer                         | make changes to my upcoming appointments easily                 |                                                                                |
-| `* *`    | mobile pet groomer                         | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
-| `* *`    | user                                       | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
-| `*`      | mobile pet groomer                         | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
-| `*`      | mobile pet groomer                         | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
-| `*`      | user with many persons in the BubuBook | sort persons by name                                            | locate a person easily                                                         |
+| Priority | As a …​                                | I want to …​                                                    | So that I can…​                                                                |
+| -------- |----------------------------------------|-----------------------------------------------------------------|--------------------------------------------------------------------------------|
+| `* * *`  | new user                               | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
+| `* * *`  | mobile pet groomer                     | add a new client and their pet’s basic information              | start building my digital roster                                               |
+| `* * *`  | mobile pet groomer                     | list all pets or one client's pets                              | review their care requirements before a visit                                  |
+| `* * *`  | user                                   | add a new client                                                |                                                                                |
+| `* * *`  | user                                   | find a client by name                                           | locate details of clients without having to go through the entire list         |
+| `* * *`  | mobile pet groomer                     | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
+| `* * *`  | mobile pet groomer                     | easily find the address for my next appointment                 | know exactly where to drive                                                    |
+| `* * *`  | user                                   | delete a client                                                 | remove entries that I no longer need                                           |
+| `* * *`  | user                                   | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                       |
+| `* *`    | mobile pet groomer                     | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
+| `* *`    | mobile pet groomer                     | make changes to my upcoming appointments easily                 |                                                                                |
+| `* *`    | mobile pet groomer                     | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
+| `* *`    | user                                   | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
+| `*`      | mobile pet groomer                     | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
+| `*`      | mobile pet groomer                     | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
+| `*`      | user with many clients in the BubuBook | sort clients by name                                            | locate a client easily                                                         |
 
 *{More to be added}*
 
@@ -1169,46 +1169,58 @@ testers are expected to do more *exploratory* testing.
    4. Test case: Close and relaunch BuBu, then inspect the client, pet, and appointment.<br>
       Expected: The updated phone and links persist after restart.
 
-### Deleting a person
+### Deleting a client
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all persons using the `list-clients` command, with multiple persons in the list.
+   1. Prerequisites: List all clients using the `list-clients` command, with multiple clients in the list.
 
    2. Test case: `delete-client 1`<br>
-      Expected: The first person is deleted from the list. The status message shows the deleted person's details.
+      Expected: The first client is deleted from the list. The status message shows
+      `Deleted client: ... Removed 0 pets and 0 appointments.` when it has no linked records.
 
    3. Test case: `delete-client 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No client is deleted. The status message shows error details.
 
    4. Test case: `delete-client 999`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No client is deleted. The status message shows error details.
 
 2. Deleting by phone number
 
-   1. Prerequisites: A person with phone number `91234567` exists.
+   1. Prerequisites: A client with phone number `91234567` exists.
 
    2. Test case: `delete-client i/91234567`<br>
-      Expected: The matching person is deleted. The status message shows the deleted person's details.
+      Expected: The matching client is deleted. The status message reports the number of linked pets and appointments removed.
 
    3. Test case: `delete-client i/00000000`<br>
-      Expected: No person is deleted because no matching person exists.
+      Expected: No client is deleted. The status message is `No client with the given phone number exists.`.
 
    4. Test case: `delete-client i/12`<br>
-      Expected: No person is deleted because the phone number is invalid.
+      Expected: No client is deleted. The status message explains that the phone must be an 8-digit Singapore mobile number beginning with 8 or 9.
 
-3. Invalid identifier combinations
+3. Cascade deletion feedback
+
+   1. Prerequisites: A client owns two pets and has two appointments, while another client has at least one independent record.
+
+   2. Test case: Delete the first client by index or with `delete-client i/PHONE_NUMBER`.<br>
+      Expected: The selected client, both pets and both appointments are removed. The success message reports `2 pets` and
+      `2 appointments`; the other client's records remain.
+
+4. Invalid identifiers and parameters
 
    1. Test case: `delete-client`<br>
-      Expected: The command is rejected because no identifier was provided.
+      Expected: The command is rejected with `Choose a client index or provide i/PHONE_NUMBER.`.
 
    2. Test case: `delete-client 1 i/91234567`<br>
-      Expected: The command is rejected because both identifiers were provided.
+      Expected: The command is rejected with `Choose either a client index or a phone identifier, not both.`.
 
-   3. Other incorrect delete commands to try: `delete-client x`, `delete-client i/abc`<br>
-      Expected: Similar to previous.
+   3. Test case: `delete-client x/91234567`<br>
+      Expected: The command is rejected with an unknown-parameter message naming `x/`.
 
-4. _{ more test cases …​ }_
+   4. Test case: `delete-client i/91234567 i/92345678`<br>
+      Expected: The command is rejected with a duplicate-prefix message for `i/`.
+
+   5. _{ more test cases …​ }_
 
 ### Adding a pet
 
