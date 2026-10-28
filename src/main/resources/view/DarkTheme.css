@@ -5,28 +5,28 @@
 
 .label {
     -fx-font-size: 11pt;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-family: "System";
     -fx-text-fill: #555555;
     -fx-opacity: 0.9;
 }
 
 .label-bright {
     -fx-font-size: 11pt;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-family: "System";
     -fx-text-fill: white;
     -fx-opacity: 1;
 }
 
 .label-header {
     -fx-font-size: 32pt;
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-text-fill: white;
     -fx-opacity: 1;
 }
 
 .text-field {
     -fx-font-size: 12pt;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-family: "System";
 }
 
 .tab-pane {
@@ -52,7 +52,8 @@
     -fx-background-color: transparent;
 }
 
-.table-view .column-header, .table-view .filler {
+.table-view .column-header,
+.table-view .filler {
     -fx-size: 35;
     -fx-border-width: 0 0 1 0;
     -fx-background-color: transparent;
@@ -66,7 +67,7 @@
 
 .table-view .column-header .label {
     -fx-font-size: 20pt;
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-text-fill: white;
     -fx-alignment: center-left;
     -fx-opacity: 1;
@@ -120,14 +121,14 @@
     -fx-text-fill: white;
 }
 
-.cell_big_label {
-    -fx-font-family: "Segoe UI Semibold";
+.cell-big-label {
+    -fx-font-family: "System";
     -fx-font-size: 16px;
     -fx-text-fill: #010504;
 }
 
-.cell_small_label {
-    -fx-font-family: "Segoe UI";
+.cell-small-label {
+    -fx-font-family: "System";
     -fx-font-size: 13px;
     -fx-text-fill: #010504;
 }
@@ -148,13 +149,13 @@
 
 .result-display {
     -fx-background-color: transparent;
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-font-size: 13pt;
     -fx-text-fill: white;
 }
 
 .result-display .label {
-    -fx-text-fill: black !important;
+    -fx-text-fill: black;
 }
 
 .help-display {
@@ -172,13 +173,13 @@
 
 .help-heading {
     -fx-fill: white;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-family: "System";
     -fx-font-size: 16px;
 }
 
 .help-command-name {
     -fx-fill: white;
-    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-family: "System";
     -fx-font-size: 13px;
 }
 
@@ -193,7 +194,7 @@
 }
 
 .status-bar .label {
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-text-fill: white;
     -fx-padding: 4px;
     -fx-pref-height: 30px;
@@ -233,7 +234,7 @@
 
 .menu-bar .label {
     -fx-font-size: 14pt;
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-text-fill: white;
     -fx-opacity: 0.9;
 }
@@ -253,7 +254,7 @@
     -fx-border-width: 2;
     -fx-background-radius: 0;
     -fx-background-color: #1d1d1d;
-    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    -fx-font-family: "System";
     -fx-font-size: 11pt;
     -fx-text-fill: #d8d8d8;
     -fx-background-insets: 0 0 0 0, 0, 1, 2;
@@ -263,7 +264,8 @@
     -fx-background-color: #3a3a3a;
 }
 
-.button:pressed, .button:default:hover:pressed {
+.button:pressed,
+.button:default:hover:pressed {
   -fx-background-color: white;
   -fx-text-fill: #1d1d1d;
 }
@@ -276,7 +278,8 @@
     -fx-border-insets: 1 1 1 1, 0;
 }
 
-.button:disabled, .button:default:disabled {
+.button:disabled,
+.button:default:disabled {
     -fx-opacity: 0.4;
     -fx-background-color: #1d1d1d;
     -fx-text-fill: white;
@@ -325,20 +328,24 @@
     -fx-background-insets: 3;
 }
 
-.scroll-bar .increment-button, .scroll-bar .decrement-button {
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0 0 0 0;
 }
 
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
     -fx-shape: " ";
 }
 
-.scroll-bar:vertical .increment-arrow, .scroll-bar:vertical .decrement-arrow {
+.scroll-bar:vertical .increment-arrow,
+.scroll-bar:vertical .decrement-arrow {
     -fx-padding: 1 8 1 8;
 }
 
-.scroll-bar:horizontal .increment-arrow, .scroll-bar:horizontal .decrement-arrow {
+.scroll-bar:horizontal .increment-arrow,
+.scroll-bar:horizontal .decrement-arrow {
     -fx-padding: 8 1 8 1;
 }
 
@@ -358,12 +365,14 @@
     -fx-border-color: #383838 #383838 #ffffff #383838;
     -fx-border-insets: 0;
     -fx-border-width: 1;
-    -fx-font-family: "Segoe UI Light";
+    -fx-font-family: "System";
     -fx-font-size: 13pt;
     -fx-text-fill: white;
 }
 
-#filterField, #clientListPanel, #personWebpage {
+#filterField,
+#clientListPanel,
+#personWebpage {
     -fx-effect: innershadow(gaussian, black, 10, 0, 0, 0);
 }
 

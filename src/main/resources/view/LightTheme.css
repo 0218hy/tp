@@ -9,19 +9,29 @@
     -fx-text-background-color: #193153;
 }
 
-.background, .stack-pane, .split-pane, .pane-with-border {
+.background,
+.stack-pane,
+.split-pane,
+.pane-with-border {
     -fx-background-color: #f5f7fb;
 }
 
-.pane-with-border, .split-pane {
+.pane-with-border,
+.split-pane {
     -fx-border-color: #e1e8f1;
 }
 
-.label, .label-bright, .label-header, .list-cell .label {
+.label,
+.label-bright,
+.label-header,
+.list-cell .label {
     -fx-text-fill: #193153;
 }
 
-.list-view, .list-cell:filled:even, .menu-bar, .context-menu {
+.list-view,
+.list-cell:filled:even,
+.menu-bar,
+.context-menu {
     -fx-background-color: #ffffff;
 }
 
@@ -46,11 +56,14 @@
     -fx-text-fill: #1d56b5;
 }
 
-.menu-bar .label, .context-menu .label {
+.menu-bar .label,
+.context-menu .label {
     -fx-text-fill: #193153;
 }
 
-.menu:hover, .menu:showing, .menu-item:focused {
+.menu:hover,
+.menu:showing,
+.menu-item:focused {
     -fx-background-color: #e2ecff;
 }
 
@@ -58,12 +71,14 @@
     -fx-background-color: transparent;
 }
 
-.status-bar, .status-bar-with-border {
+.status-bar,
+.status-bar-with-border {
     -fx-background-color: #ffffff;
     -fx-border-color: #e1e8f1;
 }
 
-.status-bar .label, .status-bar-with-border .label {
+.status-bar .label,
+.status-bar-with-border .label {
     -fx-text-fill: #536987;
 }
 
@@ -107,7 +122,8 @@
     -fx-background-color: #fff1f0;
 }
 
-.help-heading, .help-command-name {
+.help-heading,
+.help-command-name {
     -fx-fill: #193153;
 }
 
@@ -123,7 +139,9 @@
     -fx-background-color: #c4cfde;
 }
 
-#filterField, #clientListPanel, #personWebpage {
+#filterField,
+#clientListPanel,
+#personWebpage {
     -fx-effect: null;
 }
 
@@ -133,12 +151,14 @@
     -fx-text-fill: #1d56b5;
 }
 
-.error {
-    -fx-text-fill: #b42318 !important;
+#commandTextField.error {
+    -fx-text-fill: #b42318;
 }
 
-.list-cell .owner-heading, .list-cell .date-heading,
-.list-cell:filled:selected .owner-heading, .list-cell:filled:selected .date-heading {
+.list-cell .owner-heading,
+.list-cell .date-heading,
+.list-cell:filled:selected .owner-heading,
+.list-cell:filled:selected .date-heading {
     -fx-text-fill: #17468f;
     -fx-font-size: 17pt;
     -fx-font-weight: bold;
@@ -175,7 +195,8 @@
     -fx-text-fill: #536987;
 }
 
-.record-content .list-view, .record-content .list-cell {
+.record-content .list-view,
+.record-content .list-cell {
     -fx-background-color: #f5f7fb;
 }
 
@@ -183,12 +204,12 @@
     -fx-padding: 5 0 5 0;
 }
 
-.record-content .cell_big_label {
+.record-content .cell-big-label {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
 }
 
-.record-content .cell_small_label {
+.record-content .cell-small-label {
     -fx-font-size: 19px;
 }
 
@@ -198,7 +219,7 @@
 }
 
 .list-cell .date-heading {
-    -fx-font-family: "Consolas", "DejaVu Sans Mono", monospace;
+    -fx-font-family: "Monospaced";
     -fx-font-weight: bold;
 }
 
@@ -207,7 +228,8 @@
     -fx-text-fill: #17468f;
 }
 
-.list-cell .care-highlight, .list-cell:filled:selected .care-highlight {
+.list-cell .care-highlight,
+.list-cell:filled:selected .care-highlight {
     -fx-background-color: #fff5df;
     -fx-background-radius: 4;
     -fx-padding: 8;
