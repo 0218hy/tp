@@ -95,7 +95,7 @@ public class LogicManager implements Logic {
         Command command;
         try {
             command = buBuParser.parseCommand(commandText);
-            if (isBubuBookCorrupted) {
+            if (isBubuBookCorrupted && !(command instanceof HelpCommand)) {
                 throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
             }
             ensureRequiredDisplayTypeIsCurrent(command);
