@@ -1,5 +1,6 @@
 package seedu.address.storage.pet;
 
+import java.text.Normalizer;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.client.Client;
+import seedu.address.model.client.ClientName;
 import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
@@ -111,7 +113,7 @@ public class JsonAdaptedPet {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, OWNER_NAME_FIELD));
         }
         Client owner = ownerPhone == null ? findLegacyOwnerByName(clients) : findOwnerByPhone(clients);
-        if (ownerName != null && !owner.getName().fullName.equals(ownerName)) {
+        if (ownerName != null && !owner.getName().fullName.equals(normalizeOwnerName(ownerName))) {
             throw new IllegalValueException(MESSAGE_OWNER_DETAILS_MISMATCH);
         }
         return owner;
@@ -141,9 +143,10 @@ public class JsonAdaptedPet {
      */
     private Client findLegacyOwnerByName(List<Client> clients) throws IllegalValueException {
         assert ownerName != null : "Legacy lookup requires a stored owner name";
+        String normalizedOwnerName = normalizeOwnerName(ownerName);
         Client matchingOwner = null;
         for (Client client : clients) {
-            if (!client.getName().fullName.equals(ownerName)) {
+            if (!client.getName().fullName.equals(normalizedOwnerName)) {
                 continue;
             }
             if (matchingOwner != null) {
@@ -155,6 +158,11 @@ public class JsonAdaptedPet {
             throw new IllegalValueException(MESSAGE_OWNER_NOT_FOUND);
         }
         return matchingOwner;
+    }
+
+    /** Normalizes the stored owner-name reference to match {@link ClientName}. */
+    private static String normalizeOwnerName(String ownerName) {
+        return Normalizer.normalize(ownerName, Normalizer.Form.NFC);
     }
 
     /**

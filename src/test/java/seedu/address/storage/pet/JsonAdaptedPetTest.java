@@ -24,6 +24,8 @@ public class JsonAdaptedPetTest {
 
     private static final String VALID_NAME = "Milo";
     private static final String VALID_OWNER_NAME = ALICE.getName().fullName;
+    private static final String COMPOSED_OWNER_NAME = "Jos\u00e9 Tan";
+    private static final String DECOMPOSED_OWNER_NAME = "Jose\u0301 Tan";
     private static final String VALID_SPECIES = Species.DOG.name();
     private static final String VALID_REQUIREMENT = "Daily brushing";
     private static final List<Client> VALID_CLIENTS = List.of(ALICE, BOB);
@@ -84,6 +86,43 @@ public class JsonAdaptedPetTest {
 
         String expectedMessage = JsonAdaptedPet.MESSAGE_OWNER_DETAILS_MISMATCH;
         assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(VALID_CLIENTS));
+    }
+
+    @Test
+    public void toModelType_currentPetWithCanonicallyEquivalentOwnerName_returnsOwner() throws Exception {
+        Client owner = new ClientBuilder(ALICE).withName(COMPOSED_OWNER_NAME).build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, DECOMPOSED_OWNER_NAME, owner.getPhone().value,
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+
+        assertSame(owner, pet.toModelType(List.of(owner)).getOwner());
+    }
+
+    @Test
+    public void toModelType_legacyPetWithCanonicallyEquivalentOwnerName_returnsOwner() throws Exception {
+        Client owner = new ClientBuilder(ALICE).withName(DECOMPOSED_OWNER_NAME).build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
+
+        assertSame(owner, pet.toModelType(List.of(owner)).getOwner());
+    }
+
+    @Test
+    public void toModelType_legacyPetWithCanonicallyEquivalentClientNames_throwsAmbiguousOwnerException() {
+        Client firstCanonicallyEquivalentOwner = new ClientBuilder(ALICE).withName(COMPOSED_OWNER_NAME).build();
+        Client secondCanonicallyEquivalentOwner = new ClientBuilder(BOB).withName(DECOMPOSED_OWNER_NAME).build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedPet.MESSAGE_AMBIGUOUS_OWNER, () ->
+                pet.toModelType(List.of(firstCanonicallyEquivalentOwner, secondCanonicallyEquivalentOwner)));
+    }
+
+    @Test
+    public void toModelType_ownerPhoneAndCanonicallyDifferentName_throwsIllegalValueException() {
+        Client owner = new ClientBuilder(ALICE).withName("Jose Tan").build();
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, owner.getPhone().value,
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedPet.MESSAGE_OWNER_DETAILS_MISMATCH, () ->
+                pet.toModelType(List.of(owner)));
     }
     // @@author
 

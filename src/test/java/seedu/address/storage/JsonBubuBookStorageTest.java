@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalClients.ALICE;
 import static seedu.address.testutil.TypicalClients.HOON;
@@ -9,16 +10,22 @@ import static seedu.address.testutil.TypicalClients.IDA;
 import static seedu.address.testutil.TypicalClients.getTypicalBubuBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.BubuBook;
 import seedu.address.model.ReadOnlyBubuBook;
+import seedu.address.storage.client.JsonAdaptedClient;
+import seedu.address.storage.pet.JsonAdaptedPet;
 import seedu.address.testutil.PetBuilder;
+import seedu.address.testutil.TypicalClients;
 
 public class JsonBubuBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonBubuStorageTest");
@@ -100,6 +107,42 @@ public class JsonBubuBookStorageTest {
         assertEquals(original, new BubuBook(readBack));
         assertEquals("Golden retriever", readBack.getPetList().getFirst().getBreed().value);
         assertEquals(ALICE.getPhone(), readBack.getPetList().getFirst().getOwner().getPhone());
+    }
+
+    @Test
+    public void read_currentPetWithCanonicallyEquivalentOwnerName_loadsNormally() throws Exception {
+        String decomposedName = "Jose\u0301 Tan";
+        JsonAdaptedPet pet = new JsonAdaptedPet("Milo", decomposedName, TypicalClients.ALICE.getPhone().value,
+                "DOG", null,
+                "Daily brushing");
+
+        ReadOnlyBubuBook loaded = readUnicodePetBook("current-unicode-pet.json", pet, decomposedName);
+
+        assertEquals("Jos\u00e9 Tan", loaded.getClientList().getFirst().getName().fullName);
+        assertEquals("Milo", loaded.getPetList().getFirst().getName().value);
+        assertSame(loaded.getClientList().getFirst(), loaded.getPetList().getFirst().getOwner());
+    }
+
+    @Test
+    public void read_legacyPetWithCanonicallyEquivalentOwnerName_loadsNormally() throws Exception {
+        JsonAdaptedPet legacyPet = new JsonAdaptedPet("Milo", "Jos\u00e9 Tan", "DOG", "Daily brushing");
+
+        ReadOnlyBubuBook loaded = readUnicodePetBook("legacy-unicode-pet.json", legacyPet, "Jose\u0301 Tan");
+
+        assertEquals("Jos\u00e9 Tan", loaded.getClientList().getFirst().getName().fullName);
+        assertEquals("Milo", loaded.getPetList().getFirst().getName().value);
+        assertSame(loaded.getClientList().getFirst(), loaded.getPetList().getFirst().getOwner());
+    }
+
+    private ReadOnlyBubuBook readUnicodePetBook(String fileName, JsonAdaptedPet pet, String rawClientName)
+            throws Exception {
+        JsonAdaptedClient client = new JsonAdaptedClient(rawClientName, TypicalClients.ALICE.getPhone().value,
+                TypicalClients.ALICE.getEmail().value, TypicalClients.ALICE.getAddress().value, null);
+        JsonSerializableBubuBook data = new JsonSerializableBubuBook(List.of(client), List.of(pet), List.of());
+        Path file = testFolder.resolve(fileName);
+        Files.writeString(file, JsonUtil.toJsonString(data));
+
+        return new JsonBubuBookStorage(file).readBubuBook().orElseThrow();
     }
 
     @Test
