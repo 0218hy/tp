@@ -100,6 +100,60 @@ public class AppointmentPersistenceTest {
     }
     //@@author
 
+    //@@author anderschow
+    @Test
+    public void editClient_refreshesListedBookingAndPersistsWithoutChangingHistory() throws Exception {
+        Appointment historical = historicalBook().getAppointmentList().getFirst();
+        model.setAppointments(List.of(historical));
+        logic.execute(COMMAND);
+        Appointment original = model.getBubuBook().getAppointmentList().getLast();
+        logic.execute("add-client n/Bob Tan i/82223333 e/bob@example.com a/Other Road");
+        logic.execute("add-pet p/Milo i/82223333 s/Dog r/No special requirements");
+        logic.execute("add-appointment i/82223333 p/Milo d/02-01-9999 st/10:00 et/11:00 s/Full groom");
+        Appointment unrelated = model.getBubuBook().getAppointmentList().getLast();
+        model.updateFilteredAppointmentList(unused -> false);
+
+        logic.execute("edit-client i/" + ALICE.getPhone() + " n/Alice Lim a/456 New Road");
+        logic.execute("list-appointments");
+
+        var editedOwner = model.getBubuBook().getClientList().getFirst();
+        Appointment expected = new Appointment(editedOwner, original.getPet().withOwner(editedOwner),
+                original.getDate(), original.getStartTime(), original.getEndTime(), original.getService());
+        assertEquals("456 New Road", model.getFilteredAppointmentList().getFirst().getOwner().getAddress().value);
+        assertEquals(List.of(expected, unrelated), model.getFilteredAppointmentList());
+        assertEquals(List.of(historical, expected, unrelated), model.getBubuBook().getAppointmentList());
+        assertEquals(editedOwner, model.getBubuBook().getPetList().getFirst().getOwner());
+        assertEquals(model.getBubuBook(), storage.readBubuBook().orElseThrow());
+
+        Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
+        logicFor(restarted, storage).execute("list-appointments");
+        assertEquals(List.of(expected, unrelated), restarted.getFilteredAppointmentList());
+        assertEquals(model.getBubuBook(), restarted.getBubuBook());
+    }
+
+    @Test
+    public void editClient_phoneThenAddressChange_keepsFutureBookingLinkedAndHistoryRecorded() throws Exception {
+        Appointment historical = historicalBook().getAppointmentList().getFirst();
+        model.setAppointments(List.of(historical));
+        logic.execute(COMMAND);
+
+        logic.execute("edit-client i/" + ALICE.getPhone() + " p/89998888 a/456 New Road");
+        logic.execute("edit-client i/89998888 a/789 Latest Road");
+        logic.execute("list-appointments");
+
+        var currentOwner = model.getBubuBook().getClientList().getFirst();
+        Appointment upcoming = model.getFilteredAppointmentList().getFirst();
+        assertEquals(currentOwner, upcoming.getOwner());
+        assertEquals(currentOwner, upcoming.getPet().getOwner());
+        assertEquals("789 Latest Road", upcoming.getOwner().getAddress().value);
+        Appointment savedHistory = model.getBubuBook().getAppointmentList().getFirst();
+        assertEquals(currentOwner.getPhone(), savedHistory.getOwnerPhone());
+        assertEquals(historical.getOwner().getAddress(), savedHistory.getOwner().getAddress());
+        assertEquals(historical.getOwner().getName(), savedHistory.getOwner().getName());
+        assertEquals(model.getBubuBook(), storage.readBubuBook().orElseThrow());
+    }
+    //@@author
+
     //@@author chunghean
     @Test
     public void deleteAppointment_savesUpdatedSchedule() throws Exception {

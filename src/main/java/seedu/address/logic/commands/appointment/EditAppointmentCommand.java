@@ -68,7 +68,11 @@ public class EditAppointmentCommand extends Command {
     public static final String MESSAGE_NO_CHANGES =
             "No changes were made. The appointment already has these details.";
     public static final String MESSAGE_INVALID_DURATION =
-            "End time must be at least 30 minutes after the appointment start time.";
+            "The appointment duration must be at least 30 minutes.";
+    public static final String MESSAGE_INVALID_START_TIME =
+            "The new start time must be at least 30 minutes before the existing end time.";
+    public static final String MESSAGE_INVALID_END_TIME =
+            "The new end time must be at least 30 minutes after the existing start time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is not in the displayed appointment list.";
     public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
@@ -262,6 +266,12 @@ public class EditAppointmentCommand extends Command {
 
         if (!endTime.isAtLeastThirtyMinutesAfter(startTime)) {
             logger.fine("edit-appointment rejected: end time is less than 30 minutes after the start time.");
+            if (descriptor.getStartTime().isPresent() && descriptor.getEndTime().isEmpty()) {
+                throw new CommandException(MESSAGE_INVALID_START_TIME);
+            }
+            if (descriptor.getStartTime().isEmpty() && descriptor.getEndTime().isPresent()) {
+                throw new CommandException(MESSAGE_INVALID_END_TIME);
+            }
             throw new CommandException(MESSAGE_INVALID_DURATION);
         }
 

@@ -35,7 +35,7 @@ public class DeleteAppointmentCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Deleted appointment: %1$s";
     public static final String MESSAGE_DELETE_APPOINTMENT_SUCCESS = MESSAGE_SUCCESS;
     public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
-            "No appointment starts at the specified date and time.";
+            "No appointment starts at the specified date and start time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is not in the displayed appointment list.";
     private static final Logger logger = LogsCenter.getLogger(DeleteAppointmentCommand.class);

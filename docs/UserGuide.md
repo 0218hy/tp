@@ -149,7 +149,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 * `n/NAME` — required; 2–60 letters, spaces, apostrophes, hyphens or full stops.
 * `i/PHONE_NUMBER` — required; exactly eight digits starting with `8` or `9`, without spaces or hyphens.
-* `e/EMAIL` — required; exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
+* `e/EMAIL` — required; at most 254 characters, exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
 * `a/ADDRESS` — required; 5–120 letters, digits, spaces, commas, full stops, hyphens or `#`.
 * `t/TAG` — optional; a non-empty alphanumeric label without spaces. Repeat `t/` for multiple tags; omit it for no tags. Duplicate tags are stored once.
 * Each required prefix may appear only once. Surrounding whitespace is trimmed; blank required values are rejected.
@@ -242,7 +242,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles are updated. A phone-number change also updates linked appointment owner identifiers; other booking details remain as recorded.
+* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment times, services and other pet details remain unchanged. Completion is determined by the appointment's end time in Singapore.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -280,7 +280,8 @@ delete-client i/PHONE_NUMBER
 
 #### Success and other behavior
 
-* On success, BuBu displays `Deleted person: ...` (the current application wording).
+* On success, BuBu displays `Deleted client: CLIENT_DETAILS. Removed PET_COUNT and APPOINTMENT_COUNT.`
+  The counts use singular or plural wording, such as `1 pet` or `2 appointments`.
 * All pets and appointments belonging to that client are also deleted, including completed appointments. Other clients' records are preserved.
 * The selected panel does not change. There is no confirmation prompt.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
@@ -289,9 +290,14 @@ delete-client i/PHONE_NUMBER
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format — the target is missing, an index or phone is invalid, `i/` is repeated, or both target formats are combined.
-* Invalid displayed client index — the index is outside the current client list.
-* `No person with the given phone number exists.` — no saved client has the supplied phone number.
+* `Choose a client index or provide i/PHONE_NUMBER.` — no deletion target was supplied.
+* `Choose either a client index or a phone identifier, not both.` — both target formats were supplied.
+* `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format is shown.
+* `Multiple values specified for the following single-valued field(s): i/` — the phone identifier was repeated.
+* `Client index must be a positive whole number.` — the index is malformed or not positive.
+* `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone identifier is invalid.
+* `The person index provided is invalid.` — the index is outside the current displayed client list.
+* `No client with the given phone number exists.` — no saved client has the supplied phone number.
 * Wrong displayed list — index-based deletion requires the matching record panel; run the corresponding list command first.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
@@ -598,7 +604,12 @@ The command makes no changes when it cannot be completed.
 * `This pet is not registered under the specified owner.` — the replacement pet cannot be found for that owner.
 * `No changes were made. The appointment already has these details.` — all requested values match the existing
   appointment.
-* `End time must be at least 30 minutes after the appointment start time.` — the edited time range is too short.
+* `The new start time must be at least 30 minutes before the existing end time.` — only the replacement start time
+  makes the duration too short.
+* `The new end time must be at least 30 minutes after the existing start time.` — only the replacement end time makes
+  the duration too short.
+* `The appointment duration must be at least 30 minutes.` — both replacement times were supplied but form an invalid
+  duration.
 * `The updated appointment must start in the future (Singapore time).` — the new start has passed.
 * `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
   with an existing appointment.
@@ -650,7 +661,7 @@ The command makes no changes when it cannot be completed.
 * `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
 * `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
   using an index.
-* `No appointment starts at the specified date and time.` — no booking starts at that date and time.
+* `No appointment starts at the specified date and start time.` — no booking starts at that date and start time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`
@@ -723,8 +734,9 @@ commands only update the display and do not save the file.
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
-details recorded when it was made, even when pet details or non-phone client details are later edited.
+Bookings use the same data file as their registered clients and pets. Editing a client refreshes owner details
+in ongoing and future bookings. Completed bookings preserve their recorded client details, except phone identifiers.
+Other pet details remain as recorded when the booking was made.
 Changing a client's phone number updates linked booking identifiers. Deleting a client or pet also deletes their
 linked bookings. The pet's recorded name is used for display, including its original capitalization.
 
