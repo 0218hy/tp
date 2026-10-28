@@ -128,10 +128,13 @@ public class ListAppointmentsCommandTest {
 
     @Test
     public void execute_dateFilter_listsEntireDayChronologicallyWithoutMutation() {
+        // #132 EPs on the selected day: completed, ending now, starting now, later. Exclude adjacent dates.
+        // Different owner/pet/service values must not restrict this date-only filter.
         Appointment completed = create("07-10-2026", "08:00", "09:00");
         Appointment endingNow = create("07-10-2026", "09:00", "10:00");
         Appointment ongoing = create("07-10-2026", "10:00", "11:00");
-        Appointment later = create("07-10-2026", "12:00", "13:00");
+        Appointment later = createAppointment(new Phone("81234567"), "Mochi", new AppointmentDate("07-10-2026"),
+                new StartTime("12:00"), new EndTime("13:00"), Service.NAIL_TRIM);
         Appointment yesterday = create("06-10-2026", "12:00", "13:00");
         Appointment tomorrow = create("08-10-2026", "12:00", "13:00");
         List<Appointment> saved = List.of(later, tomorrow, endingNow, yesterday, ongoing, completed);
@@ -145,6 +148,12 @@ public class ListAppointmentsCommandTest {
         assertEquals(List.of(completed, endingNow, ongoing, later), model.getFilteredAppointmentList());
         assertEquals(saved, model.getBubuBook().getAppointmentList());
 
+        // Interior ongoing EP: move now inside 10:00-11:00; the date-filter result must remain unchanged.
+        new ListAppointmentsCommand(new AppointmentDate("07-10-2026"),
+                Clock.offset(CLOCK, Duration.ofMinutes(15))).execute(model);
+        assertEquals(List.of(completed, endingNow, ongoing, later), model.getFilteredAppointmentList());
+
+        // Switching back to plain listing must replace the date predicate and hide completed records again.
         new ListAppointmentsCommand(CLOCK).execute(model);
         assertEquals(List.of(ongoing, later, tomorrow), model.getFilteredAppointmentList());
         assertEquals(saved, model.getBubuBook().getAppointmentList());
@@ -152,6 +161,7 @@ public class ListAppointmentsCommandTest {
 
     @Test
     public void execute_pastAndFutureDateFilters_showOnlyMatchingDate() {
+        // EPs: selected date before/after today. Changing dates replaces the previous predicate.
         Appointment past = create("06-10-2026", "12:00", "13:00");
         Appointment future = create("08-10-2026", "12:00", "13:00");
         model.setAppointments(List.of(past, future));
@@ -161,18 +171,37 @@ public class ListAppointmentsCommandTest {
 
         new ListAppointmentsCommand(new AppointmentDate("08-10-2026"), CLOCK).execute(model);
         assertEquals(List.of(future), model.getFilteredAppointmentList());
+        assertEquals(List.of(past, future), model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_dateFilter_comparesDayMonthAndYear() {
+        // Vary month and year separately: matching the day number alone must not include these records.
+        Appointment selected = create("07-10-2026", "12:00", "13:00");
+        Appointment otherMonth = create("07-11-2026", "12:00", "13:00");
+        Appointment otherYear = create("07-10-2027", "12:00", "13:00");
+        List<Appointment> saved = List.of(otherYear, selected, otherMonth);
+        model.setAppointments(saved);
+
+        new ListAppointmentsCommand(selected.getDate(), CLOCK).execute(model);
+
+        assertEquals(List.of(selected), model.getFilteredAppointmentList());
+        assertEquals(saved, model.getBubuBook().getAppointmentList());
     }
 
     @Test
     public void execute_dateWithoutAppointments_returnsDateSpecificEmptyMessage() {
-        model.setAppointments(List.of(create("07-10-2026", "12:00", "13:00")));
+        // No-match EPs: empty store and nonempty store with only another date. Neither may mutate storage.
+        for (List<Appointment> saved : List.of(List.<Appointment>of(),
+                List.of(create("07-10-2026", "12:00", "13:00")))) {
+            model.setAppointments(saved);
+            CommandResult result = new ListAppointmentsCommand(new AppointmentDate("06-10-2026"), CLOCK).execute(model);
 
-        CommandResult result = new ListAppointmentsCommand(new AppointmentDate("06-10-2026"), CLOCK).execute(model);
-
-        assertEquals("No appointments on 06-10-2026.", result.getFeedbackToUser());
-        assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
-        assertEquals(List.of(), model.getFilteredAppointmentList());
-        assertEquals(1, model.getBubuBook().getAppointmentList().size());
+            assertEquals("No appointments on 06-10-2026.", result.getFeedbackToUser());
+            assertEquals(CommandResult.DisplayType.APPOINTMENTS, result.getDisplayType());
+            assertEquals(List.of(), model.getFilteredAppointmentList());
+            assertEquals(saved, model.getBubuBook().getAppointmentList());
+        }
     }
 
     @Test

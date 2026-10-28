@@ -9,9 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -157,6 +159,16 @@ public class AddAppointmentCommandTest {
     }
 
     @Test
+    public void execute_aroundStartBoundary_requiresStrictlyFutureStart() throws Exception {
+        // BVA: one second before/after a valid half-hour start. Exact equality is covered in the past-start test.
+        Clock beforeStart = Clock.offset(CLOCK, Duration.ofMinutes(30).minusSeconds(1));
+        command(VALID_APPOINTMENT, beforeStart).execute(model);
+        assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
+        Clock afterStart = Clock.offset(CLOCK, Duration.ofMinutes(30).plusSeconds(1));
+        assertFailure(VALID_APPOINTMENT, afterStart, AddAppointmentCommand.MESSAGE_PAST_START);
+    }
+
+    @Test
     public void execute_clockInDifferentZone_usesSingaporeDate() {
         // UTC still reads 7 October, but Singapore has reached 8 October.
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
@@ -177,6 +189,8 @@ public class AddAppointmentCommandTest {
 
     @Test
     public void execute_hiddenConflicts_reportsExistingBookingAndPreservesFilter() {
+        // #163 EP: multiple conflicts hidden by the active filter, with an unrelated visible record first.
+        // Any actual conflict may be reported; the requirement does not prescribe which one wins.
         Appointment unrelated = create("08-10-2026", "11:00", "12:00");
         Appointment conflict = createAppointment(new Phone("81234567"), "Mochi",
                 new AppointmentDate("07-10-2026"), new StartTime("11:00"), new EndTime("12:00"),
@@ -184,11 +198,19 @@ public class AddAppointmentCommandTest {
         Appointment laterConflict = create("07-10-2026", "12:00", "13:00");
         model.setAppointments(List.of(unrelated, conflict, laterConflict));
         model.updateFilteredAppointmentList(appointment -> appointment.equals(unrelated));
+        BubuBook before = new BubuBook(model.getBubuBook());
+        Map<Appointment, String> validMessages = Map.of(
+                conflict, "This appointment overlaps an existing booking for Mochi on 07-10-2026, 11:00–12:00.",
+                laterConflict, "This appointment overlaps an existing booking for BuBu on 07-10-2026, 12:00–13:00.");
 
-        CommandException exception = assertFailure(create("07-10-2026", "10:30", "12:30"), CLOCK,
-                "This appointment overlaps an existing booking for Mochi on 07-10-2026, 11:00–12:00.");
+        CommandException exception = assertThrows(CommandException.class, () ->
+                command(create("07-10-2026", "10:30", "12:30")).execute(model));
 
-        assertSame(conflict, ((OverlappingAppointmentException) exception.getCause()).getConflictingAppointment());
+        assertTrue(exception.getCause() instanceof OverlappingAppointmentException);
+        Appointment reported = ((OverlappingAppointmentException) exception.getCause()).getConflictingAppointment();
+        assertTrue(validMessages.containsKey(reported), "The reported booking must be an existing conflict");
+        assertEquals(validMessages.get(reported), exception.getMessage());
+        assertEquals(before, model.getBubuBook());
         assertEquals(List.of(unrelated), model.getFilteredAppointmentList());
     }
 
@@ -207,6 +229,7 @@ public class AddAppointmentCommandTest {
 
     @Test
     public void execute_repeatedCommand_rejectsDuplicate() throws Exception {
+        // #163 EP: exact duplicate slot; the message must still describe the saved booking.
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
         command.execute(model);
         assertFailure(VALID_APPOINTMENT, CLOCK,
