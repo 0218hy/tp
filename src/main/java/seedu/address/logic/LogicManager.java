@@ -30,7 +30,7 @@ import seedu.address.storage.Storage;
 /**
  * The main LogicManager of the app.
  */
-public class  LogicManager implements Logic {
+public class LogicManager implements Logic {
     public static final String MESSAGE_CORRUPTED_RECORDS =
             "Unable to verify existing records. Please contact support.";
     public static final String MESSAGE_UNABLE_TO_SAVE_PET = "Unable to save a pet. Please try again.";
