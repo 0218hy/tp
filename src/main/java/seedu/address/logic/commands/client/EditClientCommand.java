@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_IDENTIFIE
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NEW_PHONE;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -94,7 +93,6 @@ public class EditClientCommand extends Command {
         }
 
         model.setClient(clientToEdit, editedClient);
-        model.updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
         logger.info(() -> "edit-client: client updated in model; phone changed="
                 + !clientToEdit.getPhone().equals(editedClient.getPhone()) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
