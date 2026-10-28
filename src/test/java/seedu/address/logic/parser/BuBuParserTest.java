@@ -23,6 +23,7 @@ import seedu.address.logic.commands.client.DeleteClientCommand;
 import seedu.address.logic.commands.client.ListClientsCommand;
 import seedu.address.logic.commands.pet.DeletePetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
+import seedu.address.logic.parser.client.DeleteClientCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.client.Client;
@@ -36,12 +37,14 @@ public class BuBuParserTest {
 
     private final BuBuParser parser = new BuBuParser();
 
+    //@@author anderschow
     @Test
     public void parseCommand_add() throws Exception {
         Client client = new ClientBuilder().build();
         AddClientCommand command = (AddClientCommand) parser.parseCommand(ClientUtil.getAddClientCommand(client));
         assertEquals(new AddClientCommand(client), command);
     }
+    //@@author
 
     @Test
     public void parseCommand_clear() throws Exception {
@@ -92,7 +95,7 @@ public class BuBuParserTest {
     @Test
     public void parseCommand_deleteWithIndexAndPhoneIdentifier_throwsParseException() {
         assertThrows(ParseException.class,
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                DeleteClientCommandParser.MESSAGE_INDEX_AND_IDENTIFIER, ()
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD
                         + " " + INDEX_FIRST_CLIENT.getOneBased() + " i/" + ALICE.getPhone().value));
     }
@@ -100,14 +103,14 @@ public class BuBuParserTest {
     @Test
     public void parseCommand_deleteWithoutIdentifier_throwsParseException() {
         assertThrows(ParseException.class,
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                DeleteClientCommandParser.MESSAGE_TARGET_REQUIRED, ()
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD));
     }
 
     @Test
     public void parseCommand_deleteWithInvalidPhoneIdentifier_throwsParseException() {
         assertThrows(ParseException.class,
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteClientCommand.MESSAGE_USAGE), ()
+                Phone.MESSAGE_CONSTRAINTS, ()
                         -> parser.parseCommand(DeleteClientCommand.COMMAND_WORD + " i/12"));
     }
     //@@author
@@ -142,11 +145,13 @@ public class BuBuParserTest {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
     }
 
+    //@@author anderschow
     @Test
     public void parseCommand_listClients() throws Exception {
         assertTrue(parser.parseCommand(ListClientsCommand.COMMAND_WORD) instanceof ListClientsCommand);
         assertTrue(parser.parseCommand(" " + ListClientsCommand.COMMAND_WORD + " ") instanceof ListClientsCommand);
     }
+    //@@author
 
     //@@author 0218hy
     @Test

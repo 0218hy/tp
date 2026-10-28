@@ -18,6 +18,7 @@ import seedu.address.logic.commands.pet.EditPetCommand.EditPetDescriptor;
 import seedu.address.logic.parser.ArgumentMultimap;
 import seedu.address.logic.parser.ArgumentTokenizer;
 import seedu.address.logic.parser.Parser;
+import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.logic.parser.client.ClientParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -26,7 +27,7 @@ import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
 import seedu.address.model.pet.Species;
 
-/** Parses arguments into an identifier-based {@link EditPetCommand}. */
+/** Parses arguments into an index- or identifier-based {@link EditPetCommand}. */
 public class EditPetCommandParser implements Parser<EditPetCommand> {
     public static final String MESSAGE_MISSING_FIELD = "Missing required field: %s.";
     public static final String MESSAGE_DUPLICATE_FIELD = "Each pet field may be specified only once.";
@@ -34,6 +35,7 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
             "Invalid command format. Check the command syntax and try again.";
     public static final String MESSAGE_INVALID_SPECIES =
             "Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.";
+    public static final String MESSAGE_INDEX_AND_IDENTIFIERS = EditPetCommand.MESSAGE_INDEX_AND_IDENTIFIERS;
 
     private static final String FIELD_PET_NAME = "PET_NAME";
     private static final String FIELD_OWNER_IDENTIFIER = "OWNER_IDENTIFIER";
@@ -46,7 +48,7 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
     private static final Pattern PARAMETER_PREFIX_PATTERN = Pattern.compile(PARAMETER_PREFIX_REGEX);
 
     /**
-     * Parses an edit-pet command's identifier and optional replacement fields.
+     * Parses an edit-pet command's index or identifier and optional replacement fields.
      *
      * @param args the text following the {@code edit-pet} command word
      * @return an edit-pet command with a validated identifier and requested changes
@@ -58,8 +60,18 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + args.trim(), PET_FIELD_PREFIXES);
         validateStructure(args, fields);
 
-        PetName petName = parseRequiredPetName(fields, PREFIX_PET_NAME, FIELD_PET_NAME);
-        String ownerPhone = getRequiredValue(fields, PREFIX_OWNER_IDENTIFIER, FIELD_OWNER_IDENTIFIER);
+        boolean hasIndex = !fields.getPreamble().isEmpty();
+        boolean hasPetName = fields.getValue(PREFIX_PET_NAME).isPresent();
+        boolean hasOwnerPhone = fields.getValue(PREFIX_OWNER_IDENTIFIER).isPresent();
+        if (hasIndex && (hasPetName || hasOwnerPhone)) {
+            throw new ParseException(MESSAGE_INDEX_AND_IDENTIFIERS);
+        }
+        PetName petName = null;
+        String ownerPhone = null;
+        if (!hasIndex) {
+            petName = parseRequiredPetName(fields, PREFIX_PET_NAME, FIELD_PET_NAME);
+            ownerPhone = getRequiredValue(fields, PREFIX_OWNER_IDENTIFIER, FIELD_OWNER_IDENTIFIER);
+        }
         EditPetDescriptor descriptor = new EditPetDescriptor();
         if (fields.getValue(PREFIX_NEW_PET_NAME).isPresent()) {
             descriptor.setName(PetParserUtil.parsePetName(fields.getValue(PREFIX_NEW_PET_NAME).orElseThrow()));
@@ -78,6 +90,10 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         if (!descriptor.isAnyFieldEdited()) {
             throw new ParseException(EditPetCommand.MESSAGE_NOT_EDITED);
         }
+        if (hasIndex) {
+            return new EditPetCommand(ParserUtil.parseIndex(fields.getPreamble()), descriptor);
+        }
+
         return new EditPetCommand(petName, ClientParserUtil.parsePhone(ownerPhone), descriptor);
     }
 
@@ -89,7 +105,7 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
      * @throws ParseException if the command structure is invalid
      */
     private void validateStructure(String args, ArgumentMultimap fields) throws ParseException {
-        if (!fields.getPreamble().isEmpty() || hasUnknownPrefix(args)) {
+        if (hasUnknownPrefix(args)) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
         }
         if (Arrays.stream(PET_FIELD_PREFIXES).anyMatch(prefix -> fields.getAllValues(prefix).size() > 1)) {

@@ -1,9 +1,14 @@
 package seedu.address.logic.commands.exceptions;
 
+import seedu.address.logic.commands.Command;
+
 /**
  * Represents an error which occurs during execution of a {@link Command}.
  */
 public class CommandException extends Exception {
+    /**
+     * Constructs a {@code CommandException} with the specified detail message.
+     */
     public CommandException(String message) {
         super(message);
     }

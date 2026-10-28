@@ -29,6 +29,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.storage.appointment.JsonAdaptedAppointment;
 import seedu.address.storage.client.JsonAdaptedClient;
 import seedu.address.storage.pet.JsonAdaptedPet;
@@ -89,6 +90,31 @@ public class JsonBubuBookAppointmentTest {
                 restored.getAppointmentList().get(0));
         assertSame(restored.getAppointmentList().get(0).getOwner(),
                 restored.getAppointmentList().get(0).getPet().getOwner());
+    }
+
+    @Test
+    public void saveAndRead_petEdit_persistsRefreshedFutureAppointmentSnapshot() throws Exception {
+        JsonBubuBookStorage storage = storage("refreshed-pet-snapshot.json");
+        BubuBook book = new BubuBook();
+        Client owner = new ClientBuilder().withPhone("91234567").build();
+        Pet originalPet = new PetBuilder(owner).withName("Milo").withBreed("Poodle")
+                .withRequirement("Original care notes").build();
+        book.addClient(owner);
+        book.addPet(originalPet);
+        Pet savedPet = book.getPetList().get(0);
+        book.addAppointment(new Appointment(owner, savedPet, new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        Pet editedPet = new PetBuilder(savedPet).withSpecies(Species.CAT).withBreed("Shih Tzu")
+                .withRequirement("Use sensitive-skin shampoo").build();
+
+        book.setPet(savedPet, editedPet);
+        storage.saveBubuBook(book);
+
+        var restored = storage.readBubuBook().orElseThrow();
+        Appointment restoredAppointment = restored.getAppointmentList().get(0);
+        assertEquals(editedPet, restoredAppointment.getPet());
+        assertEquals(editedPet, restored.getPetList().get(0));
+        assertSame(restoredAppointment.getOwner(), restoredAppointment.getPet().getOwner());
     }
 
     //@@author 0218hy

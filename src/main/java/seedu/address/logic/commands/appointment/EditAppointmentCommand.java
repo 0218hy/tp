@@ -18,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -68,7 +66,11 @@ public class EditAppointmentCommand extends Command {
     public static final String MESSAGE_NO_CHANGES =
             "No changes were made. The appointment already has these details.";
     public static final String MESSAGE_INVALID_DURATION =
-            "End time must be at least 30 minutes after the appointment start time.";
+            "The appointment duration must be at least 30 minutes.";
+    public static final String MESSAGE_INVALID_START_TIME =
+            "The new start time must be at least 30 minutes before the existing end time.";
+    public static final String MESSAGE_INVALID_END_TIME =
+            "The new end time must be at least 30 minutes after the existing start time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is not in the displayed appointment list.";
     public static final String MESSAGE_APPOINTMENT_NOT_FOUND =
@@ -84,7 +86,6 @@ public class EditAppointmentCommand extends Command {
             "The updated appointment overlaps another appointment. Choose an available time slot.";
 
     private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
-    private static final Logger logger = LogsCenter.getLogger(EditAppointmentCommand.class);
 
     private final Index index;
     private final AppointmentDate targetDate;
@@ -173,20 +174,17 @@ public class EditAppointmentCommand extends Command {
         Appointment editedAppointment = createEditedAppointment(model, appointmentToEdit, editAppointmentDescriptor);
 
         if (appointmentToEdit.equals(editedAppointment)) {
-            logger.fine("edit-appointment rejected: the requested details match the existing appointment.");
             throw new CommandException(MESSAGE_NO_CHANGES);
         }
 
         LocalDateTime start = editedAppointment.getDate().value.atTime(editedAppointment.getStartTime().value);
         if (!start.isAfter(LocalDateTime.now(clock))) {
-            logger.fine("edit-appointment rejected: appointment start is not in the future.");
             throw new CommandException(MESSAGE_PAST_START);
         }
 
         List<Appointment> replacement = new ArrayList<>(model.getBubuBook().getAppointmentList());
         int storedIndex = replacement.indexOf(appointmentToEdit);
         if (storedIndex < 0) {
-            logger.fine("edit-appointment rejected: appointment is no longer present in the model.");
             throw new CommandException(MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX);
         }
         replacement.set(storedIndex, editedAppointment);
@@ -196,13 +194,8 @@ public class EditAppointmentCommand extends Command {
             // including overlap checks against every appointment except the original slot.
             model.setAppointments(replacement);
         } catch (OverlappingAppointmentException e) {
-            logger.fine(() -> "edit-appointment rejected due to overlap: "
-                    + editedAppointment.getDate() + " " + editedAppointment.getStartTime()
-                    + "-" + editedAppointment.getEndTime());
             throw new CommandException(MESSAGE_OVERLAP, e);
         }
-        logger.info(() -> "edit-appointment: appointment updated in model; slot changed="
-                + !appointmentToEdit.isSameAppointment(editedAppointment) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(editedAppointment)));
     }
 
@@ -211,7 +204,6 @@ public class EditAppointmentCommand extends Command {
         if (index != null) {
             List<Appointment> displayedAppointments = model.getFilteredAppointmentList();
             if (index.getZeroBased() >= displayedAppointments.size()) {
-                logger.fine("edit-appointment rejected: invalid displayed appointment index.");
                 throw new CommandException(MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX);
             }
             return displayedAppointments.get(index.getZeroBased());
@@ -222,7 +214,6 @@ public class EditAppointmentCommand extends Command {
                         && appointment.getStartTime().equals(targetStartTime))
                 .findFirst()
                 .orElseThrow(() -> {
-                    logger.fine("edit-appointment rejected: no appointment matches the date and start time.");
                     return new CommandException(MESSAGE_APPOINTMENT_NOT_FOUND);
                 });
     }
@@ -230,7 +221,9 @@ public class EditAppointmentCommand extends Command {
     /** Creates a complete appointment by applying the descriptor to the existing appointment. */
     private static Appointment createEditedAppointment(Model model, Appointment appointmentToEdit,
                                                        EditAppointmentDescriptor descriptor) throws CommandException {
-        assert appointmentToEdit != null;
+        //@@author anderschow
+        assert appointmentToEdit != null : "Appointment lookup must succeed before building the edited appointment";
+        //@@author
         Phone ownerPhone = descriptor.getOwnerPhone().orElse(appointmentToEdit.getOwnerPhone());
         PetName petName = descriptor.getPetName().orElse(appointmentToEdit.getPetName());
         AppointmentDate date = descriptor.getDate().orElse(appointmentToEdit.getDate());
@@ -242,7 +235,6 @@ public class EditAppointmentCommand extends Command {
                 .filter(client -> client.getPhone().equals(ownerPhone))
                 .count();
         if (matchingOwners != 1) {
-            logger.fine("edit-appointment rejected: no unique saved owner matches the phone identifier.");
             throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
         }
         Client owner = model.getBubuBook().getClientList().stream()
@@ -256,12 +248,16 @@ public class EditAppointmentCommand extends Command {
                 .findFirst()
                 .orElse(null);
         if (pet == null) {
-            logger.fine("edit-appointment rejected: pet is not registered under the specified owner.");
             throw new CommandException(MESSAGE_PET_NOT_FOUND);
         }
 
         if (!endTime.isAtLeastThirtyMinutesAfter(startTime)) {
-            logger.fine("edit-appointment rejected: end time is less than 30 minutes after the start time.");
+            if (descriptor.getStartTime().isPresent() && descriptor.getEndTime().isEmpty()) {
+                throw new CommandException(MESSAGE_INVALID_START_TIME);
+            }
+            if (descriptor.getStartTime().isEmpty() && descriptor.getEndTime().isPresent()) {
+                throw new CommandException(MESSAGE_INVALID_END_TIME);
+            }
             throw new CommandException(MESSAGE_INVALID_DURATION);
         }
 

@@ -25,7 +25,7 @@ public class ClientCard extends UiPart<Region> {
      * @see <a href="https://github.com/se-edu/addressbook-level4/issues/336">The upstream JavaFX layout issue</a>
      */
 
-    public final Client client;
+    final Client client;
 
     @FXML
     private HBox cardPane;

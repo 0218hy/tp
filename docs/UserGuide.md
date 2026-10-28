@@ -101,6 +101,8 @@ If the data file is invalid at startup, commands are blocked with
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
 
+Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records continue to save automatically. Exiting may still save UI preferences separately.
+
 Examples using existing clients or pets assume those records have already been added. Replace their identifiers with
 values from your own records. Appointment examples also require a future date and an available slot.
 
@@ -132,7 +134,7 @@ help
 
 The command makes no changes when it cannot be completed.
 
-* When entered as a command, `help` can report a storage error because BuBu also attempts to save the current records.
+* `help` does not save records and does not require write access to the data file.
 * `Unable to verify existing records. Please contact support.` — commands are blocked if the data file was found to be invalid at startup.
 
 ### Adding a client: `add-client`
@@ -147,13 +149,16 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 #### Parameters and validation
 
-* `n/NAME` — required; 2–60 letters, spaces, apostrophes, hyphens or full stops.
+* `n/NAME` — required and nonblank; Unicode letters and combining marks, spaces, apostrophes (`'`), hyphens (`-`) or full stops (`.`). Names such as `José Tan` and `李小明` are supported for both add and edit. Names are stored in Unicode NFC normalization (so composed and decomposed accents are treated alike), and must contain 2–60 Unicode code points after normalization. Spaces, punctuation and any remaining combining marks each count towards this limit; a visible letter can contain more than one code point.
 * `i/PHONE_NUMBER` — required; exactly eight digits starting with `8` or `9`, without spaces or hyphens.
-* `e/EMAIL` — required; exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
-* `a/ADDRESS` — required; 5–120 letters, digits, spaces, commas, full stops, hyphens or `#`.
+* `e/EMAIL` — required; at most 254 characters, exactly one `@`, no whitespace, and non-empty local and domain parts. The domain must have a full stop separating non-empty sections.
+* `a/ADDRESS` — required and nonblank; 5–120 characters using English letters (`A-Z`, `a-z`), digits (`0-9`), spaces, commas, full stops, straight apostrophes (`'`), hyphens (`-`) or `#`. For example, `12 St. John's Road` is accepted for both add and edit.
 * `t/TAG` — optional; a non-empty alphanumeric label without spaces. Repeat `t/` for multiple tags; omit it for no tags. Duplicate tags are stored once.
 * Each required prefix may appear only once. Surrounding whitespace is trimmed; blank required values are rejected.
-* Phone numbers and emails must be unique across clients. Email comparisons are case-sensitive; names and addresses need not be unique.
+* Phone numbers and emails must be unique across clients. Email domains are compared case-insensitively, while the local part (before `@`) remains case-sensitive: `alice@example.com` conflicts with `alice@EXAMPLE.COM`, but `Alice@example.com` is distinct. The entered spelling is preserved for display and storage. Names and addresses need not be unique.
+* The same uniqueness rule applies when loading saved data. If an older file contains emails differing only in domain capitalization, loading fails and commands are blocked to protect the original file; no clients are automatically merged or deleted. Back up the file, correct the conflicting contact details in the saved JSON, then restart BuBu.
+
+Required-field errors identify the field and distinguish an absent prefix from a blank value. For example, a missing `i/` reports `Phone number (i/) is required. Example: i/91234567.`, while a blank `e/` reports `Email (e/) cannot be blank.` A repeated `n/` reports `Name (n/) was supplied more than once. Keep only one n/ field.` The same wording applies to name, phone, email and address. Repeated `t/` fields remain valid. If multiple fields have errors, correct the reported field and retry.
 
 #### Examples
 
@@ -164,7 +169,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 * On success, BuBu displays `Client added: NAME (PHONE).`
 * The active client filter is preserved. The new client appears only if it matches the filter. The command does not switch away from a pet or appointment panel; use `list-clients` to view all clients.
-* Changes are saved automatically. A save failure restores the previous records and displays `Unable to save client.`
+* Changes are saved automatically. A save failure restores the previous records in memory and reports that the new client was not saved.
 
 #### Error handling
 
@@ -173,9 +178,11 @@ The command makes no changes when it cannot be completed.
 * Missing required field — a required prefix is absent or its value is blank.
 * Repeated field — `n/`, `i/`, `e/` or `a/` appears more than once.
 * Field validation error — a name, phone number, email, address or tag violates the rules above.
-* `A client with this phone number or email already exists.` — another saved client uses either identifier.
+* `The phone number already belongs to another client.` - choose a different phone number.
+* `The email already belongs to another client.` - choose a different email address.
+* `The phone number and email already belong to saved clients.` - change both fields; they may conflict with the same client or two different clients. Clients hidden by filters are checked too.
 * Invalid command format — text appears before the recognised fields.
-* `Unable to save client.` — the updated records could not be saved.
+* Save failure — the new client was not saved and previous records were restored in memory. If write access was denied, check write permissions for the data file and folder, then retry. For other storage errors, check that the data folder is available and has free space, then retry. This does not guarantee that the data file on disk was restored.
 
 ### Listing and searching clients: `list-clients`
 
@@ -189,7 +196,7 @@ list-clients [q/KEYWORD]
 
 #### Parameters and validation
 
-* `q/KEYWORD` — optional; omit it to show all clients. When supplied, use 1–60 characters after trimming, containing English letters, digits, spaces, apostrophes, hyphens, full stops, `@` or `#`.
+* `q/KEYWORD` - optional; omit it to show all clients. When supplied, use 1-60 characters after trimming. Any text or punctuation is accepted, including `+`, commas, underscores and slashes; blank queries and control characters (such as internal tabs or line breaks) are rejected.
 * The keyword is one case-insensitive substring, including internal spaces, matched against name, phone, email or address; tags are not searched.
 * Specify `q/` at most once.
 
@@ -198,6 +205,8 @@ list-clients [q/KEYWORD]
 * `list-clients` — lists all clients.
 * `list-clients q/amelia` — finds clients with `amelia` in a contact field.
 * `list-clients q/@example.com` — finds clients with that email-domain substring.
+* `list-clients q/sam+grooming` - finds that literal email substring.
+* `list-clients q/Road, #01-02` - finds that literal address substring.
 
 #### Success and other behavior
 
@@ -209,32 +218,36 @@ list-clients [q/KEYWORD]
 
 The command makes no changes when it cannot be completed.
 
-* `Search keyword must be 1-60 characters and use valid text characters.` — the query is blank or invalid.
+* `Search keyword must be 1-60 characters, not blank, and contain no control characters.` — the query is blank or invalid.
 * `Each search field may be specified only once.` — `q/` is repeated.
 * Invalid command format — arguments are provided outside the supported query field.
-* Storage error — this command also attempts to save the existing records; no stored client details are changed by the search.
 
 ### Editing a client: `edit-client`
 
-Edits a saved client identified by their current phone number. It searches all saved clients and works even when a filter hides the client or another panel is selected.
+Edits a client by their index in the currently displayed client list or by their current phone number. The phone identifier searches all saved clients and works even when a filter hides the client or another panel is selected.
 
 #### Format
 
 ```text
+edit-client INDEX [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
 edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
 ```
 
 #### Parameters and validation
 
-* `i/CURRENT_PHONE` — required; the client's existing eight-digit phone number starting with `8` or `9`.
+* Supply either `INDEX` or `i/CURRENT_PHONE`, not both. `INDEX` is a positive, one-based position in the displayed client list. Index-based editing requires the client panel; invalid or out-of-range indexes are rejected without changing records. The active filter remains applied after editing.
+* `i/CURRENT_PHONE` — the client's existing eight-digit phone number starting with `8` or `9`.
 * `n/NAME`, `p/NEW_PHONE`, `e/EMAIL`, `a/ADDRESS` — optional updates using the same value constraints as `add-client`. Omitted fields keep their values.
 * `t/TAG` — optional alphanumeric tags replacing all existing tags. Repeat it to supply multiple tags; use `t/` alone to clear tags. Omit it to keep tags.
 * Supply at least one update. Each of `i/`, `n/`, `p/`, `e/` and `a/` may appear only once.
-* A changed phone or email must not belong to another saved client, including clients hidden by a search. Email comparisons are case-sensitive.
-* The old `edit` command and index-based editing are unsupported.
+* A changed phone or email must not belong to another saved client, including clients hidden by a search. Email domains are compared case-insensitively; the local part (before `@`) remains case-sensitive, as for `add-client`.
+* The old `edit` command is unsupported.
+
+Missing selectors are reported separately from blank `i/` selectors. Supply either a displayed index or `i/CURRENT_PHONE`; combining both is rejected. Unexpected positional text is reported separately from invalid numeric indexes. Invalid `i/` values are identified as current-phone errors, while invalid `p/` values are identified as new-phone errors. Both phone values must be eight digits beginning with 8 or 9. Supply at least one update using `n/`, `p/`, `e/`, `a/` or `t/`.
 
 #### Examples
 
+* `edit-client 1 n/Alex Tan` - changes the first displayed client's name.
 * `edit-client i/91234567 n/Alex Tan` — changes the selected client's name.
 * `edit-client i/91234567 p/89998888` — changes their phone number; use the new number in subsequent commands.
 * `edit-client i/89998888 t/` — clears that client's tags.
@@ -242,7 +255,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles are updated. A phone-number change also updates linked appointment owner identifiers; other booking details remain as recorded.
+* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment times, services and other pet details remain unchanged. Completion is determined by the appointment's end time in Singapore.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -250,11 +263,13 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 The command makes no changes when it cannot be completed.
 
 * Invalid command format — the current-phone selector is missing or blank, or unsupported positional input is supplied.
-* `At least one field to edit must be provided.` — no update was supplied.
+* `No update supplied. Provide at least one of n/, p/, e/, a/ or t/.` — no update was supplied.
 * Duplicate prefix or field validation error — a single-valued prefix is repeated or a supplied value is invalid.
 * `No saved client has this phone number.` — the current phone does not identify a saved client.
-* `A client with this phone number or email already exists.` — an update conflicts with another client.
-* Storage error — the data file cannot be written, for example because of file or folder permissions.
+* `The phone number already belongs to another client.` - choose a different phone number.
+* `The email already belongs to another client.` - choose a different email address.
+* `The phone number and email already belong to saved clients.` - change both fields; they may conflict with the same client or two different clients. Clients hidden by filters are checked too.
+* Save failure — the client update was not saved and previous records were restored in memory, including related pet and appointment records. If write access was denied, check write permissions for the data file and folder, then retry. For other storage errors, check that the data folder is available and has free space, then retry. This does not guarantee that the data file on disk was restored.
 
 ### Deleting a client: `delete-client`
 
@@ -283,19 +298,24 @@ delete-client i/PHONE_NUMBER
 
 #### Success and other behavior
 
-* On success, BuBu displays `Deleted person: ...`.
-* All pets and appointments belonging to that client are deleted in the same operation, including completed
-  appointments. Other clients and their records are preserved.
-* The selected panel does not change. There is no confirmation prompt or undo command.
+* On success, BuBu displays `Deleted client: CLIENT_DETAILS. Removed PET_COUNT and APPOINTMENT_COUNT.`
+  The counts use singular or plural wording, such as `1 pet` or `2 appointments`.
+* All pets and appointments belonging to that client are also deleted, including completed appointments. Other clients' records are preserved.
+* The selected panel does not change. There is no confirmation prompt.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
 
 The command makes no changes when it cannot be completed.
 
-* Invalid command format — the target is missing, an index or phone is invalid, `i/` is repeated, or both target formats are combined.
-* Invalid displayed client index — the index is outside the current client list.
-* `No person with the given phone number exists.` — no saved client has the supplied phone number.
+* `Choose a client index or provide i/PHONE_NUMBER.` — no deletion target was supplied.
+* `Choose either a client index or a phone identifier, not both.` — both target formats were supplied.
+* `Unknown parameter: PARAMETER` — an unsupported prefix was supplied; the command format is shown.
+* `Multiple values specified for the following single-valued field(s): i/` — the phone identifier was repeated.
+* `Client index must be a positive whole number.` — the index is malformed or not positive.
+* `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone identifier is invalid.
+* `The person index provided is invalid.` — the index is outside the current displayed client list.
+* `No client with the given phone number exists.` — no saved client has the supplied phone number.
 * Wrong displayed list — index-based deletion requires the matching record panel; run the corresponding list command first.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
@@ -315,7 +335,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 * `i/OWNER_IDENTIFIER` — required; an existing client's eight-digit phone number starting with `8` or `9`.
 * `s/SPECIES` — required; `Dog`, `Cat`, `Rabbit`, `Guinea Pig` or `Other`, ignoring case. `Guinea_Pig` is also accepted.
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Omit it when unknown; an empty supplied value is invalid.
-* `r/REQUIREMENTS` — required; 5–240 characters, without `/`.
+* `r/REQUIREMENTS` — required; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`. A space followed by a recognised prefix starts another field.
 * Each prefix may appear only once. Under one owner, pet names must be unique after ignoring case and extra whitespace. Different owners may have pets with the same name.
 
 #### Examples
@@ -333,11 +353,11 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 
 The command makes no changes when it cannot be completed.
 
-* `Missing required field: FIELD.` — a required field is absent or empty.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a name, owner phone, species, breed or requirement is invalid.
-* `Invalid command format. Check the command syntax and try again.` — unsupported prefixes or text outside a field are supplied.
-* `The owner identifier does not belong to the specified client.` — the owner is not registered.
+* After the command structure is accepted, supplied non-empty fields are validated before missing fields are reported.
+* `Invalid command format!` followed by the `add-pet` usage and example — unsupported prefixes or text outside a field are supplied.
+* `No saved client has this phone number. Add the client before adding a pet.` — the phone format is valid, but no registered client has that number.
 * `This client already has a pet named PET_NAME.` — the name conflicts with another pet under that owner.
 * `Unable to save a pet. Please try again.` — the updated records could not be saved.
 
@@ -373,34 +393,37 @@ list-pets [i/OWNER_IDENTIFIER]
 The command makes no changes when it cannot be completed.
 
 * `No saved client has this phone number.` — the supplied phone has no registered client.
-* `Each owner identifier may be specified only once.` — `i/` is repeated.
-* `Owner identifier must be a valid phone number belonging to the specified client.` — the phone format is invalid.
-* `Invalid command format. Check the command syntax and try again.` — unsupported fields or extra text are supplied.
+* `The owner phone may be specified only once.` — `i/` is repeated.
+* `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.` — the phone format is invalid.
+* `Invalid command format!` followed by the `list-pets` usage and example — unsupported fields or extra text are supplied.
 
 ### Editing a pet: `edit-pet`
 
-Edits a saved pet identified by its current name and owner's phone number. It searches all saved pets, regardless of the displayed list, and never transfers ownership.
+Edits a saved pet identified by its current name and owner's phone number, or by its one-based index in the displayed pet list. Name-and-phone lookup searches all saved pets, regardless of the displayed list; index lookup requires the pet list to be displayed. The command never transfers ownership.
 
 #### Format
 
 ```text
+edit-pet INDEX [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
 edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]
 ```
 
 #### Parameters and validation
 
-* `p/PET_NAME` — required current name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. Lookup ignores case and extra whitespace.
-* `i/OWNER_IDENTIFIER` — required current owner's eight-digit phone number starting with `8` or `9`.
+* `INDEX` — alternatively, a positive integer referring to the pet's one-based position in the currently displayed pet list, including any owner filter. The pet list must be the active display.
+* `p/PET_NAME` — required for name-and-phone targeting; the current name must contain 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. Lookup ignores case and extra whitespace.
+* `i/OWNER_IDENTIFIER` — required with `p/`; the current owner's eight-digit phone number starting with `8` or `9`.
 * `n/NEW_PET_NAME` — optional replacement name with the same constraints. It must not match another pet under the owner after case and whitespace normalisation.
 * `s/SPECIES` — optional; `Dog`, `Cat`, `Rabbit`, `Guinea Pig` or `Other`, ignoring case. `Guinea_Pig` is also accepted.
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Use `b/` alone to remove the breed.
-* `r/REQUIREMENTS` — optional; 5–240 characters, without `/`.
-* Supply at least one update. Omitted fields are unchanged. Every prefix may appear only once.
+* `r/REQUIREMENTS` — optional; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`. A space followed by a recognised prefix starts another field.
+* Supply either `INDEX` or both `p/PET_NAME` and `i/OWNER_IDENTIFIER`, not both targeting forms. Supply at least one update. Omitted fields are unchanged. Every prefix may appear only once.
 
 #### Examples
 
 * `edit-pet p/Mochi i/87438807 n/Mochi Bean r/Prefers quiet drying` — changes the pet's name and requirements.
 * `edit-pet p/Mochi Bean i/87438807 b/` — removes the saved breed after that rename.
+* `edit-pet 1 n/Mochi Bean` — changes the name of the first pet in the displayed pet list.
 
 #### Success and other behavior
 
@@ -413,12 +436,15 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 
 The command makes no changes when it cannot be completed.
 
-* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` — a selector is absent or empty.
+* `Missing required field: PET_NAME.` or `Missing required field: OWNER_IDENTIFIER.` — the name-and-phone targeting form is incomplete.
 * `At least one field to edit must be provided.` — no update was supplied.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a supplied name, phone, species, breed or requirement is invalid.
 * `Invalid command format. Check the command syntax and try again.` — unsupported prefixes or text outside a field are supplied.
-* `No pet with the specified name and owner phone number was found.` — the selectors do not identify a saved pet.
+* `A pet index cannot be combined with pet-name or owner-phone identifiers.` — both targeting forms were supplied.
+* `The current displayed list does not match the record type selected by the index.` — the pet list is not currently displayed.
+* `The pet index provided is invalid.` — the index is outside the displayed pet list.
+* `No pet with the specified name and owner phone number was found.` — the name-and-phone selectors do not identify a saved pet.
 * `This client already has a pet named PET_NAME.` — the new name conflicts with another pet under the owner.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
@@ -610,11 +636,15 @@ The command makes no changes when it cannot be completed.
 * `This pet is not registered under the specified owner.` — the replacement pet cannot be found for that owner.
 * `No changes were made. The appointment already has these details.` — all requested values match the existing
   appointment.
-* `End time must be at least 30 minutes after the appointment start time.` — the edited time range is too short.
+* `The new start time must be at least 30 minutes before the existing end time.` — only the replacement start time
+  makes the duration too short.
+* `The new end time must be at least 30 minutes after the existing start time.` — only the replacement end time makes
+  the duration too short.
+* `The appointment duration must be at least 30 minutes.` — both replacement times were supplied but form an invalid
+  duration.
 * `The updated appointment must start in the future (Singapore time).` — the new start has passed.
 * `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
   with an existing appointment.
-* Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Deleting an appointment: `delete-appointment`
 
@@ -644,8 +674,7 @@ delete-appointment d/DD-MM-YYYY st/HH:mm
 #### Success and other behavior
 
 * On success, BuBu displays `Deleted appointment: ...` with the booking details.
-* Client and pet profiles and other appointments are preserved. The selected panel does not change, and there is no
-  confirmation prompt.
+* Client and pet profiles and other appointments are preserved. The selected panel does not change.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -665,7 +694,7 @@ The command makes no changes when it cannot be completed.
 * `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
 * `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
   using an index.
-* `No appointment starts at the specified date and time.` — no booking starts at that date and time.
+* `No appointment starts at the specified date and start time.` — no booking starts at that date and start time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`
@@ -726,7 +755,6 @@ exit
 
 The command makes no changes when it cannot be completed.
 
-* Storage error — saving the current records fails and the exit command does not complete.
 * `Unable to verify existing records. Please contact support.` — commands, including `exit`, are blocked by the startup data-file error; close the window instead.
 
 ### Saving the data
@@ -738,8 +766,9 @@ commands only update the display and do not save the file.
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Each booking preserves the client and pet
-details recorded when it was made, even when pet details or non-phone client details are later edited.
+Bookings use the same data file as their registered clients and pets. Editing a client refreshes owner details
+in ongoing and future bookings. Completed bookings preserve their recorded client details, except phone identifiers.
+Other pet details remain as recorded when the booking was made.
 Changing a client's phone number updates linked booking identifiers. Deleting a client or pet also deletes their
 linked bookings. The pet's recorded name is used for display, including its original capitalization.
 
@@ -784,12 +813,12 @@ _Details coming soon ..._
 Action | Format, Examples
 --------|------------------
 **Add Client** | `add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add-client n/James Ho i/82224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
-**Edit client** | `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`<br> e.g., `edit-client i/91234567 n/Alex Tan`
-**Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **List clients** | `list-clients [q/KEYWORD]`<br> e.g., `list-clients q/amelia`
+**Edit client** | `edit-client INDEX [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...` or `edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`<br> e.g., `edit-client i/91234567 n/Alex Tan`
+**Delete Client** | `delete-client INDEX` or `delete-client i/PHONE_NUMBER`<br> e.g., `delete-client 3`<br> e.g., `delete-client i/91234567`
 **Add pet** | `add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS`<br> e.g., `add-pet p/Mochi i/87438807 s/Dog r/Nervous around dryers`
 **List pets** | `list-pets [i/OWNER_IDENTIFIER]`<br> e.g., `list-pets i/87438807`
-**Edit pet** | `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
+**Edit pet** | `edit-pet INDEX [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]` or `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`<br> e.g., `edit-pet 1 n/Mochi Bean`<br> e.g., `edit-pet p/Mochi i/87438807 n/Mochi Bean`
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments [d/DD-MM-YYYY]`

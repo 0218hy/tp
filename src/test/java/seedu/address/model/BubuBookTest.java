@@ -27,6 +27,7 @@ import seedu.address.model.client.exceptions.ClientNotFoundException;
 import seedu.address.model.client.exceptions.DuplicateClientException;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
@@ -161,6 +162,28 @@ public class BubuBookTest {
         // The renamed pet must still be associated with, and remove, its appointment.
         bubuBook.removePet(savedRex);
         assertEquals(List.of(mochiAppointment), bubuBook.getAppointmentList());
+    }
+
+    @Test
+    public void setPet_profileChange_refreshesFutureAppointmentSnapshot() {
+        bubuBook.addClient(ALICE);
+        Pet pet = new PetBuilder(ALICE).withName("Milo").withBreed("Poodle")
+                .withRequirement("Original care notes").build();
+        bubuBook.addPet(pet);
+        Pet savedPet = bubuBook.getPetList().get(0);
+        Appointment appointment = new Appointment(ALICE, savedPet, new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
+        bubuBook.addAppointment(appointment);
+        Pet editedPet = new PetBuilder(savedPet).withSpecies(Species.CAT).withBreed("Shih Tzu")
+                .withRequirement("Use sensitive-skin shampoo").build();
+
+        bubuBook.setPet(savedPet, editedPet);
+
+        Appointment refreshed = bubuBook.getAppointmentList().get(0);
+        assertEquals(bubuBook.getPetList().get(0), refreshed.getPet());
+        assertSame(refreshed.getOwner(), refreshed.getPet().getOwner());
+        assertEquals("Original care notes", appointment.getPet().getRequirement().value);
+        assertEquals("Use sensitive-skin shampoo", refreshed.getPet().getRequirement().value);
     }
     //@@author
 

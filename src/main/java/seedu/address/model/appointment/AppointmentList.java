@@ -2,7 +2,13 @@ package seedu.address.model.appointment;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Clock;
+//@@author anderschow
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+//@@author
 import java.util.List;
+import java.util.Objects;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,9 +25,22 @@ import seedu.address.model.pet.PetName;
  * the scheduling command is responsible for checking owners, pets and future start times.
  */
 public class AppointmentList {
+    private static final ZoneId SINGAPORE_ZONE = ZoneId.of("Asia/Singapore");
+
     private final ObservableList<Appointment> internalList = FXCollections.observableArrayList();
     private final ObservableList<Appointment> unmodifiableAppointments =
             FXCollections.unmodifiableObservableList(internalList);
+    private final Clock clock;
+
+    /** Creates an appointment list using the current Singapore time. */
+    public AppointmentList() {
+        this(Clock.system(SINGAPORE_ZONE));
+    }
+
+    /** Creates an appointment list with a clock, allowing deterministic date-boundary checks. */
+    AppointmentList(Clock clock) {
+        this.clock = requireNonNull(clock);
+    }
 
     //@@author 0218hy
     /**
@@ -81,17 +100,25 @@ public class AppointmentList {
         internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
     }
 
-    /** Updates appointments when their owner's client record is replaced. */
+    //@@author
+
+    //@@author anderschow
+    /**
+     * Refreshes owner details for ongoing and future bookings in Singapore time.
+     * Completed bookings retain their details, except phone identifiers used to link records.
+     */
     public void updateOwner(Client currentOwner, Client editedOwner) {
         requireNonNull(currentOwner);
         requireNonNull(editedOwner);
-        if (currentOwner.getPhone().equals(editedOwner.getPhone())) {
-            return;
-        }
+        LocalDateTime now = LocalDateTime.now(clock);
         for (int index = 0; index < internalList.size(); index++) {
             Appointment appointment = internalList.get(index);
             if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
-                internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+                if (appointment.getDate().value.atTime(appointment.getEndTime().value).isAfter(now)) {
+                    internalList.set(index, appointment.withOwner(editedOwner));
+                } else if (!currentOwner.getPhone().equals(editedOwner.getPhone())) {
+                    internalList.set(index, appointment.withOwnerPhone(editedOwner.getPhone()));
+                }
             }
         }
     }
@@ -99,9 +126,39 @@ public class AppointmentList {
 
     //@@author khangsian0412
     /**
-     * Updates every appointment belonging to {@code currentPet} with its replacement name.
-     * Other appointment snapshot details remain unchanged.
+     * Refreshes pet details in ongoing and future appointments while preserving completed booking snapshots.
+     * Pet-name changes continue to propagate to completed appointments so linked records remain identifiable.
+     *
+     * @param currentPet the saved pet being replaced
+     * @param editedPet the replacement pet profile
      */
+    public void updatePet(Pet currentPet, Pet editedPet) {
+        requireNonNull(currentPet);
+        requireNonNull(editedPet);
+        boolean nameChanged = !currentPet.getName().equals(editedPet.getName());
+        boolean petDetailsChanged = nameChanged
+                || !currentPet.getSpecies().equals(editedPet.getSpecies())
+                || !Objects.equals(currentPet.getBreed(), editedPet.getBreed())
+                || !currentPet.getRequirement().equals(editedPet.getRequirement());
+        if (!petDetailsChanged) {
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now(clock);
+        for (int index = 0; index < internalList.size(); index++) {
+            Appointment appointment = internalList.get(index);
+            if (appointment.isForPet(currentPet)) {
+                LocalDateTime appointmentEnd = appointment.getDate().value.atTime(appointment.getEndTime().value);
+                if (appointmentEnd.isAfter(now)) {
+                    internalList.set(index, appointment.withPet(editedPet));
+                } else if (nameChanged) {
+                    internalList.set(index, appointment.withPetName(editedPet.getName()));
+                }
+            }
+        }
+    }
+
+    /** Updates every linked appointment's pet name while retaining its other snapshot details. */
     public void updatePetName(Pet currentPet, PetName newPetName) {
         requireNonNull(currentPet);
         requireNonNull(newPetName);

@@ -20,8 +20,9 @@ import seedu.address.model.pet.PetOwnerPhoneMatchesPredicate;
  */
 public class ListPetsCommand extends Command {
     public static final String COMMAND_WORD = "list-pets";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + " [" + PREFIX_OWNER_IDENTIFIER
-            + "OWNER_IDENTIFIER]";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Lists all pets or only pets belonging to one client. "
+            + "Parameters: [" + PREFIX_OWNER_IDENTIFIER + "OWNER_PHONE]\n"
+            + "Example: " + COMMAND_WORD + " " + PREFIX_OWNER_IDENTIFIER + "91234567";
     public static final String MESSAGE_ALL_PETS = "Listed all pets.";
     public static final String MESSAGE_OWNER_NOT_FOUND = "No saved client has this phone number.";
     public static final String MESSAGE_OWNER_PETS = "Found %d pet(s) under %s.";
