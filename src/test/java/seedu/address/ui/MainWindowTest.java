@@ -8,6 +8,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
+//@@author anderschow
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+//@@author
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -37,6 +44,46 @@ import seedu.address.ui.pet.PetListPanel;
 
 @EnabledOnOs(OS.LINUX)
 public class MainWindowTest {
+
+    //@@author anderschow
+    @Test
+    public void handleHelp_commandFailure_logsCauseAndAllowsRetry() {
+        JavaFxTestUtils.runAndWait(() -> {
+            CommandException failure = new CommandException("Help unavailable");
+            StubLogic logic = new StubLogic();
+            logic.failure = failure;
+            MainWindow window = new MainWindow(new Stage(), logic, Path.of("bubu.json"));
+            window.fillInnerParts();
+            List<LogRecord> records = new ArrayList<>();
+            Logger logger = Logger.getLogger("ab3.MainWindow");
+            Handler handler = new Handler() {
+                @Override
+                public void publish(LogRecord record) {
+                    records.add(record);
+                }
+
+                @Override
+                public void flush() {}
+
+                @Override
+                public void close() {}
+            };
+            logger.addHandler(handler);
+            try {
+                window.handleHelp();
+                assertTrue(records.stream().anyMatch(record -> record.getThrown() == failure
+                        && record.getMessage().equals("Unable to display the command reference")));
+                logic.failure = null;
+                logic.nextResult = new CommandResult("AVAILABLE COMMANDS", true, false);
+                window.handleHelp();
+                ResultDisplay display = getField(window, "resultDisplay", ResultDisplay.class);
+                assertTrue(getField(display, "helpDisplay", ScrollPane.class).isVisible());
+            } finally {
+                logger.removeHandler(handler);
+            }
+        });
+    }
+    //@@author
 
     //@@author khangsian0412
     @Test
@@ -168,6 +215,9 @@ public class MainWindowTest {
     //@@author
 
     private static class StubLogic implements Logic {
+        //@@author anderschow
+        private CommandException failure;
+        //@@author
         private final ObservableList<Client> clients = FXCollections.observableArrayList();
         private final ObservableList<Pet> pets = FXCollections.observableArrayList();
         private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
@@ -179,6 +229,11 @@ public class MainWindowTest {
         @Override
         public CommandResult execute(String commandText) throws CommandException, ParseException {
             lastCommand = commandText;
+            //@@author anderschow
+            if (failure != null) {
+                throw failure;
+            }
+            //@@author khangsian0412
             return nextResult;
         }
         //@@author

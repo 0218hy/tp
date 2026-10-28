@@ -7,6 +7,9 @@ import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 
+//@@author anderschow
+import java.util.Map;
+//@@author
 import java.util.Set;
 
 import seedu.address.logic.commands.client.AddClientCommand;
@@ -28,6 +31,14 @@ import seedu.address.model.tag.Tag;
 public class AddClientCommandParser implements Parser<AddClientCommand> {
 
     //@@author anderschow
+    private static final Map<Prefix, String> FIELD_NAMES = Map.of(
+            PREFIX_NAME, "Name", PREFIX_PHONE, "Phone number", PREFIX_EMAIL, "Email", PREFIX_ADDRESS, "Address");
+    private static final Map<Prefix, String> FIELD_EXAMPLES = Map.of(
+            PREFIX_NAME, "Alice Tan", PREFIX_PHONE, "91234567",
+            PREFIX_EMAIL, "alice@example.com", PREFIX_ADDRESS, "123 Test Road");
+    //@@author
+
+    //@@author anderschow
     /**
      * Parses the given {@code String} of arguments in the context of the AddClientCommand
      * and returns an AddClientCommand object for execution.
@@ -47,12 +58,16 @@ public class AddClientCommandParser implements Parser<AddClientCommand> {
         for (Prefix prefix : requiredPrefixes) {
             if (argMultimap.getAllValues(prefix).size() > 1) {
                 throw new ParseException(
-                        "Repeated field: Each client field may be specified only once");
+                        fieldLabel(prefix) + " was supplied more than once. Keep only one " + prefix + " field.");
             }
         }
         for (Prefix prefix : requiredPrefixes) {
-            if (argMultimap.getValue(prefix).orElse("").isBlank()) {
-                throw new ParseException("Missing required field: " + prefix.getPrefix() + ".");
+            if (argMultimap.getValue(prefix).isEmpty()) {
+                throw new ParseException(fieldLabel(prefix) + " is required. Example: "
+                        + prefix + FIELD_EXAMPLES.get(prefix) + ".");
+            }
+            if (argMultimap.getValue(prefix).orElseThrow().isBlank()) {
+                throw new ParseException(fieldLabel(prefix) + " cannot be blank.");
             }
         }
         ClientName name = ClientParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
@@ -64,6 +79,12 @@ public class AddClientCommandParser implements Parser<AddClientCommand> {
         Client client = new Client(name, phone, email, address, tagList);
 
         return new AddClientCommand(client);
+    }
+    //@@author
+    /** Uses the same field label for absent, blank and repeated input. */
+    //@@author anderschow
+    private static String fieldLabel(Prefix prefix) {
+        return FIELD_NAMES.get(prefix) + " (" + prefix + ")";
     }
     //@@author
 }

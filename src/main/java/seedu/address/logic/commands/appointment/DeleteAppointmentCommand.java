@@ -6,9 +6,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.commands.Command;
@@ -38,7 +36,6 @@ public class DeleteAppointmentCommand extends Command {
             "No appointment starts at the specified date and start time.";
     public static final String MESSAGE_INVALID_APPOINTMENT_DISPLAYED_INDEX =
             "The appointment index provided is not in the displayed appointment list.";
-    private static final Logger logger = LogsCenter.getLogger(DeleteAppointmentCommand.class);
 
     private final Index targetIndex;
     private final AppointmentDate targetDate;
@@ -73,8 +70,6 @@ public class DeleteAppointmentCommand extends Command {
 
         Appointment appointmentToDelete = findAppointment(model);
         model.deleteAppointment(appointmentToDelete);
-        logger.info(() -> "Appointment removed from model: " + appointmentToDelete.getDate()
-                + " " + appointmentToDelete.getStartTime() + "-" + appointmentToDelete.getEndTime());
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatAppointment(appointmentToDelete)));
     }
 

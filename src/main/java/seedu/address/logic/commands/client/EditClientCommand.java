@@ -10,12 +10,16 @@ import static seedu.address.logic.parser.client.ClientCliSyntax.PREFIX_TAG;
 
 import java.util.Collections;
 import java.util.HashSet;
+//@@author anderschow
+import java.util.List;
+//@@author
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
-import seedu.address.commons.core.LogsCenter;
+//@@author anderschow
+import seedu.address.commons.core.index.Index;
+//@@author
 import seedu.address.commons.util.CollectionUtil;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -39,9 +43,9 @@ public class EditClientCommand extends Command {
     public static final String COMMAND_WORD = "edit-client";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the client identified "
-            + "by their current phone number. "
+            + "by their displayed index or current phone number. "
             + "Existing values will be overwritten by the input values.\n"
-            + "Parameters: " + PREFIX_IDENTIFIER + "CURRENT_PHONE "
+            + "Parameters: INDEX or " + PREFIX_IDENTIFIER + "CURRENT_PHONE "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_NEW_PHONE + "NEW_PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
@@ -54,13 +58,19 @@ public class EditClientCommand extends Command {
     public static final String MESSAGE_EDIT_CLIENT_SUCCESS = "Edited client: %1$s";
     public static final String MESSAGE_CLIENT_NOT_FOUND = "No saved client has this phone number.";
     //@@author
-    public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    //@@author anderschow
+    public static final String MESSAGE_NOT_EDITED = "No update supplied. Provide at least one of n/, p/, e/, a/ or t/.";
+    //@@author
     //@@author anderschow
     public static final String MESSAGE_DUPLICATE_CLIENT =
-            "A client with this phone number or email already exists.";
+            "The phone number and email already belong to saved clients.";
+    public static final String MESSAGE_DUPLICATE_PHONE =
+            "The phone number already belongs to another client.";
+    public static final String MESSAGE_DUPLICATE_EMAIL =
+            "The email already belongs to another client.";
 
-    private static final Logger logger = LogsCenter.getLogger(EditClientCommand.class);
 
+    private final Index targetIndex;
     private final Phone identifier;
     //@@author
     private final EditClientDescriptor editClientDescriptor;
@@ -74,32 +84,44 @@ public class EditClientCommand extends Command {
         requireNonNull(identifier);
         requireNonNull(editClientDescriptor);
 
+        this.targetIndex = null;
         this.identifier = identifier;
         this.editClientDescriptor = new EditClientDescriptor(editClientDescriptor);
+    }
+
+    /** Creates a command to edit the client at the given displayed index. */
+    public EditClientCommand(Index targetIndex, EditClientDescriptor editClientDescriptor) {
+        this.targetIndex = requireNonNull(targetIndex);
+        this.identifier = null;
+        this.editClientDescriptor = new EditClientDescriptor(requireNonNull(editClientDescriptor));
+    }
+
+    @Override
+    public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
+        return targetIndex == null ? Optional.empty() : Optional.of(CommandResult.DisplayType.CLIENTS);
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Client clientToEdit = model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().equals(identifier))
-                .findFirst()
-                .orElseThrow(() -> {
-                    logger.fine("edit-client rejected: no saved client matches the phone identifier.");
-                    return new CommandException(MESSAGE_CLIENT_NOT_FOUND);
-                });
+        Client clientToEdit;
+        if (targetIndex != null) {
+            List<Client> displayedClients = model.getFilteredClientList();
+            if (targetIndex.getZeroBased() >= displayedClients.size()) {
+                throw new CommandException(Messages.MESSAGE_INVALID_CLIENT_DISPLAYED_INDEX);
+            }
+            clientToEdit = displayedClients.get(targetIndex.getZeroBased());
+        } else {
+            clientToEdit = model.getBubuBook().getClientList().stream()
+                    .filter(client -> client.getPhone().equals(identifier))
+                    .findFirst()
+                    .orElseThrow(() -> new CommandException(MESSAGE_CLIENT_NOT_FOUND));
+        }
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
-        for (Client client : model.getBubuBook().getClientList()) {
-            if (!client.equals(clientToEdit) && client.isSameClient(editedClient)) {
-                logger.fine("edit-client rejected: updated phone number or email belongs to another client.");
-                throw new CommandException(MESSAGE_DUPLICATE_CLIENT);
-            }
-        }
+        ClientConflictCheck.validate(model.getBubuBook().getClientList(), editedClient, clientToEdit);
 
         model.setClient(clientToEdit, editedClient);
-        logger.info(() -> "edit-client: client updated in model; phone changed="
-                + !clientToEdit.getPhone().equals(editedClient.getPhone()) + "; awaiting storage save.");
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
                 CommandResult.DisplayType.CLIENTS);
     }
@@ -110,7 +132,9 @@ public class EditClientCommand extends Command {
      * edited with {@code editClientDescriptor}.
      */
     private static Client createEditedClient(Client clientToEdit, EditClientDescriptor editClientDescriptor) {
-        assert clientToEdit != null;
+        //@@author anderschow
+        assert clientToEdit != null : "Client lookup must succeed before building the edited client";
+        //@@author
 
         ClientName updatedName = editClientDescriptor.getName().orElse(clientToEdit.getName());
         Phone updatedPhone = editClientDescriptor.getPhone().orElse(clientToEdit.getPhone());
@@ -133,12 +157,19 @@ public class EditClientCommand extends Command {
             return false;
         }
 
-        return identifier.equals(otherEditCommand.identifier)
+        return Objects.equals(targetIndex, otherEditCommand.targetIndex)
+                && Objects.equals(identifier, otherEditCommand.identifier)
                 && editClientDescriptor.equals(otherEditCommand.editClientDescriptor);
     }
 
     @Override
     public String toString() {
+        if (targetIndex != null) {
+            return new ToStringBuilder(this)
+                    .add("targetIndex", targetIndex)
+                    .add("editClientDescriptor", editClientDescriptor)
+                    .toString();
+        }
         return new ToStringBuilder(this)
                 .add("identifier", identifier)
                 .add("editClientDescriptor", editClientDescriptor)

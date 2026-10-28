@@ -1,5 +1,8 @@
 package seedu.address.model.client;
 
+//@@author anderschow
+import static org.junit.jupiter.api.Assertions.assertEquals;
+//@@author
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -7,6 +10,20 @@ import static seedu.address.testutil.Assert.assertThrows;
 import org.junit.jupiter.api.Test;
 
 public class EmailTest {
+
+    //@@author anderschow
+    @Test
+    public void equals_domainCaseIgnored_localPartCasePreserved() {
+        Email lower = new Email("alice@example.com");
+        Email mixed = new Email("alice@Example.COM");
+        assertEquals(lower, mixed);
+        assertEquals(mixed, lower);
+        assertEquals(lower.hashCode(), mixed.hashCode());
+        assertEquals("alice@Example.COM", mixed.value);
+        assertEquals("alice@Example.COM", mixed.toString());
+        assertFalse(lower.equals(new Email("Alice@EXAMPLE.COM")));
+    }
+    //@@author
 
     @Test
     public void constructor_null_throwsNullPointerException() {

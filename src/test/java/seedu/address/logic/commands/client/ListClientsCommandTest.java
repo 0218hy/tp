@@ -23,6 +23,21 @@ public class ListClientsCommandTest {
 
     //@@author anderschow
     @Test
+    public void execute_queryWithContactPunctuation_matchesLiteralSubstring() throws Exception {
+        Client sam = new ClientBuilder().withName("Sam Tan").withPhone("89998888")
+                .withEmail("sam+grooming_test!/care@example.com").withAddress("10 Sunset Road, #01-02").build();
+        model.addClient(sam);
+        model.addClient(amelia);
+        for (String query : List.of("SAM+GROOMING", "grooming_test!", "/care", "Road, #01-02")) {
+            new BuBuParser().parseCommand("list-clients q/" + query).execute(model);
+            assertEquals(List.of(sam), model.getFilteredClientList());
+            assertEquals(List.of(sam, amelia), model.getBubuBook().getClientList());
+        }
+        new BuBuParser().parseCommand("list-clients q/.*").execute(model);
+        assertEquals(List.of(), model.getFilteredClientList());
+    }
+
+    @Test
     public void execute_noQuery_resetsFilterAndSortsWithoutChangingRecords() throws Exception {
         model.addClient(zoe);
         model.addClient(amelia);

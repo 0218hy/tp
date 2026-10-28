@@ -224,6 +224,15 @@ public class AddClientCommandTest {
             this.client = client;
         }
 
+        //@@author anderschow
+        @Override
+        public ReadOnlyBubuBook getBubuBook() {
+            BubuBook book = new BubuBook();
+            book.addClient(client);
+            return book;
+        }
+        //@@author
+
         @Override
         public boolean hasClient(Client client) {
             requireNonNull(client);

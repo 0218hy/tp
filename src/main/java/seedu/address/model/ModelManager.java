@@ -42,7 +42,7 @@ public class ModelManager implements Model {
     public ModelManager(ReadOnlyBubuBook bubuBook, ReadOnlyUserPrefs userPrefs) {
         requireAllNonNull(bubuBook, userPrefs);
 
-        logger.fine("Initializing with BubuBook: " + bubuBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing model with saved records and user preferences");
 
         this.bubuBook = new BubuBook(bubuBook);
         this.userPrefs = new UserPrefs(userPrefs);

@@ -32,7 +32,8 @@ public class ListClientsCommandParser implements Parser<ListClientsCommand> {
             return new ListClientsCommand();
         }
         String keyword = arguments.getValue(PREFIX_QUERY).get();
-        if (!keyword.matches("[A-Za-z0-9 '@#.\\-]{1,60}") || keyword.isBlank()) {
+        if (keyword.isBlank() || keyword.length() > 60
+                || keyword.codePoints().anyMatch(Character::isISOControl)) {
             throw new ParseException(ListClientsCommand.MESSAGE_INVALID_KEYWORD);
         }
         return new ListClientsCommand(keyword);
