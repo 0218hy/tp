@@ -64,48 +64,30 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + args.trim(), PET_FIELD_PREFIXES);
         validateStructure(args, fields);
 
-        String nameValue = getRequiredValue(fields, PREFIX_PET_NAME, FIELD_PET_NAME);
-        String ownerPhoneValue = getRequiredValue(fields, PREFIX_OWNER_IDENTIFIER, FIELD_OWNER_IDENTIFIER);
-        String speciesValue = getRequiredValue(fields, PREFIX_SPECIES, FIELD_SPECIES);
-        String requirementValue = getRequiredValue(fields, PREFIX_REQUIREMENTS, FIELD_REQUIREMENTS);
-
-        PetName name = parsePetName(nameValue);
-        String ownerPhone = parseOwnerPhone(ownerPhoneValue);
-        Species species = parseSpecies(speciesValue);
+        PetName name = parsePetName(getRequiredValue(fields, PREFIX_PET_NAME, FIELD_PET_NAME));
+        String ownerPhone = parseOwnerPhone(
+                getRequiredValue(fields, PREFIX_OWNER_IDENTIFIER, FIELD_OWNER_IDENTIFIER));
+        Species species = parseSpecies(getRequiredValue(fields, PREFIX_SPECIES, FIELD_SPECIES));
         Breed breed = parseBreed(fields);
-        Requirement requirement = parseRequirement(requirementValue);
+        Requirement requirement = parseRequirement(
+                getRequiredValue(fields, PREFIX_REQUIREMENTS, FIELD_REQUIREMENTS));
         return new AddPetCommand(name, ownerPhone, species, breed, requirement);
     }
 
     /**
      * Rejects unknown text or prefixes and repeated pet fields.
-     * An invalid requirements value takes precedence over an unknown-prefix error.
      *
-     * @throws ParseException if the structure or a supplied requirement is invalid.
+     * @throws ParseException if the command structure is invalid.
      */
     private void validateStructure(String args, ArgumentMultimap fields) throws ParseException {
         if (!fields.getPreamble().isEmpty()) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
         }
-        validateRequirementsIfPresent(fields);
         if (hasUnknownPrefix(args)) {
             throw new ParseException(MESSAGE_INVALID_FORMAT);
         }
         if (hasDuplicateField(fields)) {
             throw new ParseException(MESSAGE_DUPLICATE_FIELD);
-        }
-    }
-
-    /**
-     * Checks non-empty requirements before unknown-prefix and duplicate-field errors.
-     * Missing or empty requirements are reported later by {@link #getRequiredValue}.
-     *
-     * @throws ParseException if a non-empty requirement is invalid.
-     */
-    private void validateRequirementsIfPresent(ArgumentMultimap fields) throws ParseException {
-        String requirements = fields.getValue(PREFIX_REQUIREMENTS).orElse("");
-        if (!requirements.isEmpty() && !Requirement.isValidRequirement(requirements)) {
-            throw new ParseException(Requirement.MESSAGE_CONSTRAINTS);
         }
     }
 
@@ -205,13 +187,17 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     }
 
     /**
-     * Returns whether the input contains an unsupported parameter prefix.
+     * Returns whether the input contains an unsupported parameter prefix outside the requirements value.
+     * Prefix-like text after {@code r/} is treated as part of the requirements until another supported prefix starts.
      */
     private boolean hasUnknownPrefix(String args) {
         Matcher matcher = PARAMETER_PREFIX_PATTERN.matcher(args);
+        boolean isReadingRequirements = false;
         while (matcher.find()) {
             String prefix = matcher.group().trim();
-            if (!SUPPORTED_PREFIXES.contains(prefix)) {
+            if (SUPPORTED_PREFIXES.contains(prefix)) {
+                isReadingRequirements = prefix.equals(PREFIX_REQUIREMENTS.toString());
+            } else if (!isReadingRequirements) {
                 return true;
             }
         }

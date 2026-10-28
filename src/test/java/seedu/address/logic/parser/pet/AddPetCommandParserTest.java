@@ -145,10 +145,23 @@ public class AddPetCommandParserTest {
         // BVA: 1-character breed, immediately below the 2-character minimum
         assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
                 parser.parse(VALID_FIELDS + " b/X"));
+    }
 
-        // EP: requirement containing an unsupported slash
-        assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
-                parser.parse(VALID_FIELDS.replace("Calm with baths", "Bad/care")));
+    @Test
+    public void parse_invalidOwnerAndMissingSpecies_reportsInvalidOwnerFirst() {
+        // EP: invalid owner phone followed by an omitted required field
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_OWNER, () ->
+                parser.parse("p/Mochi i/71234567 r/Calm with baths"));
+    }
+
+    @Test
+    public void parse_requirementContainingSlashes_createsCommand() throws Exception {
+        // EP: requirements containing ordinary and prefix-like slashes
+        String requirements = "Use shampoo/conditioner and allow x/ extra breaks";
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement(requirements));
+
+        assertEquals(expected, parser.parse(VALID_FIELDS.replace("Calm with baths", requirements)));
     }
 
     @Test
@@ -185,10 +198,13 @@ public class AddPetCommandParserTest {
     }
 
     @Test
-    public void parse_unknownPrefixInsideRequirements_throwsParseException() {
-        // EP: slash-prefixed text inside a requirement value
-        assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
-                parser.parse(VALID_FIELDS.replace("Calm with baths", "Needs x/ care")));
+    public void parse_prefixLikeTextInsideRequirements_createsCommand() throws Exception {
+        // EP: unsupported-prefix-like text is valid inside requirements
+        String requirements = "Needs x/ care";
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement(requirements));
+
+        assertEquals(expected, parser.parse(VALID_FIELDS.replace("Calm with baths", requirements)));
     }
 
     @Test
