@@ -61,6 +61,8 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleSaveAndRestart_preservesAppointmentsAndDetectsOverlap() throws Exception {
+        // State EPs: new booking and duplicate after restart. This tests persisted conflict detection,
+        // not interval geometry (covered by AppointmentTest).
         BubuBook before = new BubuBook(model.getBubuBook());
         logic.execute(COMMAND);
         assertEquals(before.getClientList(), model.getBubuBook().getClientList());
@@ -112,6 +114,7 @@ public class AppointmentPersistenceTest {
     //@@author 0218hy
     @Test
     public void startup_missingBubuBook_usesSampleDataWithoutCreatingFiles() throws Exception {
+        // Storage-state EP: no file. Missing and corrupt files have different recovery requirements.
         Files.delete(storage.getBubuBookFilePath());
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertTrue(restarted.getBubuBook().getAppointmentList().isEmpty());
@@ -121,6 +124,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void startup_invalidBubuBook_preservesFileAndBlocksCommands() throws Exception {
+        // Storage-state EP: corrupt file; commands must not overwrite the evidence needed for recovery.
         Files.writeString(storage.getBubuBookFilePath(), "broken data");
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertEquals(new BubuBook(), restarted.getBubuBook());
@@ -181,6 +185,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleWithMissingPet_rejectsAndDoesNotSave() throws Exception {
+        // Failure-stage EP: valid syntax, invalid model state. Check the file as well as in-memory records.
         String before = Files.readString(storage.getBubuBookFilePath());
         model.deletePet(model.getBubuBook().getPetList().getFirst());
         CommandException exception = assertThrows(CommandException.class, () -> logic.execute(COMMAND));
@@ -191,6 +196,7 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleWithInvalidArguments_doesNotSave() throws Exception {
+        // Failure-stage EP: parsing fails before execution; a representative off-grid time is sufficient here.
         String before = Files.readString(storage.getBubuBookFilePath());
         assertThrows(ParseException.class, () -> logic.execute(COMMAND.replace("10:00", "10:15")));
         assertTrue(model.getBubuBook().getAppointmentList().isEmpty());
@@ -199,12 +205,14 @@ public class AppointmentPersistenceTest {
 
     @Test
     public void scheduleSaveFails_restoresModelAndAllowsRetry() throws Exception {
+        // Failure-stage EP: execution succeeded but persistence failed. Verify rollback and a subsequent retry.
         assertSaveFailure(new IOException("write failed"),
                 String.format(LogicManager.FILE_OPS_ERROR_FORMAT, "write failed"));
     }
 
     @Test
     public void scheduleSaveDenied_restoresModelAndReportsPermissionError() throws Exception {
+        // Separate I/O EP: permission denial has its own user-facing message.
         assertSaveFailure(new AccessDeniedException("bububook.json"),
                 String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, "bububook.json"));
     }

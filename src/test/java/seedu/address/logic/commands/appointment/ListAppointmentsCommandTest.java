@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -50,11 +51,29 @@ public class ListAppointmentsCommandTest {
     //@@author 0218hy
     @Test
     public void execute_exactBoundaries_excludesEndingNowAndIncludesStartingNow() {
-        model.setAppointments(List.of(create("07-10-2026", "09:00", "10:00"),
-                create("07-10-2026", "10:00", "11:00")));
+        // BVA: end == now is completed; start == now is ongoing. Assert identity, not just the count.
+        Appointment endingNow = create("07-10-2026", "09:00", "10:00");
+        Appointment startingNow = create("07-10-2026", "10:00", "11:00");
+        model.setAppointments(List.of(endingNow, startingNow));
 
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(CLOCK).execute(model).getFeedbackToUser());
+        assertEquals(List.of(startingNow), model.getFilteredAppointmentList());
+        assertEquals(List.of(endingNow, startingNow), model.getBubuBook().getAppointmentList());
+    }
+
+    @Test
+    public void execute_aroundEndBoundary_excludesAppointmentOnlyOnceItEnds() {
+        Appointment appointment = create("07-10-2026", "09:00", "10:00");
+        model.setAppointments(List.of(appointment));
+        // BVA: one second before/after the end. The exact end is covered above.
+        Clock beforeEnd = Clock.offset(CLOCK, Duration.ofSeconds(-1));
+        new ListAppointmentsCommand(beforeEnd).execute(model);
+        assertEquals(List.of(appointment), model.getFilteredAppointmentList());
+        Clock afterEnd = Clock.offset(CLOCK, Duration.ofSeconds(1));
+        new ListAppointmentsCommand(afterEnd).execute(model);
+        assertEquals(List.of(), model.getFilteredAppointmentList());
+        assertEquals(List.of(appointment), model.getBubuBook().getAppointmentList());
     }
     //@@author
 
@@ -76,12 +95,15 @@ public class ListAppointmentsCommandTest {
     //@@author 0218hy
     @Test
     public void execute_singaporeDateAheadOfUtc_usesSingaporeDate() {
+        // Clock-state EP: UTC and Singapore have different dates (catches reliance on the clock's own zone).
         Clock midnight = Clock.fixed(Instant.parse("2026-10-07T16:00:00Z"), ZoneOffset.UTC);
+        Appointment nextDay = create("08-10-2026", "08:00", "09:00");
         model.setAppointments(List.of(create("07-10-2026", "19:00", "20:00"),
-                create("08-10-2026", "08:00", "09:00")));
+                nextDay));
 
         assertEquals("Ongoing or future appointments found: 1.",
                 new ListAppointmentsCommand(midnight).execute(model).getFeedbackToUser());
+        assertEquals(List.of(nextDay), model.getFilteredAppointmentList());
     }
 
     @Test

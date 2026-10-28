@@ -13,6 +13,7 @@ public class EndTimeTest {
     //@@author 0218hy
     @Test
     public void constructor_validTimes_acceptsBoundariesAndHalfHours() {
+        // Valid EP: half-hour slots in [08:30, 20:00]. BVA: both inclusive endpoints, plus interior slots.
         String[] inputs = {"08:30", "09:00", "12:30", "20:00"};
         LocalTime[] expected = {LocalTime.of(8, 30), LocalTime.of(9, 0),
             LocalTime.of(12, 30), LocalTime.of(20, 0)};
@@ -26,9 +27,16 @@ public class EndTimeTest {
 
     @Test
     public void constructor_invalidTimes_rejectsFormatsAndOutOfRangeValues() {
-        String[] invalidTimes = {"", " ", "8:30", "08:3", "08.30", "08:30:00", "08:30 ",
-            " 08:30", "08:30 extra", "aa:bb", "08:00", "08:29", "20:01", "20:30",
-            "08:31", "09:15", "09:29", "12:59", "24:00", "12:60"};
+        String[] invalidTimes = {
+            // EP: missing/malformed HH:mm; keep one representative per formatting fault.
+            "", " ", "8:30", "08:3", "08.30", "08:30:00", "08:30 ", " 08:30", "aa:bb",
+            // EP: outside working hours, with an otherwise valid half-hour slot.
+            "08:00", "20:30",
+            // EP: off-grid but within working hours. BVA: neighbours of :00 and :30, plus an interior value.
+            "12:01", "12:15", "12:29", "12:31", "12:59",
+            // EP: invalid clock components, at their first invalid values.
+            "24:00", "12:60"
+        };
         for (String input : invalidTimes) {
             assertFalse(EndTime.isValidEndTime(input), input);
             IllegalArgumentException error = assertThrows(
@@ -46,13 +54,13 @@ public class EndTimeTest {
     @Test
     public void minimumDuration_requiresThirtyMinutesOnSameDay() {
         EndTime end = new EndTime("12:00");
+        // Duration EPs: negative, zero, minimum valid (30 minutes), and above minimum.
+        // BVA uses 0 and 30: valid StartTime/EndTime objects cannot represent a 29-minute duration.
         assertTrue(end.isAtLeastThirtyMinutesAfter(new StartTime("11:30")));
         assertTrue(end.isAtLeastThirtyMinutesAfter(new StartTime("08:00")));
         assertFalse(end.isAtLeastThirtyMinutesAfter(new StartTime("12:00")));
         assertFalse(end.isAtLeastThirtyMinutesAfter(new StartTime("12:30")));
-        assertTrue(new EndTime("08:30").isAtLeastThirtyMinutesAfter(new StartTime("08:00")));
-        assertTrue(new EndTime("20:00").isAtLeastThirtyMinutesAfter(new StartTime("19:30")));
-        assertFalse(new EndTime("08:30").isAtLeastThirtyMinutesAfter(new StartTime("19:30")));
+        // Separate missing-reference EP, not an invalid duration.
         assertThrows(NullPointerException.class, () -> end.isAtLeastThirtyMinutesAfter(null));
     }
 

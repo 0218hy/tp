@@ -74,7 +74,9 @@ public class DeleteAppointmentCommandParserTest {
     //@@author 0218hy
     @Test
     public void parse_invalidDate_reportsDateConstraints() {
-        for (String date : new String[]{"31-02-2020", "29-02-2027", "1-01-2020", "12-", ""}) {
+        // Parser EPs: impossible calendar date, malformed format, incomplete input, empty value.
+        // Calendar/leap-year boundaries are tested in AppointmentDateTest.
+        for (String date : new String[]{"31-02-2020", "1-01-2020", "12-", ""}) {
             assertParseFailure(parser, "d/" + date + " st/10:30",
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_DATE);
         }
@@ -82,7 +84,8 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidTime_reportsTimeConstraints() {
-        for (String time : new String[]{"25:00", "24:00", "10:60", "10:3", "10:30:00", ""}) {
+        // BVA: first invalid clock components. Other EPs: incorrect width, seconds supplied, empty value.
+        for (String time : new String[]{"24:00", "10:60", "10:3", "10:30:00", ""}) {
             assertParseFailure(parser, "d/01-01-2020 st/" + time,
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_TIME);
         }
@@ -90,6 +93,7 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidIndex_reportsIndexConstraints() {
+        // BVA: zero and integer overflow. Other invalid EPs: negative, fractional, nonnumeric.
         for (String index : new String[]{"0", "-1", "1.5", "2147483648", "unexpected"}) {
             assertParseFailure(parser, index, DeleteAppointmentCommandParser.MESSAGE_INVALID_INDEX);
         }
@@ -97,6 +101,7 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_validStartTimeBoundaries_success() {
+        // BVA: inclusive working-hour endpoints; keep one interior representative.
         for (String time : new String[]{"08:00", "19:30", "10:30"}) {
             assertParseSuccess(parser, "d/01-01-2020 st/" + time,
                     new DeleteAppointmentCommand(new AppointmentDate("01-01-2020"), LocalTime.parse(time)));
@@ -105,7 +110,8 @@ public class DeleteAppointmentCommandParserTest {
 
     @Test
     public void parse_invalidStartTimeRangeOrInterval_failure() {
-        for (String time : new String[]{"00:00", "23:59", "10:17"}) {
+        // EPs: below/above working hours and off-grid. Nearest half-hour slots isolate each range boundary.
+        for (String time : new String[]{"07:30", "20:00", "10:17"}) {
             assertParseFailure(parser, "d/01-01-2020 st/" + time,
                     DeleteAppointmentCommandParser.MESSAGE_INVALID_TIME);
         }
