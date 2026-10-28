@@ -17,7 +17,7 @@ public class PetCard extends UiPart<Region> {
     private static final String REQUIREMENT_FORMAT = "Requirement: %s";
     private static final String UNRECORDED_BREED = "Not recorded";
 
-    public final Pet pet;
+    final Pet pet;
 
     @FXML
     private HBox cardPane;

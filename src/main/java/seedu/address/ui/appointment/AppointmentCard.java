@@ -19,7 +19,7 @@ public class AppointmentCard extends UiPart<Region> {
     private static final String ADDRESS_FORMAT = "Address: %s";
     private static final String CARE_NOTES_FORMAT = "Care notes: %s";
 
-    public final Appointment appointment;
+    final Appointment appointment;
 
     @FXML
     private HBox cardPane;
