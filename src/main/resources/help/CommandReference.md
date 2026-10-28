@@ -40,7 +40,7 @@ List appointments
 
 Delete appointment
   delete-appointment INDEX
-  delete-appointment d/DD-MM-YYYY t/HH:mm
+  delete-appointment d/DD-MM-YYYY st/HH:mm
 
 Edit appointment
   edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]

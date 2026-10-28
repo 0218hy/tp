@@ -95,6 +95,17 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void execute_sameStartAndEndTime_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setStartTime(ORIGINAL_START);
+        descriptor.setEndTime(ORIGINAL_END);
+
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_NO_CHANGES);
+    }
+
+    @Test
     public void execute_identifierEdit_canChangeAllFields() throws Exception {
         Client newOwner = new ClientBuilder().withName("Mochi Owner").withPhone("81234567")
                 .withEmail("mochi@example.com").build();
@@ -187,6 +198,17 @@ public class EditAppointmentCommandTest {
 
         assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
                 EditAppointmentCommand.MESSAGE_PAST_START);
+    }
+
+    @Test
+    public void execute_endTimeBeforeMinimumDuration_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setStartTime(new StartTime("11:00"));
+        descriptor.setEndTime(new EndTime("11:00"));
+
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_DURATION);
     }
 
     @Test

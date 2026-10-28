@@ -257,7 +257,7 @@ public class LogicManagerTest {
 
         logic.execute("list-appointments");
         logic.execute("list-pets");
-        CommandResult result = logic.execute("delete-appointment d/01-01-2000 t/10:30");
+        CommandResult result = logic.execute("delete-appointment d/01-01-2000 st/10:00");
 
         assertEquals("Deleted appointment: Milo; Owner phone: " + ALICE.getPhone() + "; Date: 01-01-2000; "
                 + "Time: 10:00-11:00; Service: Full groom", result.getFeedbackToUser());
