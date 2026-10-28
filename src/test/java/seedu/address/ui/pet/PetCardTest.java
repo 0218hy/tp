@@ -8,15 +8,12 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import javafx.scene.control.Label;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
-@EnabledOnOs(OS.LINUX)
 public class PetCardTest {
 
     //@@author chunghean
