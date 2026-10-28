@@ -71,6 +71,56 @@ public class LogicManagerTest {
         logic = new LogicManager(model, storage);
     }
 
+    //@@author anderschow
+    @Test
+    public void execute_emailLengthBoundary_addAndEditValidateBeforeMutation() throws Exception {
+        String maximumEmail = "a@" + "b.".repeat(124) + "comx";
+        assertEquals(seedu.address.model.client.Email.MAX_LENGTH, maximumEmail.length());
+        logic.execute("add-client n/Alice Tan i/81112222 a/123 Test Road e/" + maximumEmail);
+        logic.execute("edit-client i/81112222 e/b" + maximumEmail.substring(1));
+        Path savedFile = temporaryFolder.resolve("bububook.json");
+        var before = new seedu.address.model.BubuBook(model.getBubuBook());
+        String savedBefore = java.nio.file.Files.readString(savedFile);
+        assertEquals(before, new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow());
+
+        for (String email : List.of("a" + maximumEmail, "a@" + "b.".repeat(6000) + "com")) {
+            for (String command : List.of(
+                    "add-client n/Bob Tan i/82223333 a/456 Other Road e/" + email,
+                    "edit-client i/81112222 e/" + email)) {
+                assertThrows(ParseException.class, seedu.address.model.client.Email.MESSAGE_CONSTRAINTS, () ->
+                        logic.execute(command));
+                assertEquals(before, model.getBubuBook());
+                assertEquals(savedBefore, java.nio.file.Files.readString(savedFile));
+            }
+        }
+    }
+
+    @Test
+    public void execute_unicodeWhitespaceEmail_rejectsAddAndEditWithoutChangingModelOrFile() throws Exception {
+        logic.execute("add-client n/Alice Tan i/81112222 e/alice@example.com a/123 Test Road");
+        var before = new seedu.address.model.BubuBook(model.getBubuBook());
+        Path savedFile = temporaryFolder.resolve("bububook.json");
+        String savedBefore = java.nio.file.Files.readString(savedFile);
+        for (String space : new String[]{"\u00a0", "\u2003", "\u202f", "\u3000"}) {
+            for (String email : new String[]{"alice" + space + "tan@example.com",
+                "alice@exam" + space + "ple.com", "alice@example.c" + space + "om"}) {
+                for (String command : List.of(
+                        "add-client n/Bob Tan i/82223333 a/456 Other Road e/" + email,
+                        "edit-client i/81112222 e/" + email)) {
+                    assertThrows(ParseException.class, seedu.address.model.client.Email.MESSAGE_CONSTRAINTS, () ->
+                            logic.execute(command));
+                    assertEquals(before, model.getBubuBook());
+                    assertEquals(savedBefore, java.nio.file.Files.readString(savedFile));
+                }
+            }
+        }
+        logic.execute("edit-client i/81112222 e/alice.tan+work@example.com");
+        var reloaded = new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow();
+        assertEquals(model.getBubuBook(), reloaded);
+        assertEquals("alice.tan+work@example.com", reloaded.getClientList().getFirst().getEmail().value);
+    }
+    //@@author
+
     //@@author 0218hy
     @Test
     public void execute_addAndEditClients_preservesSearchAndReevaluatesMatches() throws Exception {

@@ -13,13 +13,15 @@ import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 
+//@@author anderschow
 /**
  * Represents an immutable grooming appointment in BuBu.
  * The scheduling command must verify the owner and pet, a future start in Singapore,
  * and the absence of overlaps before saving. Past appointments can still be loaded.
- * Participant objects are immutable snapshots of their details when the booking was made,
- * with owner phone changes propagated to keep related records identifiable.
+ * Participant objects are immutable snapshots, refreshed by client edits for ongoing and future bookings.
+ * Completed bookings retain their details, with owner phone changes keeping related records identifiable.
  */
+//@@author
 public class Appointment {
     // Identity fields: date and start time identify a slot in the non-overlapping schedule.
     private final AppointmentDate date;
@@ -80,6 +82,14 @@ public class Appointment {
 
     public Service getService() {
         return service;
+    }
+    //@@author
+
+    //@@author anderschow
+    /** Returns a copy with current owner details, preserving the booked pet and service details. */
+    Appointment withOwner(Client updatedOwner) {
+        requireNonNull(updatedOwner);
+        return new Appointment(updatedOwner, pet.withOwner(updatedOwner), date, startTime, endTime, service);
     }
     //@@author
 

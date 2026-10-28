@@ -60,6 +60,35 @@ public class EmailTest {
 
     }
 
+    //@@author anderschow
+    @Test
+    public void isValidEmail_lengthBoundaryAndOversizedDomain() {
+        String maximumEmail = "a".repeat(Email.MAX_LENGTH - "@example.com".length()) + "@example.com";
+        assertTrue(Email.isValidEmail(maximumEmail.substring(1)));
+        assertTrue(Email.isValidEmail(maximumEmail));
+        String manySections = "a@" + "b.".repeat(124) + "com";
+        assertTrue(Email.isValidEmail(manySections));
+        assertTrue(Email.isValidEmail("a" + manySections));
+        for (String email : new String[]{"a" + maximumEmail, "aa" + manySections,
+            "a@" + "b.".repeat(6000) + "com"}) {
+            assertFalse(Email.isValidEmail(email));
+            assertThrows(IllegalArgumentException.class, () -> new Email(email));
+        }
+    }
+
+    @Test
+    public void isValidEmail_unicodeWhitespace_rejectedInEveryPart() {
+        for (String space : new String[]{"\u00a0", "\u2003", "\u202f", "\u3000", "\u0085", "\u2028"}) {
+            for (String email : new String[]{"alice" + space + "tan@example.com",
+                "alice@exam" + space + "ple.com", "alice@example.c" + space + "om",
+                space + "alice@example.com", "alice@example.com" + space}) {
+                assertFalse(Email.isValidEmail(email));
+                assertThrows(IllegalArgumentException.class, () -> new Email(email));
+            }
+        }
+    }
+    //@@author
+
     @Test
     public void equals() {
         Email email = new Email("valid@email.com");
