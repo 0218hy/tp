@@ -23,6 +23,7 @@ public class HelpCommand extends Command {
         return new CommandResult(getCommandReference(), true, false);
     }
 
+    //@@author khangsian0412
     /**
      * Loads the concise command reference bundled with the application.
      */
@@ -36,4 +37,5 @@ public class HelpCommand extends Command {
             throw new IllegalStateException("Unable to load the command reference.", exception);
         }
     }
+    //@@author
 }

@@ -19,6 +19,7 @@ public class AddressTest {
         assertThrows(IllegalArgumentException.class, () -> new Address(invalidAddress));
     }
 
+    //@@author anderschow
     @Test
     public void isValidAddress() {
         // null address
@@ -34,12 +35,17 @@ public class AddressTest {
         assertFalse(Address.isValidAddress("A".repeat(121)));
         assertFalse(Address.isValidAddress("     "));
         assertFalse(Address.isValidAddress("12 Road / 3"));
+        assertFalse(Address.isValidAddress("12 Road @ 3"));
+        assertFalse(Address.isValidAddress("12 Road\n3"));
+        assertFalse(Address.isValidAddress("12 St. John\u2019s Road")); // curly apostrophe is unsupported
 
         // valid addresses
         assertTrue(Address.isValidAddress("Blk 456, Den Road, #01-355"));
+        assertTrue(Address.isValidAddress("12 St. John's Road"));
         assertFalse(Address.isValidAddress("-")); // one character
         assertFalse(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
     }
+    //@@author
 
     @Test
     public void equals() {

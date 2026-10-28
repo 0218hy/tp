@@ -45,6 +45,7 @@ public class AddClientCommandIntegrationTest {
     }
 
 
+    //@@author anderschow
     @Test
     public void execute_sharedNameAndAddress_success() {
         Client existing = model.getBubuBook().getClientList().get(0);
@@ -62,8 +63,9 @@ public class AddClientCommandIntegrationTest {
         model.updateFilteredClientList(client -> false);
         Client samePhone = new ClientBuilder().withPhone(existing.getPhone().value).build();
         Client sameEmail = new ClientBuilder().withEmail(existing.getEmail().value).build();
-        assertCommandFailure(new AddClientCommand(samePhone), model, AddClientCommand.MESSAGE_DUPLICATE_CLIENT);
-        assertCommandFailure(new AddClientCommand(sameEmail), model, AddClientCommand.MESSAGE_DUPLICATE_CLIENT);
+        assertCommandFailure(new AddClientCommand(samePhone), model, AddClientCommand.MESSAGE_DUPLICATE_PHONE);
+        assertCommandFailure(new AddClientCommand(sameEmail), model, AddClientCommand.MESSAGE_DUPLICATE_EMAIL);
     }
+    //@@author
 
 }

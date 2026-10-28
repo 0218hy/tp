@@ -113,6 +113,7 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
         }
     }
 
+    //@@author khangsian0412
     /**
      * Parses a required pet-name field from the tokenized command arguments.
      *
@@ -125,6 +126,7 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
     private PetName parseRequiredPetName(ArgumentMultimap fields, Prefix prefix, String label) throws ParseException {
         return PetParserUtil.parsePetName(getRequiredValue(fields, prefix, label));
     }
+    //@@author
 
     /**
      * Returns a required, non-empty field value.

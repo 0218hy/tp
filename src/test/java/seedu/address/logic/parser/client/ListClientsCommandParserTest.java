@@ -9,22 +9,23 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.client.ListClientsCommand;
 
 public class ListClientsCommandParserTest {
+    //@@author anderschow
     private final ListClientsCommandParser parser = new ListClientsCommandParser();
+    //@@author
 
     //@@author anderschow
     @Test
     public void parse_validQuery_success() {
         assertParseSuccess(parser, "  ", new ListClientsCommand());
-        for (String keyword : new String[]{"a", "a".repeat(60), "O'Neil-Jr. @mail #12", "Amelia Tan"}) {
+        for (String keyword : new String[]{"a", "a".repeat(60), "O'Neil-Jr. @mail #12", "Amelia Tan",
+            "sam+grooming", "10 Sunset Road,", "a_b", "a/b", "a!", "\u00e9", "$%^&*()=?:;[]{}"}) {
             assertParseSuccess(parser, " q/" + keyword + "  ", new ListClientsCommand(keyword));
         }
     }
-    //@@author
 
-    //@@author anderschow
     @Test
     public void parse_invalidQuery_failure() {
-        for (String keyword : new String[]{"", "   ", "a".repeat(61), "a_b", "a/b", "a!", "é", "a\tb"}) {
+        for (String keyword : new String[]{"", "   ", "a".repeat(61), "a\tb", "a\nb", "a\u0000b", "a\u007fb"}) {
             assertParseFailure(parser, " q/" + keyword, ListClientsCommand.MESSAGE_INVALID_KEYWORD);
         }
         assertParseFailure(parser, " q/amelia q/bob", ListClientsCommand.MESSAGE_DUPLICATE_QUERY);

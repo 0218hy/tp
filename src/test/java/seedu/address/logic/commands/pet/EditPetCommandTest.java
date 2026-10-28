@@ -39,6 +39,7 @@ public class EditPetCommandTest {
     private final Pet miloWithDifferentOwner = new PetBuilder(BOB).build();
     private Model model;
 
+    //@@author khangsian0412
     @BeforeEach
     public void setUp() {
         BubuBook bubuBook = new BubuBook();
@@ -110,7 +111,7 @@ public class EditPetCommandTest {
 
     /** Verifies index targeting uses the filtered display order and preserves unspecified values. */
     @Test
-    public void execute_indexEdit_usesFilteredListAndResetsFilter() {
+    public void execute_indexEdit_usesFilteredListAndPreservesFilter() {
         // EP: the index belongs to the currently displayed (filtered) list, not the full saved-pet list.
         model.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
@@ -119,10 +120,11 @@ public class EditPetCommandTest {
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.updateFilteredPetList(pet -> pet.getOwner().equals(BOB));
         expectedModel.setPet(miloWithDifferentOwner, editedPet);
-        expectedModel.updateFilteredPetList(Model.PREDICATE_SHOW_ALL_PETS);
 
         assertCommandSuccess(new EditPetCommand(Index.fromOneBased(1), descriptor), model,
                 String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
+        assertTrue(model.getFilteredPetList().contains(editedPet));
+        assertFalse(model.getFilteredPetList().contains(milo));
         assertTrue(model.hasPet(milo));
         assertTrue(model.hasPet(mochi));
     }
@@ -292,7 +294,7 @@ public class EditPetCommandTest {
     }
 
     @Test
-    public void execute_petHiddenByFilter_updatesPetAndResetsFilter() {
+    public void execute_petHiddenByFilter_updatesPetAndPreservesFilter() {
         model.updateFilteredPetList(pet -> false);
         EditPetCommand.EditPetDescriptor descriptor = new EditPetCommand.EditPetDescriptor();
         descriptor.setRequirement(new Requirement("Needs a short walk"));
@@ -300,7 +302,6 @@ public class EditPetCommandTest {
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.updateFilteredPetList(pet -> false);
         expectedModel.setPet(milo, editedPet);
-        expectedModel.updateFilteredPetList(Model.PREDICATE_SHOW_ALL_PETS);
 
         assertCommandSuccess(new EditPetCommand(milo.getName(), ALICE.getPhone(), descriptor), model,
                 String.format(EditPetCommand.MESSAGE_SUCCESS, editedPet.getName()), expectedModel);
@@ -419,4 +420,5 @@ public class EditPetCommandTest {
                         + "requirement=Needs gentle drying}}",
                 indexCommand.toString());
     }
+    //@@author
 }

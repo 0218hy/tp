@@ -28,6 +28,7 @@ public class JsonAdaptedPetTest {
     private static final String VALID_REQUIREMENT = "Daily brushing";
     private static final List<Client> VALID_CLIENTS = List.of(ALICE, BOB);
 
+    //@@author khangsian0412
     @Test
     public void toModelType_validPetDetails_returnsPetWithReferencedOwner() throws Exception {
         Pet expectedPet = new PetBuilder(ALICE).withName(VALID_NAME).withRequirement(VALID_REQUIREMENT).build();
@@ -38,6 +39,7 @@ public class JsonAdaptedPetTest {
         assertEquals(expectedPet, actualPet);
         assertSame(ALICE, actualPet.getOwner());
     }
+    //@@author
 
     // @@author xinyu-zxy
     @Test
@@ -98,6 +100,7 @@ public class JsonAdaptedPetTest {
         assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(VALID_CLIENTS));
     }
 
+    //@@author khangsian0412
     @Test
     public void toModelType_nullOwnerName_throwsIllegalValueException() {
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, null, VALID_SPECIES, VALID_REQUIREMENT);
@@ -111,6 +114,7 @@ public class JsonAdaptedPetTest {
         String expectedMessage = JsonAdaptedPet.MESSAGE_OWNER_NOT_FOUND;
         assertThrows(IllegalValueException.class, expectedMessage, () -> pet.toModelType(VALID_CLIENTS));
     }
+    //@@author
 
     @Test
     public void toModelType_invalidSpecies_throwsIllegalValueException() {

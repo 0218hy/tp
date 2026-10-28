@@ -19,6 +19,7 @@ public class PhoneTest {
         assertThrows(IllegalArgumentException.class, () -> new Phone(invalidPhone));
     }
 
+    //@@author anderschow
     @Test
     public void isValidPhone() {
         // null phone number
@@ -63,4 +64,5 @@ public class PhoneTest {
         // different values -> returns false
         assertFalse(phone.equals(new Phone("99555555")));
     }
+    //@@author
 }

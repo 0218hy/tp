@@ -1,6 +1,7 @@
 package seedu.address.logic.parser.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,7 @@ public class ListPetsCommandParserTest {
 
     @Test
     public void parse_unknownPrefixOrExtraText_throwsParseException() {
-        String message = ListPetsCommandParser.MESSAGE_INVALID_FORMAT;
+        String message = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListPetsCommand.MESSAGE_USAGE);
 
         // EP: unsupported prefix, extra text before/after a valid field, or unprefixed text
         String[] invalidInputs = {"p/Mochi", "i/91234567 p/Mochi", "unexpected i/91234567",

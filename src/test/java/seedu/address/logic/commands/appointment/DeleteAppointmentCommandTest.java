@@ -36,6 +36,7 @@ public class DeleteAppointmentCommandTest {
 
     private Model model;
 
+    //@@author chunghean
     @BeforeEach
     public void setUp() {
         BubuBook bubuBook = new BubuBook();
@@ -54,19 +55,25 @@ public class DeleteAppointmentCommandTest {
     }
 
     @Test
-    public void execute_validDateAndTime_deletesContainingAppointment() {
+    public void execute_validDateAndStartTime_deletesAppointment() {
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteAppointment(APPOINTMENT);
 
-        assertCommandSuccess(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)), model,
+        assertCommandSuccess(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 0)), model,
                 successMessage(APPOINTMENT), expectedModel);
     }
 
     @Test
-    public void execute_startTime_deletesAppointment() throws CommandException {
-        new DeleteAppointmentCommand(DATE, LocalTime.of(10, 0)).execute(model);
+    public void execute_interiorTime_doesNotMatchAppointment() {
+        assertCommandFailure(new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)), model,
+                DeleteAppointmentCommand.MESSAGE_APPOINTMENT_NOT_FOUND);
+    }
 
-        assertEquals(List.of(ADJACENT_APPOINTMENT), model.getBubuBook().getAppointmentList());
+    @Test
+    public void execute_startTime_deletesAppointment() throws CommandException {
+        new DeleteAppointmentCommand(DATE, LocalTime.of(11, 0)).execute(model);
+
+        assertEquals(List.of(APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
 
     @Test
@@ -136,6 +143,7 @@ public class DeleteAppointmentCommandTest {
                         + "{targetDate=01-01-2020, targetTime=10:30}",
                 new DeleteAppointmentCommand(DATE, LocalTime.of(10, 30)).toString());
     }
+    //@@author
 
     private static String successMessage(Appointment appointment) {
         return String.format(DeleteAppointmentCommand.MESSAGE_SUCCESS,
@@ -144,8 +152,10 @@ public class DeleteAppointmentCommandTest {
                         + "-" + appointment.getEndTime() + "; Service: " + appointment.getService());
     }
 
+    //@@author chunghean
     private static Appointment create(String start, String end) {
         return createAppointment(new Phone("91234567"), "BuBu", DATE, new StartTime(start),
                 new EndTime(end), Service.FULL_GROOM);
     }
+    //@@author
 }

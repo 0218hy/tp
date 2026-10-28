@@ -13,13 +13,15 @@ import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 
+//@@author anderschow
 /**
  * Represents an immutable grooming appointment in BuBu.
  * The scheduling command must verify the owner and pet, a future start in Singapore,
  * and the absence of overlaps before saving. Past appointments can still be loaded.
- * Participant objects are immutable snapshots of their details when the booking was made,
- * with owner phone changes propagated to keep related records identifiable.
+ * Participant objects are immutable snapshots, refreshed by client edits for ongoing and future bookings.
+ * Completed bookings retain their details, with owner phone changes keeping related records identifiable.
  */
+//@@author
 public class Appointment {
     // Identity fields: date and start time identify a slot in the non-overlapping schedule.
     private final AppointmentDate date;
@@ -83,6 +85,14 @@ public class Appointment {
     }
     //@@author
 
+    //@@author anderschow
+    /** Returns a copy with current owner details, preserving the booked pet and service details. */
+    Appointment withOwner(Client updatedOwner) {
+        requireNonNull(updatedOwner);
+        return new Appointment(updatedOwner, pet.withOwner(updatedOwner), date, startTime, endTime, service);
+    }
+    //@@author
+
     /** Returns a copy with the new owner phone, preserving the remaining participant details. */
     Appointment withOwnerPhone(Phone newOwnerPhone) {
         requireNonNull(newOwnerPhone);
@@ -93,6 +103,7 @@ public class Appointment {
         //@@author
     }
 
+    //@@author khangsian0412
     /**
      * Returns a copy with the pet's current name, preserving the appointment's remaining snapshot details.
      */
@@ -100,6 +111,7 @@ public class Appointment {
         requireNonNull(newPetName);
         return new Appointment(owner, pet.withName(newPetName), date, startTime, endTime, service);
     }
+    //@@author
 
     /**
      * Returns whether this appointment belongs to the given pet.
@@ -133,15 +145,11 @@ public class Appointment {
                 && endTime.value.isAfter(otherAppointment.startTime.value);
     }
 
-    /**
-     * Returns whether this appointment contains the requested date and time for deletion.
-     * Includes the start and excludes the end. The query time need not be on a half-hour boundary.
-     */
+    /** Returns whether this appointment starts at the requested date and time. */
     public boolean matches(AppointmentDate queryDate, LocalTime queryTime) {
         requireAllNonNull(queryDate, queryTime);
         return date.equals(queryDate)
-                && !queryTime.isBefore(startTime.value)
-                && queryTime.isBefore(endTime.value);
+                && startTime.value.equals(queryTime);
     }
 
     @Override

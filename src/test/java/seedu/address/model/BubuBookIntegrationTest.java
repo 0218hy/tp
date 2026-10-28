@@ -87,6 +87,7 @@ public class BubuBookIntegrationTest {
     }
     //@@author
 
+    //@@author chunghean
     @Test
     public void setClient_changedPhoneThenRemoveClient_removesAppointments() {
         BubuBook book = populatedBook();
@@ -167,6 +168,7 @@ public class BubuBookIntegrationTest {
         assertEquals(List.of(bensonPet), book.getPetList());
         assertEquals(List.of(bensonAppointment), book.getAppointmentList());
     }
+    //@@author
 
     //@@author 0218hy
     @Test

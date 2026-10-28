@@ -29,7 +29,10 @@ public class DeleteClientCommand extends Command {
             + "Examples: " + COMMAND_WORD + " 1\n"
             + "          " + COMMAND_WORD + " i/91234567";
 
-    public static final String MESSAGE_DELETE_CLIENT_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_CLIENT_SUCCESS =
+            "Deleted client: %1$s. Removed %2$s and %3$s.";
+    public static final String MESSAGE_CLIENT_NOT_FOUND =
+            "No client with the given phone number exists.";
 
     private final Index targetIndex;
     private final Phone phoneNumber;
@@ -54,9 +57,7 @@ public class DeleteClientCommand extends Command {
         this.phoneNumber = requireNonNull(phoneNumber);
         this.targetIndex = null;
     }
-    //@@author
 
-    //@@author chunghean
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null
@@ -83,13 +84,26 @@ public class DeleteClientCommand extends Command {
                     //@@author chunghean
                     .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
-                    .orElseThrow(() -> new CommandException(
-                            "No person with the given phone number exists."));
+                    .orElseThrow(() -> new CommandException(MESSAGE_CLIENT_NOT_FOUND));
             //@@author
         }
 
+        long petCount = model.getBubuBook().getPetList().stream()
+                .filter(pet -> pet.getOwner().isSameClient(clientToDelete))
+                .count();
+        long appointmentCount = model.getBubuBook().getAppointmentList().stream()
+                .filter(appointment -> appointment.getOwnerPhone().equals(clientToDelete.getPhone()))
+                .count();
+
         model.deleteClient(clientToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_CLIENT_SUCCESS, Messages.format(clientToDelete)));
+        return new CommandResult(String.format(MESSAGE_DELETE_CLIENT_SUCCESS,
+                Messages.format(clientToDelete), formatCount(petCount, "pet"),
+                formatCount(appointmentCount, "appointment")));
+    }
+
+    /** Formats a count using the singular form when exactly one record was removed. */
+    private static String formatCount(long count, String singularNoun) {
+        return count + " " + singularNoun + (count == 1 ? "" : "s");
     }
 
     @Override

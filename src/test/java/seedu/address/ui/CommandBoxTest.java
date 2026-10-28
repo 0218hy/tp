@@ -20,6 +20,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 /** Contains unit tests for command-history navigation in {@code CommandBox}. */
 public class CommandBoxTest {
 
+    //@@author khangsian0412
     @Test
     public void commandHistory_emptyHistory_doesNotConsumeArrowKeys() {
         JavaFxTestUtils.runAndWait(() -> {
@@ -155,4 +156,5 @@ public class CommandBoxTest {
             throw new AssertionError(exception);
         }
     }
+    //@@author
 }

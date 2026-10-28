@@ -92,6 +92,7 @@ public class BubuBookTest {
         assertThrows(ClientNotFoundException.class, () -> bubuBook.addPet(new PetBuilder(ALICE).build()));
     }
 
+    //@@author khangsian0412
     @Test
     public void addPet_ownerInBubuBook_addsPet() {
         Pet pet = new PetBuilder(ALICE).build();
@@ -101,6 +102,7 @@ public class BubuBookTest {
 
         assertTrue(bubuBook.hasPet(pet));
     }
+    //@@author
 
     @Test
     public void getPetList_modifyList_throwsUnsupportedOperationException() {
@@ -112,6 +114,7 @@ public class BubuBookTest {
         assertThrows(UnsupportedOperationException.class, () -> bubuBook.getClientList().remove(0));
     }
 
+    //@@author khangsian0412
     @Test
     public void setClient_ownerOfPet_replacesPetOwner() {
         bubuBook.addClient(ALICE);
@@ -159,6 +162,7 @@ public class BubuBookTest {
         bubuBook.removePet(savedRex);
         assertEquals(List.of(mochiAppointment), bubuBook.getAppointmentList());
     }
+    //@@author
 
     @Test
     public void toStringMethod() {

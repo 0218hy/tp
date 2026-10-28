@@ -27,19 +27,22 @@ public class ModelManager implements Model {
     private final BubuBook bubuBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Client> filteredClients;
+    //@@author anderschow
     private final SortedList<Client> sortedClients;
+    //@@author
     private final FilteredList<Pet> filteredPets;
     private final SortedList<Pet> sortedPets;
     private final FilteredList<Appointment> filteredAppointments;
     private final SortedList<Appointment> sortedAppointments;
 
+    //@@author anderschow
     /**
      * Initializes a ModelManager with the given bubuBook and userPrefs.
      */
     public ModelManager(ReadOnlyBubuBook bubuBook, ReadOnlyUserPrefs userPrefs) {
         requireAllNonNull(bubuBook, userPrefs);
 
-        logger.fine("Initializing with BubuBook: " + bubuBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing model with saved records and user preferences");
 
         this.bubuBook = new BubuBook(bubuBook);
         this.userPrefs = new UserPrefs(userPrefs);
@@ -52,6 +55,7 @@ public class ModelManager implements Model {
                 Comparator.comparing((Appointment appointment) -> appointment.getDate().value)
                         .thenComparing(appointment -> appointment.getStartTime().value));
     }
+    //@@author
 
     public ModelManager() {
         this(new BubuBook(), new UserPrefs());
@@ -112,7 +116,6 @@ public class ModelManager implements Model {
     @Override
     public void addClient(Client client) {
         bubuBook.addClient(client);
-        updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS);
     }
 
     @Override
@@ -138,7 +141,6 @@ public class ModelManager implements Model {
     @Override
     public void addPet(Pet pet) {
         bubuBook.addPet(pet);
-        updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
     }
 
     @Override
@@ -171,6 +173,7 @@ public class ModelManager implements Model {
         bubuBook.removeAppointment(appointment);
     }
 
+    //@@author anderschow
     //=========== Filtered Client List Accessors =============================================================
 
     /**
@@ -181,6 +184,7 @@ public class ModelManager implements Model {
     public ObservableList<Client> getFilteredClientList() {
         return sortedClients;
     }
+    //@@author
 
     @Override
     public void updateFilteredClientList(Predicate<Client> predicate) {

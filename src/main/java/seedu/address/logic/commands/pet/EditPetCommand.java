@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIE
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_PET_NAME;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -54,6 +53,7 @@ public class EditPetCommand extends Command {
     private final Phone ownerPhone;
     private final EditPetDescriptor editPetDescriptor;
 
+    //@@author khangsian0412
     /**
      * Creates an {@code EditPetCommand} for a pet identified by its current name and owner's phone number.
      *
@@ -67,6 +67,7 @@ public class EditPetCommand extends Command {
         this.ownerPhone = requireNonNull(ownerPhone);
         this.editPetDescriptor = new EditPetDescriptor(requireNonNull(editPetDescriptor));
     }
+    //@@author
 
     /**
      * Creates an {@code EditPetCommand} for a pet at the given displayed index.
@@ -91,7 +92,7 @@ public class EditPetCommand extends Command {
 
     /**
      * Finds the identified pet, applies the requested changes, and replaces its stored profile.
-     * The owner is preserved and the displayed pet list is refreshed after a successful edit.
+     * The owner and active pet filter are preserved after a successful edit.
      *
      * @param model the model containing the pet profiles
      * @return the result describing the edited pet
@@ -105,10 +106,10 @@ public class EditPetCommand extends Command {
 
         checkForDuplicate(model, petToEdit, editedPet);
         model.setPet(petToEdit, editedPet);
-        model.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
         return new CommandResult(String.format(MESSAGE_SUCCESS, editedPet.getName()));
     }
 
+    //@@author khangsian0412
     /**
      * Returns the pet identified by the normalized name and owner phone number stored in this command.
      *
@@ -129,6 +130,7 @@ public class EditPetCommand extends Command {
                 .findFirst()
                 .orElseThrow(() -> new CommandException(MESSAGE_PET_NOT_FOUND));
     }
+    //@@author
 
     /**
      * Rejects an edit that gives the pet the same normalized name as another pet belonging to the same owner.
@@ -228,6 +230,7 @@ public class EditPetCommand extends Command {
             setRequirement(toCopy.requirement);
         }
 
+        //@@author khangsian0412
         /**
          * Returns whether at least one field has been supplied for editing.
          *
@@ -236,6 +239,7 @@ public class EditPetCommand extends Command {
         public boolean isAnyFieldEdited() {
             return name != null || species != null || isBreedEdited || requirement != null;
         }
+        //@@author
 
         /**
          * Sets the replacement pet name.
@@ -273,6 +277,7 @@ public class EditPetCommand extends Command {
             return Optional.ofNullable(species);
         }
 
+        //@@author khangsian0412
         /**
          * Sets the pet's breed. A {@code null} value explicitly clears an existing breed.
          *
@@ -301,6 +306,7 @@ public class EditPetCommand extends Command {
         public boolean isBreedEdited() {
             return isBreedEdited;
         }
+        //@@author
 
         /**
          * Sets the replacement grooming requirement.

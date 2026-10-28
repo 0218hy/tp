@@ -72,10 +72,12 @@ public class CommandResultTest {
         assertEquals(expected, commandResult.toString());
     }
 
+    //@@author chunghean
     @Test
     public void displayType_defaultAndExplicitValues_areReturned() {
         assertEquals(CommandResult.DisplayType.UNCHANGED, new CommandResult("feedback").getDisplayType());
         assertEquals(CommandResult.DisplayType.APPOINTMENTS,
                 new CommandResult("feedback", CommandResult.DisplayType.APPOINTMENTS).getDisplayType());
     }
+    //@@author
 }

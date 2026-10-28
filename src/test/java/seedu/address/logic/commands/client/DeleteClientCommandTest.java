@@ -15,11 +15,20 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
+import seedu.address.model.pet.Pet;
+import seedu.address.testutil.ClientBuilder;
+import seedu.address.testutil.PetBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -35,7 +44,7 @@ public class DeleteClientCommandTest {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(INDEX_FIRST_CLIENT);
 
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
-                Messages.format(clientToDelete));
+                Messages.format(clientToDelete), "0 pets", "0 appointments");
 
         ModelManager expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
@@ -59,7 +68,7 @@ public class DeleteClientCommandTest {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(INDEX_FIRST_CLIENT);
 
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
-                Messages.format(clientToDelete));
+                Messages.format(clientToDelete), "0 pets", "0 appointments");
 
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
@@ -87,7 +96,7 @@ public class DeleteClientCommandTest {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(clientToDelete.getPhone());
 
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
-                Messages.format(clientToDelete));
+                Messages.format(clientToDelete), "0 pets", "0 appointments");
 
         ModelManager expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         expectedModel.deleteClient(clientToDelete);
@@ -95,14 +104,38 @@ public class DeleteClientCommandTest {
         assertCommandSuccess(deleteClientCommand, model, expectedMessage, expectedModel);
     }
 
+    @Test
+    public void execute_clientWithPetsAndAppointments_reportsRemovedCounts() throws Exception {
+        Client client = new ClientBuilder().withName("Jane Tan").withPhone("81234567")
+                .withEmail("jane@example.com").withAddress("123 Clementi Road").build();
+        BubuBook book = new BubuBook();
+        book.addClient(client);
+        Pet firstPet = new PetBuilder(client).withName("Milo").build();
+        Pet secondPet = new PetBuilder(client).withName("Mochi").build();
+        book.addPet(firstPet);
+        book.addPet(secondPet);
+        book.addAppointment(new Appointment(client, firstPet, new AppointmentDate("01-01-9999"),
+                new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
+        book.addAppointment(new Appointment(client, secondPet, new AppointmentDate("01-01-9999"),
+                new StartTime("11:00"), new EndTime("12:00"), Service.NAIL_TRIM));
+        Model deletionModel = new ModelManager(book, new UserPrefs());
+
+        CommandResult result = new DeleteClientCommand(client.getPhone()).execute(deletionModel);
+
+        assertEquals(String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
+                Messages.format(client), "2 pets", "2 appointments"), result.getFeedbackToUser());
+        assertTrue(deletionModel.getBubuBook().getClientList().isEmpty());
+        assertTrue(deletionModel.getBubuBook().getPetList().isEmpty());
+        assertTrue(deletionModel.getBubuBook().getAppointmentList().isEmpty());
+    }
+
     //@@author chunghean
     @Test
     public void execute_unknownPhoneNumber_throwsCommandException() {
         DeleteClientCommand deleteClientCommand = new DeleteClientCommand(new Phone("81111112"));
 
-        assertCommandFailure(deleteClientCommand, model, "No person with the given phone number exists.");
+        assertCommandFailure(deleteClientCommand, model, DeleteClientCommand.MESSAGE_CLIENT_NOT_FOUND);
     }
-    //@@author
 
     @Test
     public void getRequiredDisplayType_dependsOnTarget() {
@@ -112,6 +145,7 @@ public class DeleteClientCommandTest {
                 new DeleteClientCommand(model.getBubuBook().getClientList().get(0).getPhone())
                         .getRequiredDisplayType());
     }
+    //@@author
 
     @Test
     public void equals() {

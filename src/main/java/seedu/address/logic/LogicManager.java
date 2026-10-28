@@ -12,8 +12,16 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.CommandResult.DisplayType;
+//@@author anderschow
+import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.HelpCommand;
+//@@author
 import seedu.address.logic.commands.appointment.ListAppointmentsCommand;
 import seedu.address.logic.commands.client.AddClientCommand;
+//@@author anderschow
+import seedu.address.logic.commands.client.EditClientCommand;
+import seedu.address.logic.commands.client.ListClientsCommand;
+//@@author
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.commands.pet.AddPetCommand;
 import seedu.address.logic.commands.pet.ListPetsCommand;
@@ -34,7 +42,20 @@ public class LogicManager implements Logic {
     public static final String MESSAGE_CORRUPTED_RECORDS =
             "Unable to verify existing records. Please contact support.";
     public static final String MESSAGE_UNABLE_TO_SAVE_PET = "Unable to save a pet. Please try again.";
-    public static final String MESSAGE_CLIENT_SAVE_FAILURE = "Unable to save client.";
+    //@@author anderschow
+    public static final String MESSAGE_CLIENT_SAVE_FAILURE =
+            "New client was not saved due to a storage error. Previous records were restored in memory. "
+                    + "Check that the data folder is available and has free space, then retry.";
+    public static final String MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE =
+            "New client was not saved because write access was denied. Previous records were restored in memory. "
+                    + "Check write permissions for the data file and folder, then retry.";
+    public static final String MESSAGE_CLIENT_EDIT_SAVE_FAILURE =
+            "Client update was not saved due to a storage error. Previous records were restored in memory. "
+                    + "Check that the data folder is available and has free space, then retry.";
+    public static final String MESSAGE_CLIENT_EDIT_SAVE_PERMISSION_FAILURE =
+            "Client update was not saved because write access was denied. Previous records were restored in memory. "
+                    + "Check write permissions for the data file and folder, then retry.";
+    //@@author
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
 
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
@@ -70,25 +91,50 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        logger.info("----------------[USER COMMAND][" + commandText + "]");
-
-        Command command = buBuParser.parseCommand(commandText);
-        if (isBubuBookCorrupted) {
-            throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
-        }
-        ensureRequiredDisplayTypeIsCurrent(command);
-        if (command instanceof ListPetsCommand || command instanceof ListAppointmentsCommand) {
-            CommandResult commandResult = command.execute(model);
-            updateCurrentDisplayType(commandResult);
-            return commandResult;
+        //@@author anderschow
+        String commandType = CommandLog.commandType(commandText);
+        Command command;
+        try {
+            command = buBuParser.parseCommand(commandText);
+            if (isBubuBookCorrupted) {
+                throw new CommandException(MESSAGE_CORRUPTED_RECORDS);
+            }
+            ensureRequiredDisplayTypeIsCurrent(command);
+        } catch (ParseException | CommandException e) {
+            logger.fine(commandType + " rejected: " + CommandLog.rejectionReason(e));
+            throw e;
+            //@@author
         }
         ReadOnlyBubuBook previousBubuBook = new BubuBook(model.getBubuBook());
-        CommandResult commandResult = command.execute(model);
-        saveCommandResult(command, previousBubuBook);
+        //@@author anderschow
+        CommandResult commandResult;
+        try {
+            commandResult = command.execute(model);
+        } catch (CommandException e) {
+            logger.fine(commandType + " rejected: " + CommandLog.rejectionReason(e));
+            throw e;
+        }
+        if (isReadOnly(command)) {
+            logger.fine(commandType + " completed");
+        } else {
+            saveCommandResult(command, previousBubuBook);
+            logger.info(commandType + " saved" + CommandLog.changedClientFields(previousBubuBook, model.getBubuBook()));
+        }
+        //@@author
         updateCurrentDisplayType(commandResult);
         return commandResult;
     }
 
+    /** Returns whether a command only changes the view or requests a UI action. */
+    //@@author anderschow
+    private static boolean isReadOnly(Command command) {
+        return command instanceof HelpCommand || command instanceof ExitCommand
+                || command instanceof ListClientsCommand || command instanceof ListPetsCommand
+                || command instanceof ListAppointmentsCommand;
+    }
+    //@@author
+
+    //@@author chunghean
     /**
      * Rejects index-based commands when their required record list is not displayed.
      */
@@ -107,7 +153,9 @@ public class LogicManager implements Logic {
             currentDisplayType = commandResult.getDisplayType();
         }
     }
+    //@@author
 
+    //@@author anderschow
     /**
      * Saves the completed command and restores its previous data if saving fails.
      */
@@ -115,15 +163,20 @@ public class LogicManager implements Logic {
             throws CommandException {
         try {
             storage.saveBubuBook(model.getBubuBook());
-            logger.info(() -> "Records saved successfully after " + command.getClass().getSimpleName());
         } catch (IOException ioe) {
             model.setBubuBook(previousBubuBook);
-            logger.log(Level.WARNING, "Saving records failed; previous model state restored", ioe);
+            logger.log(Level.WARNING, command.getClass().getSimpleName()
+                    + " save failed; previous model state restored", ioe);
             if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
             }
             if (command instanceof AddClientCommand) {
-                throw new CommandException(MESSAGE_CLIENT_SAVE_FAILURE, ioe);
+                throw new CommandException(ioe instanceof AccessDeniedException
+                        ? MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE : MESSAGE_CLIENT_SAVE_FAILURE, ioe);
+            }
+            if (command instanceof EditClientCommand) {
+                throw new CommandException(ioe instanceof AccessDeniedException
+                        ? MESSAGE_CLIENT_EDIT_SAVE_PERMISSION_FAILURE : MESSAGE_CLIENT_EDIT_SAVE_FAILURE, ioe);
             }
             if (ioe instanceof AccessDeniedException) {
                 throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, ioe.getMessage()), ioe);
@@ -131,6 +184,7 @@ public class LogicManager implements Logic {
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
     }
+    //@@author
 
     @Override
     public ObservableList<Client> getFilteredClientList() {
