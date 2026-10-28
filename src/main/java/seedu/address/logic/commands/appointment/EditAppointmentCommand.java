@@ -164,8 +164,8 @@ public class EditAppointmentCommand extends Command {
      *
      * @param model model containing the appointment and participant records
      * @return the result message describing the edited appointment
-     * @throws CommandException if the target or participants cannot be found, the start is not in the future,
-     *                          or the edited appointment overlaps another appointment
+     * @throws CommandException if the target or participants cannot be found, the duration is invalid,
+     *                          the start is not in the future, or the edited appointment overlaps another appointment
      */
     @Override
     public CommandResult execute(Model model) throws CommandException {
