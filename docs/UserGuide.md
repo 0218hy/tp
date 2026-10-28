@@ -646,7 +646,7 @@ The command makes no changes when it cannot be completed.
 * `The appointment index provided is not in the displayed appointment list.` — the index is outside the current list.
 * `The current displayed list does not match the record type selected by the index.` — run `list-appointments` before
   using an index.
-* `No appointment starts at the specified date and time.` — no booking starts at that date and time.
+* `No appointment starts at the specified date and start time.` — no booking starts at that date and start time.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Clearing all entries: `clear`
