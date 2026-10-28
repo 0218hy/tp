@@ -625,7 +625,7 @@ Use case ends.
     - 1b2. Groomer enters a different phone number or email.
     - Steps 1b1-1b2 are repeated until the phone number and email are unique.
     - Use case resumes from step 2.
-- 3a. A pet detail is missing, repeated or invalid (e.g. unsupported species, requirements containing a slash).
+- 3a. A pet detail is missing, repeated or invalid (e.g. an unsupported species or an invalid field length).
     - 3b1. BuBu informs Groomer of the problem.
     - 3b2. Groomer enters the corrected details.
     - Steps 3b1-3b2 are repeated until the details are valid.

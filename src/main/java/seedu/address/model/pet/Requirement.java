@@ -10,10 +10,9 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Requirement {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Requirements must be 5-240 characters and cannot contain /.";
+            "Requirements must be 5-240 characters.";
     private static final int MIN_LENGTH = 5;
     private static final int MAX_LENGTH = 240;
-    private static final String UNSUPPORTED_CHARACTER = "/";
 
     public final String value;
 
@@ -30,11 +29,11 @@ public class Requirement {
 
     // @@author xinyu-zxy
     /**
-     * Returns whether the text is non-null, non-blank, 5-240 characters, and contains no slash.
+     * Returns whether the text is non-null, non-blank, and 5-240 characters long.
      */
     public static boolean isValidRequirement(String test) {
         return test != null && !test.isBlank() && test.length() >= MIN_LENGTH
-                && test.length() <= MAX_LENGTH && !test.contains(UNSUPPORTED_CHARACTER);
+                && test.length() <= MAX_LENGTH;
     }
     // @@author
 
