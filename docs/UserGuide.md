@@ -498,7 +498,7 @@ The command makes no changes when it cannot be completed.
 * `This phone number does not identify a unique registered owner.` — the owner cannot be resolved.
 * `This pet is not registered under the specified owner.` — the pet does not belong to that client.
 * `Appointment must start in the future (Singapore time).` — the requested start has passed or is the current time.
-* `This appointment overlaps an existing appointment.` — the slot conflicts with a saved booking.
+* `This appointment overlaps an existing booking for PET_NAME on DD-MM-YYYY, HH:mm–HH:mm.` — the slot conflicts with the identified saved booking, even if that booking is hidden by the current list filter. If several bookings overlap, one conflicting booking is shown.
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Listing appointments: `list-appointments`

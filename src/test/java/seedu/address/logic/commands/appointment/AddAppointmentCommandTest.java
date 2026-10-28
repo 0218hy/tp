@@ -168,9 +168,27 @@ public class AddAppointmentCommandTest {
         for (Appointment appointment : List.of(create("07-10-2026", "11:00", "12:00"),
                 create("07-10-2026", "10:30", "11:30"), create("07-10-2026", "11:30", "12:30"),
                 create("07-10-2026", "10:30", "12:30"), create("07-10-2026", "11:00", "11:30"))) {
-            CommandException exception = assertFailure(appointment, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
+            CommandException exception = assertFailure(appointment, CLOCK,
+                    "This appointment overlaps an existing booking for Mochi on 07-10-2026, 11:00–12:00.");
             assertTrue(exception.getCause() instanceof OverlappingAppointmentException);
         }
+    }
+
+    @Test
+    public void execute_hiddenConflicts_reportsExistingBookingAndPreservesFilter() {
+        Appointment unrelated = create("08-10-2026", "11:00", "12:00");
+        Appointment conflict = createAppointment(new Phone("81234567"), "Mochi",
+                new AppointmentDate("07-10-2026"), new StartTime("11:00"), new EndTime("12:00"),
+                Service.NAIL_TRIM);
+        Appointment laterConflict = create("07-10-2026", "12:00", "13:00");
+        model.setAppointments(List.of(unrelated, conflict, laterConflict));
+        model.updateFilteredAppointmentList(appointment -> appointment.equals(unrelated));
+
+        CommandException exception = assertFailure(create("07-10-2026", "10:30", "12:30"), CLOCK,
+                "This appointment overlaps an existing booking for Mochi on 07-10-2026, 11:00–12:00.");
+
+        assertSame(conflict, ((OverlappingAppointmentException) exception.getCause()).getConflictingAppointment());
+        assertEquals(List.of(unrelated), model.getFilteredAppointmentList());
     }
 
     @Test
@@ -187,7 +205,8 @@ public class AddAppointmentCommandTest {
     public void execute_repeatedCommand_rejectsDuplicate() throws Exception {
         AddAppointmentCommand command = command(VALID_APPOINTMENT);
         command.execute(model);
-        assertFailure(VALID_APPOINTMENT, CLOCK, AddAppointmentCommand.MESSAGE_OVERLAP);
+        assertFailure(VALID_APPOINTMENT, CLOCK,
+                "This appointment overlaps an existing booking for BuBu on 07-10-2026, 10:30–11:00.");
         assertEquals(List.of(VALID_APPOINTMENT), model.getBubuBook().getAppointmentList());
     }
 

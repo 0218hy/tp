@@ -71,7 +71,8 @@ public class AppointmentPersistenceTest {
         assertEquals(model.getBubuBook(), restarted.getBubuBook());
         CommandException exception = assertThrows(CommandException.class, () ->
                 logicFor(restarted, storage).execute(COMMAND));
-        assertEquals(AddAppointmentCommand.MESSAGE_OVERLAP, exception.getMessage());
+        assertEquals("This appointment overlaps an existing booking for BuBu on 01-01-9999, 10:00–11:00.",
+                exception.getMessage());
         assertEquals(1, restarted.getBubuBook().getAppointmentList().size());
     }
 
