@@ -294,6 +294,32 @@ The descriptor uses an explicit `isBreedEdited` flag. This distinguishes an omit
 breed) from an empty `b/` value (set the optional breed to `null`, thereby clearing it). The owner has no descriptor
 field, which makes transferring a pet impossible through this command by design.
 
+#### Appointment editing
+
+The `edit-appointment` command supports two mutually exclusive target forms:
+
+* `d/CURRENT_DATE st/CURRENT_START_TIME` identifies an appointment in the complete saved appointment list.
+* `INDEX` identifies an appointment in the currently displayed appointment list and therefore requires
+  `DisplayType.APPOINTMENTS`.
+
+The execution flow is:
+
+1. `BuBuParser` routes the command to `EditAppointmentCommandParser`. The parser validates the target form, rejects
+   duplicate or unknown prefixes, and parses replacement fields into an `EditAppointmentDescriptor`.
+2. The descriptor stores only requested replacements: `i/` for the owner phone, `p/` for the pet name, `nd/` for the
+   new date, `nst/` for the new start time, `et/` for the new end time, and `s/` for the service. At least one
+   replacement must be supplied.
+3. `EditAppointmentCommand` resolves an index through `Model.getFilteredAppointmentList()` or resolves a date/start
+   pair through the complete appointment list. It then applies the descriptor to the existing appointment, preserving
+   omitted fields.
+4. The replacement owner must be registered and the replacement pet must belong to that owner. The command rejects
+   unchanged requests, appointments whose resulting start is not in the future in Singapore time, end times less than
+   30 minutes after the start, and slots that overlap another appointment.
+5. The complete replacement list is passed to `Model.setAppointments()`. `AppointmentList` validates the replacement
+   before changing the observable model, so a failed validation does not partially update the schedule.
+6. The command returns a success result without changing the selected display type. `LogicManager` saves the updated
+   `BubuBook`; if saving fails, it restores the pre-command snapshot and reports a storage error.
+
 ### Model component
 
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
@@ -692,58 +718,48 @@ Use case ends.
 
 **System:** BuBu
 
-**Use case:** UC3 - Reschedule an appointment
+**Use case:** UC3 - Edit an appointment
 
 **Actor:** Groomer
 
-**Preconditions:** At least one upcoming appointment is saved in BuBu.
+**Preconditions:** At least one appointment is saved in BuBu.
 
 **Guarantees:**
 
-- The old appointment is removed only after Groomer confirms.
-- The new appointment does not overlap any existing appointment.
+- The appointment is updated only when the complete replacement is valid.
+- The resulting appointment starts in the future and does not overlap any other appointment.
+- If saving fails, the previous appointment remains unchanged.
 
-*BuBu has no appointment-edit feature, so rescheduling is a deletion followed by a new booking.*
+The appointment can be identified by its current date and start time, or by its index in the displayed appointment list.
+Any field that is not supplied remains unchanged.
 
 **MSS:**
 
-1. Groomer requests to view the appointments on the date of the appointment to be moved.
-2. BuBu shows the appointments on that date.
-3. Groomer requests to delete the appointment, identifying it by date and a time within it.
-4. BuBu requests confirmation of the deletion.
-5. Groomer confirms.
-6. BuBu deletes the appointment and shows a confirmation.
-7. Groomer requests to schedule the same pet for the new slot, specifying the date, start time, end time and service.
-8. BuBu adds the appointment and shows a confirmation.
+1. Groomer enters `edit-appointment` with an appointment target and one or more replacement fields.
+2. BuBu resolves the target appointment and validates the replacement owner, pet, date, time, service, duration, and
+   schedule availability.
+3. BuBu replaces the appointment, saves the updated BubuBook, and shows the updated appointment details.
 
 Use case ends.
 
 **Extensions:**
 
-- 1a. The date is not a valid date.
-    - 1a1. BuBu informs Groomer of the problem.
-    - 1a2. Groomer enters a corrected date.
-    - Steps 1a1-1a2 are repeated until the date is valid.
-    - Use case resumes from step 2.
-- 2a. There are no appointments on that date.
-    - 2a1. BuBu informs Groomer that nothing is scheduled.
-    - 2a2. Groomer requests to view the appointments on a different date.
-    - Steps 2a1-2a2 are repeated until a date with appointments is found.
-    - Use case resumes from step 3.
-- 3a. The date or time is invalid.
-    - 3a1. BuBu informs Groomer that no matching appointment was found.
-    - 3a2. Groomer enters a corrected date or time.
-    - Steps 3a1-3a2 are repeated until an appointment is matched.
-    - Use case resumes from step 4.
-- 5a. Groomer cancels the deletion.
-    - 5a1. BuBu leaves the schedule unchanged.
-    - Use case ends.
-- 7a. The new slot is invalid or overlaps another appointment.
-    - 7a1. BuBu informs Groomer of the problem.
-    - 7a2. Groomer enters a different slot.
-    - Steps 7a1-7a2 are repeated until the slot is valid.
-    - The original appointment remains deleted.
-    - Use case resumes from step 8.2
+- 1a. The target is missing, incomplete, duplicated, or invalid, or no replacement field is supplied.
+    - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
+      Use case ends.
+- 1c. No appointment matches the supplied date and start time.
+    - 1c1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
+      Use case ends.
+- 2a. The replacement owner or pet is not registered, the resulting start is not in the future, the duration is too
+  short, or the slot overlaps another appointment.
+    - 2a1. BuBu reports the validation error and leaves the schedule unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-edit records and reports the storage error.
+      Use case ends.
 
 ---
 
@@ -1407,6 +1423,61 @@ testers are expected to do more *exploratory* testing.
    4. Test case: `list-appointments i/91234567`, `list-appointments p/BuBu`,
       `list-appointments d/31-02-2026`, or `list-appointments d/01-01-2026 d/02-01-2026`<br>
       Expected: The command is rejected. Only one valid date filter is supported.
+
+### Editing an appointment
+
+1. Editing by date and start time without relying on the displayed panel
+
+   1. Prerequisites: A saved appointment exists on `01-01-9999` from `10:00` to `11:00` for a registered pet, and no
+      other appointment uses the replacement slot.
+
+   2. Test case: Run `list-clients`, then enter `edit-appointment d/01-01-9999 st/10:00 s/Nail trim`.<br>
+      Expected: The edit succeeds even though the client panel is displayed. The appointment's service changes to
+      `Nail trim`; its owner, pet, date, start time, and end time are unchanged. The status message begins with
+      `Edited appointment:`.
+
+2. Editing by displayed appointment index
+
+   1. Prerequisites: Run `list-appointments` and ensure the displayed appointment list contains an appointment whose
+      end time can be changed to `12:00` without overlapping another booking.
+
+   2. Test case: `edit-appointment 1 et/12:00`<br>
+      Expected: The first displayed appointment is updated. Fields not supplied in the command remain unchanged.
+
+   3. Test case: Run `list-appointments d/01-01-9999`, then enter
+      `edit-appointment 1 nd/02-01-9999 nst/10:30 et/11:30`.<br>
+      Expected: The appointment at index 1 is moved to the new date and time, and the date-filtered appointment list
+      is preserved. The updated appointment remains saved even if it no longer matches the active date filter.
+
+3. Rejecting invalid or incomplete edits
+
+   1. Test case: `edit-appointment`, `edit-appointment d/01-01-9999`, or
+      `edit-appointment d/01-01-9999 st/10:00`<br>
+      Expected: No appointment is changed. BuBu reports a missing target, missing start time, or missing replacement
+      field.
+
+   2. Test case: `edit-appointment d/01-01-9999 st/10:00 d/02-01-9999 s/Nail trim` or
+      `edit-appointment 1 d/02-01-9999 s/Nail trim`<br>
+      Expected: No appointment is changed. BuBu rejects duplicate target prefixes or mixing an index with a date/time
+      target.
+
+   3. Test case: Run `list-clients`, then enter `edit-appointment 1 et/12:00`.<br>
+      Expected: No appointment is changed. BuBu rejects the index because the appointment list is not displayed.
+
+   4. Test case: `edit-appointment d/01-01-9998 st/10:00 s/Nail trim` or
+      `edit-appointment d/01-01-9999 st/10:30 s/Nail trim` when no matching appointment exists.<br>
+      Expected: No appointment is changed. BuBu reports that no appointment starts at the specified date and time.
+
+   5. Test case: Supply an unregistered owner phone, a pet not registered under that owner, a past replacement start,
+      an end time less than 30 minutes after the start, or a slot overlapping another appointment.<br>
+      Expected: No appointment is changed. BuBu reports the corresponding validation error.
+
+4. Saving an edited appointment
+
+   1. Prerequisites: A successful `edit-appointment` command has changed an appointment.
+
+   2. Test case: Close and relaunch BuBu, then run `list-appointments d/DD-MM-YYYY` for the edited appointment.<br>
+      Expected: The replacement values persist after restart.
 
 ### Deleting an appointment
 

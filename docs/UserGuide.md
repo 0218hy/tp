@@ -543,35 +543,43 @@ The command makes no changes when it cannot be completed.
 
 Edits a saved appointment identified by its current date and start time, or by its displayed appointment-list index.
 
-Formats:
+#### Format
 
 ```text
 edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
 edit-appointment INDEX [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]
 ```
 
+#### Parameters and validation
+
 * `d/` and `st/` identify the existing appointment. Identifier-based edits search all saved appointments.
-* `INDEX` refers to the one-based position in the currently displayed appointment list, so run `list-appointments`
-  first when using this form.
+* `INDEX` refers to the one-based position in the currently displayed appointment list. Run `list-appointments`
+  first when using this form; a date-filtered appointment list may also be used.
 * Provide either the date/start-time identifiers or an index, but not both. Replacement fields can be combined with
   either identification form.
-* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`; `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
+* `CURRENT_DATE` and `NEW_DATE` use `DD-MM-YYYY`. `CURRENT_START_TIME`, `NEW_START_TIME`, and `NEW_END_TIME` use
   `HH:mm`.
+* When supplied, `i/NEW_OWNER_PHONE` must identify a registered client, and `p/NEW_PET_NAME` must identify a pet
+  registered under that client. Pet-name matching ignores letter case and repeated whitespace.
 * Start times must be from `08:00` to `19:30` in 30-minute intervals. End times must be from `08:30` to `20:00`
   in 30-minute intervals and at least 30 minutes after the appointment start time.
 * Use `nd/` and `nst/` when changing the appointment's date or start time. At least one replacement field is required.
-* The owner and pet must be registered, the new appointment must start in the future, and it must not overlap another
-  appointment.
-* Editing preserves the active appointment filter. Matching appointments show their updated details; appointments
-  that no longer match remain saved but disappear from the view. Completed appointments hidden by `list-appointments`
-  remain hidden after an edit.
+* The resulting appointment must start in the future in Singapore time and must not overlap another appointment.
+  An appointment whose resulting start time is in the past cannot be edited.
 
-Examples:
+#### Examples
 
 * `edit-appointment d/18-09-2027 st/10:00 s/Full groom` changes the service for the appointment starting at 10:00.
 * `edit-appointment d/18-09-2027 st/10:00 nd/19-09-2027 nst/11:00 et/12:00` moves the appointment to a new date
   and time and changes its end time.
 * `edit-appointment 1 et/12:00` changes the end time of the first appointment in the displayed appointment list.
+
+#### Success and other behavior
+
+* On success, BuBu displays `Edited appointment: ...` with the updated booking details.
+* Fields that are not supplied keep their existing values. The selected panel and active appointment filter are
+  preserved; an updated appointment that no longer matches the filter disappears from the view but remains saved.
+* Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
 
@@ -602,6 +610,7 @@ The command makes no changes when it cannot be completed.
 * `The updated appointment must start in the future (Singapore time).` — the new start has passed.
 * `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
   with an existing appointment.
+* Storage error — the data file cannot be written, for example because of file or folder permissions.
 
 ### Deleting an appointment: `delete-appointment`
 
@@ -778,7 +787,8 @@ Action | Format, Examples
 **Delete pet** | `delete-pet INDEX` or `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`<br> e.g., `delete-pet p/Milo i/98765432`
 **Add appointment** | `add-appointment i/OWNER_PHONE p/PET_NAME d/DD-MM-YYYY st/HH:mm et/HH:mm s/SERVICE`
 **List appointments** | `list-appointments [d/DD-MM-YYYY]`
-**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY t/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 t/10:30`
+**Edit appointment** | `edit-appointment d/CURRENT_DATE st/CURRENT_START_TIME [i/NEW_OWNER_PHONE] [p/NEW_PET_NAME] [nd/NEW_DATE] [nst/NEW_START_TIME] [et/NEW_END_TIME] [s/NEW_SERVICE]` or `edit-appointment INDEX [...]`<br> e.g., `edit-appointment d/18-09-2027 st/10:00 et/12:00`
+**Delete appointment** | `delete-appointment INDEX` or `delete-appointment d/DD-MM-YYYY st/HH:mm` <br> e.g., `delete-appointment d/18-09-2027 st/10:30`
 **Clear** | `clear`
 **Help** | `help`
 **Exit** | `exit`
