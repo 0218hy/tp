@@ -111,6 +111,12 @@ public class Appointment {
         requireNonNull(newPetName);
         return new Appointment(owner, pet.withName(newPetName), date, startTime, endTime, service);
     }
+
+    /** Returns a copy with refreshed pet details while retaining this appointment's owner snapshot. */
+    Appointment withPet(Pet updatedPet) {
+        requireNonNull(updatedPet);
+        return new Appointment(owner, updatedPet.withOwner(owner), date, startTime, endTime, service);
+    }
     //@@author
 
     /**

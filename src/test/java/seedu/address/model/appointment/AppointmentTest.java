@@ -18,6 +18,7 @@ import seedu.address.model.client.Client;
 import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
+import seedu.address.model.pet.Species;
 import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
@@ -171,6 +172,26 @@ public class AppointmentTest {
         assertTrue(renamed.isForPet(PET.withName(new PetName("Rex"))));
         assertEquals(new PetName("BuBu"), original.getPetName());
         assertThrows(NullPointerException.class, () -> original.withPetName(null));
+    }
+
+    @Test
+    public void withPet_refreshesPetProfileAndKeepsAppointmentParticipantsAndSlot() {
+        Appointment original = create("10:30", "12:00");
+        Pet editedPet = new PetBuilder(PET).withName("Rex")
+                .withSpecies(Species.CAT).withBreed("Shih Tzu")
+                .withRequirement("Use sensitive-skin shampoo").build();
+
+        Appointment refreshed = original.withPet(editedPet);
+
+        assertSame(original.getOwner(), refreshed.getOwner());
+        assertSame(refreshed.getOwner(), refreshed.getPet().getOwner());
+        assertEquals(editedPet, refreshed.getPet());
+        assertEquals(original.getDate(), refreshed.getDate());
+        assertEquals(original.getStartTime(), refreshed.getStartTime());
+        assertEquals(original.getEndTime(), refreshed.getEndTime());
+        assertEquals(original.getService(), refreshed.getService());
+        assertEquals(PET, original.getPet());
+        assertThrows(NullPointerException.class, () -> original.withPet(null));
     }
     //@@author
 
