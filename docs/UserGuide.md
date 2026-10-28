@@ -28,11 +28,11 @@ BuBu is a **desktop application for managing client contacts, pet profiles, and 
    application session.
    Some example commands you can try:
 
-   * `list-clients` : Lists all contacts.
+   * `list-clients` : Lists all clients.
 
-   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the BuBu.
+   * `add-client n/John Doe i/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a client named `John Doe` to the BuBu.
 
-   * `delete-client 3` : Deletes the 3rd contact shown in the current list.
+   * `delete-client 3` : Deletes the 3rd client shown in the current list.
 
    * `delete-client i/91234567` : Deletes the client with phone number `91234567`.
 
@@ -258,7 +258,8 @@ The command makes no changes when it cannot be completed.
 
 ### Deleting a client: `delete-client`
 
-Deletes a saved client and their linked pets and appointments. Index-based deletion depends on the displayed client list; phone-based deletion searches all saved clients.
+Deletes a saved client and all pets and appointments linked to that client. Index-based deletion uses the displayed
+client list; phone-based deletion searches all saved clients.
 
 #### Format
 
@@ -269,8 +270,10 @@ delete-client i/PHONE_NUMBER
 
 #### Parameters and validation
 
-* `INDEX` — a positive integer referring to the client's one-based position in the current client list, including any search filter.
-* `i/PHONE_NUMBER` — alternatively, the saved eight-digit phone number starting with `8` or `9`.
+* `INDEX` — a positive integer referring to the client's one-based position in the currently displayed client list,
+  including any search filter. The client panel must be displayed.
+* `i/PHONE_NUMBER` — alternatively, a valid saved eight-digit phone number starting with `8` or `9`. This form can
+  delete a client even when a filter or another panel hides them.
 * Provide either an index or a phone identifier, not both. Specify `i/` only once.
 
 #### Examples
@@ -280,9 +283,10 @@ delete-client i/PHONE_NUMBER
 
 #### Success and other behavior
 
-* On success, BuBu displays `Deleted person: ...` (the current application wording).
-* All pets and appointments belonging to that client are also deleted, including completed appointments. Other clients' records are preserved.
-* The selected panel does not change. There is no confirmation prompt.
+* On success, BuBu displays `Deleted person: ...`.
+* All pets and appointments belonging to that client are deleted in the same operation, including completed
+  appointments. Other clients and their records are preserved.
+* The selected panel does not change. There is no confirmation prompt or undo command.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling

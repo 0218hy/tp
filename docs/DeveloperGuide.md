@@ -265,6 +265,26 @@ Successful edits preserve the active client filter and return `DisplayType.CLIEN
 records and restores the previous records if saving fails. No client-panel guard is needed because selection does
 not depend on a displayed index.
 
+#### Client deletion
+
+The `delete-client` command supports two mutually exclusive target forms:
+
+* `INDEX` identifies a client in the currently displayed client list and requires `DisplayType.CLIENTS`.
+* `i/PHONE_NUMBER` identifies a client in the complete saved client list, independently of the displayed panel or
+  client filter.
+
+The execution flow is:
+
+1. `BuBuParser` routes the command to `DeleteClientCommandParser`. The parser requires exactly one target, validates a
+   positive index or a valid phone number, and rejects repeated identifiers or mixed target forms.
+2. `DeleteClientCommand` resolves an index through `Model.getFilteredClientList()` or searches the complete client list
+   by phone number. A missing phone match produces a command error without changing the model.
+3. `Model.deleteClient()` delegates to `BubuBook.removeClient()`. The book removes the client, removes every
+   appointment for the client's phone number, and removes every pet owned by the client. This cascade includes completed
+   appointments and does not affect unrelated clients or records.
+4. `LogicManager` saves the updated `BubuBook` after execution. If saving fails, it restores the pre-command snapshot and
+   reports a storage error. The command returns an unchanged display type, so the selected panel remains selected.
+
 #### Identifier-based pet editing
 
 `edit-pet` is deliberately identifier-based rather than index-based. A displayed index is transient: it depends on the
@@ -510,7 +530,7 @@ Step 1. The user launches the application for the first time. The `VersionedBubu
 
 ![UndoRedoState0](images/UndoRedoState0.png)
 
-Step 2. The user executes `delete-client 5` command to delete the 5th person in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
+Step 2. The user executes `delete-client 5` command to delete the 5th client in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
 
 ![UndoRedoState1](images/UndoRedoState1.png)
 
@@ -571,7 +591,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete-client`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete-client`, just save the client being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -829,54 +849,38 @@ Use case ends.
 
 **Actor:** Groomer
 
-**Preconditions:** The client has at least one saved pet and one upcoming appointment saved in BuBu.
+**Preconditions:** The target client is saved in BuBu. The client may have saved pets and appointments.
 
 **Guarantees:**
 
-- Nothing is deleted without Groomer's confirmation.
-- A client is deleted only when no pets or appointments are linked to them.
+- The target client, all pets owned by that client, and all of the client's appointments are deleted together.
+- Completed and future appointments linked to the client are deleted.
+- Unrelated clients, pets, and appointments remain unchanged.
+- If saving fails, the previous records are restored in memory.
 
 **MSS:**
 
-1. Groomer requests to view the upcoming appointments.
-2. BuBu shows the upcoming appointments.
-3. Groomer requests to delete the client's appointment.
-4. BuBu requests confirmation.
-5. Groomer confirms.
-6. BuBu deletes the appointment and shows a confirmation.
-7. Groomer requests to delete the client's pet.
-8. BuBu requests confirmation.
-9. Groomer confirms.
-10. BuBu deletes the pet and shows a confirmation.
-11. Groomer requests to delete the client.
-12. BuBu requests confirmation.
-13. Groomer confirms.
-14. BuBu deletes the client and shows a confirmation.
+1. Groomer enters `delete-client` with a displayed client index or a client's phone number.
+2. BuBu resolves the target client from the displayed client list or complete saved client list.
+3. BuBu deletes the client and all linked pets and appointments, saves the updated BubuBook, and shows the deleted
+   client details.
 
 Use case ends.
 
 **Extensions:**
 
-- 3a. The date or time is invalid.
-    - 3a1. BuBu informs Groomer that no matching appointment was found.
-    - 3a2. Groomer enters a corrected date or time.
-    - Steps 3a1-3a2 are repeated until an appointment is matched.
-    - Use case resumes from step 4.
-- 5a. Groomer cancels the appointment deletion.
-    - 5a1. BuBu leaves all further records unchanged.
-    - Use case ends.
-- 7a. The pet still has a future appointment.
-    - 7a1. BuBu informs Groomer which appointment must be cancelled first.
-    - Use case resumes from step 3.
-- 9a. Groomer cancels the pet deletion.
-    - 9a1. BuBu leaves all further records unchanged.
-    - Use case ends.
-- 11a. The client still has pets or appointments linked to them.
-    - 11b1. BuBu informs Groomer which linked records remain.
-    - Use case resumes from step 3 (if appointments remain) or step 7 (if only pets remain).
-- 13a. Groomer cancels the client deletion.
-    - 13a1. BuBu leaves all further records unchanged.
-    - Use case ends.
+- 1a. The target is missing, invalid, duplicated, or combines an index with a phone identifier.
+    - 1a1. BuBu reports the validation error and leaves all records unchanged.
+      Use case ends.
+- 1b. An index target is used while the client list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves all records unchanged.
+      Use case ends.
+- 2a. No saved client has the supplied phone number.
+    - 2a1. BuBu reports that no client matches the phone number and leaves all records unchanged.
+      Use case ends.
+- 3a. The updated BubuBook cannot be saved.
+    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
+      Use case ends.
 
 ---
 
@@ -1009,10 +1013,9 @@ Use case ends.
 * **Care Requirements**: Special notes, medical conditions, temperamental traits, behavioral warnings, or styling preferences associated with a pet.
 * **Behavioral Quirks**: Custom tags attached to a pet profile indicating temperamental traits or handling considerations (e.g., `cage-anxious`, `nipper`, `hyperactive`) to help the groomer prepare appropriate equipment.
 * **Client**: A pet owner profile containing  contact information, including name, phone number, email and home address.
-* **Confirmation**: An explicit verification step required by BuBu before completing destructive actions (such as deletions) to avoid accidental data loss.
 * **Groomer**: The primary user and actor of BuBu; an independent mobile pet groomer managing appointments, client contacts, and pet profiles on-the-go.
 * **Pet Profile**: A distinct record belonging to a specific client that tracks the pet's name, species, optional breed, and care requirements.
-* **Rescheduling**: The composite workflow of deleting an existing appointment followed by booking a new slot for the same pet.
+* **Rescheduling**: Changing an existing appointment's date or time using `edit-appointment`.
 * **Service**: A supported grooming option (e.g., full groom, basic bath, nail trim) assigned to an appointment.
 * **Time Slot**: A continuous duration on a given date during which a grooming appointment takes place, constrained to 30-minute intervals within working hours.
 * **Working Hours**: The allowable operating time frame within which appointments can be booked, defined in BuBu as 08:00 to 20:00.
@@ -1245,46 +1248,67 @@ testers are expected to do more *exploratory* testing.
    4. Test case: Close and relaunch BuBu, then inspect the client, pet, and appointment.<br>
       Expected: The updated phone and links persist after restart.
 
-### Deleting a person
+### Deleting a client
 
 1. Deleting by displayed index
 
-   1. Prerequisites: List all persons using the `list-clients` command, with multiple persons in the list.
+   1. Prerequisites: Add multiple clients, then run `list-clients` so the client panel displays them.
 
    2. Test case: `delete-client 1`<br>
-      Expected: The first person is deleted from the list. The status message shows the deleted person's details.
+      Expected: The first displayed client and all of that client's linked pets and appointments are deleted. The
+      status message begins with `Deleted person:` and the selected panel remains unchanged.
 
-   3. Test case: `delete-client 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+   3. Test case: Run `list-pets`, then enter `delete-client 1`.<br>
+      Expected: No client is deleted. BuBu reports that the current displayed list does not match the record type
+      selected by the index.
 
-   4. Test case: `delete-client 999`<br>
-      Expected: No person is deleted. The status message shows error details.
+   4. Test case: `delete-client 0`<br>
+      Expected: No client is deleted. BuBu reports an invalid command format and shows the command usage.
 
-2. Deleting by phone number
+   5. Test case: `delete-client 999` when fewer than 999 clients are displayed.<br>
+      Expected: No client is deleted. The status message is `The person index provided is invalid.`
 
-   1. Prerequisites: A person with phone number `91234567` exists.
+2. Deleting by phone number independently of the displayed list
+
+   1. Prerequisites: A client with phone number `91234567` exists. Run `list-clients q/zzzznomatch` so that the client
+      is hidden.
 
    2. Test case: `delete-client i/91234567`<br>
-      Expected: The matching person is deleted. The status message shows the deleted person's details.
+      Expected: The hidden client is deleted, together with all linked pets and appointments. The status message shows
+      the deleted client's details.
 
-   3. Test case: `delete-client i/00000000`<br>
-      Expected: No person is deleted because no matching person exists.
+   3. Test case: `delete-client i/88888888` when no client uses that valid phone number.<br>
+      Expected: No client is deleted. The message is `No person with the given phone number exists.`
 
-   4. Test case: `delete-client i/12`<br>
-      Expected: No person is deleted because the phone number is invalid.
+3. Verifying the deletion cascade and record preservation
 
-3. Invalid identifier combinations
+   1. Prerequisites: One client owns at least two pets and has both a future and a completed appointment. A second
+      unrelated client, pet, and appointment also exist.
 
-   1. Test case: `delete-client`<br>
-      Expected: The command is rejected because no identifier was provided.
+   2. Test case: Delete the first client by phone number, then run `list-pets` and
+      `list-appointments d/DD-MM-YYYY` for each affected appointment date.<br>
+      Expected: The deleted client's pets and appointments are absent, including the completed appointment. The
+      unrelated client's records remain available.
 
-   2. Test case: `delete-client 1 i/91234567`<br>
-      Expected: The command is rejected because both identifiers were provided.
+   3. Test case: Close and relaunch BuBu, then inspect the affected and unrelated records.<br>
+      Expected: The cascade persists after restart.
 
-   3. Other incorrect delete commands to try: `delete-client x`, `delete-client i/abc`<br>
-      Expected: Similar to previous.
+4. Rejecting invalid or incomplete targets
 
-4. _{ more test cases …​ }_
+   1. Test case: `delete-client`, `delete-client 1 i/91234567`, `delete-client i/00000000`, or `delete-client i/12`<br>
+      Expected: No client is deleted. BuBu reports invalid command format and shows the command usage.
+
+   2. Test case: `delete-client i/91234567 i/88888888` or `delete-client x/extra`<br>
+      Expected: No client is deleted. BuBu reports invalid command format because the identifier is repeated or
+      unsupported.
+
+5. Saving after deletion
+
+   1. Prerequisites: A client with linked records has been deleted successfully.
+
+   2. Test case: Close and relaunch BuBu, then inspect the saved client, pet, and appointment lists.<br>
+      Expected: The deleted records remain absent after restart. If saving fails, the previous client, pet, and
+      appointment records are restored in memory.
 
 ### Adding a pet
 
