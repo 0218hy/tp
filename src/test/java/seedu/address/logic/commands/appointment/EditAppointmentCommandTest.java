@@ -212,6 +212,26 @@ public class EditAppointmentCommandTest {
     }
 
     @Test
+    public void execute_startTimeAfterExistingEnd_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setStartTime(new StartTime("11:30"));
+
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_START_TIME);
+    }
+
+    @Test
+    public void execute_endTimeBeforeExistingStart_failure() {
+        EditAppointmentCommand.EditAppointmentDescriptor descriptor =
+                new EditAppointmentCommand.EditAppointmentDescriptor();
+        descriptor.setEndTime(new EndTime("10:30"));
+
+        assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
+                EditAppointmentCommand.MESSAGE_INVALID_END_TIME);
+    }
+
+    @Test
     public void execute_overlapFailure_preservesModel() {
         Appointment other = createAppointment(OWNER_PHONE, "BuBu", new AppointmentDate("07-10-2026"),
                 new StartTime("11:00"), new EndTime("12:00"), Service.NAIL_TRIM);

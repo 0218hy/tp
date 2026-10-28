@@ -589,7 +589,12 @@ The command makes no changes when it cannot be completed.
 * `This pet is not registered under the specified owner.` — the replacement pet cannot be found for that owner.
 * `No changes were made. The appointment already has these details.` — all requested values match the existing
   appointment.
-* `End time must be at least 30 minutes after the appointment start time.` — the edited time range is too short.
+* `The new start time must be at least 30 minutes before the existing end time.` — only the replacement start time
+  makes the duration too short.
+* `The new end time must be at least 30 minutes after the existing start time.` — only the replacement end time makes
+  the duration too short.
+* `The appointment duration must be at least 30 minutes.` — both replacement times were supplied but form an invalid
+  duration.
 * `The updated appointment must start in the future (Singapore time).` — the new start has passed.
 * `The updated appointment overlaps another appointment. Choose an available time slot.` — the new slot conflicts
   with an existing appointment.
