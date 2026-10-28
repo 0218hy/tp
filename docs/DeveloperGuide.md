@@ -683,7 +683,7 @@ Use case ends.
     - Steps 7a1-7a2 are repeated until the details are valid.
     - Use case resumes from step 8.
 - 7b. The time slot overlaps an existing appointment.
-    - 7b1. BuBu informs Groomer of the conflicting appointment's time.
+    - 7b1. BuBu identifies one conflicting saved appointment by pet name, date, and time range, even if it is hidden by the current list filter.
     - 7b2. Groomer enters a different time slot.
     - Steps 7b1-7b2 are repeated until the slot is free.
     - Use case resumes from step 8.
