@@ -44,6 +44,7 @@ public class AppointmentTest {
 
     @Test
     public void constructor_invalidDuration_throwsIllegalArgumentException() {
+        // Invalid duration EPs: zero (boundary below the 30-minute minimum) and negative.
         assertThrows(IllegalArgumentException.class, () -> create("10:30", "10:30"));
         assertThrows(IllegalArgumentException.class, () -> create("10:30", "10:00"));
     }
@@ -72,29 +73,37 @@ public class AppointmentTest {
     public void equals_participantProfileDetailsParticipateInEquality() {
         Appointment original = create("10:30", "12:00");
         Client updatedOwner = new ClientBuilder(OWNER).withAddress("New address").build();
-        Pet updatedPet = new PetBuilder(PET).withRequirement("Sensitive skin").withBreed("Poodle").build();
         Appointment changedOwner = new Appointment(updatedOwner, PET.withOwner(updatedOwner), DATE,
                 original.getStartTime(), original.getEndTime(), original.getService());
-        Appointment changedPet = new Appointment(OWNER, updatedPet, DATE,
-                original.getStartTime(), original.getEndTime(), original.getService());
         assertNotEquals(original, changedOwner);
-        assertNotEquals(original, changedPet);
         assertTrue(original.isSameAppointment(changedOwner));
-        assertTrue(original.isSameAppointment(changedPet));
+        // Change one profile field at a time: changing both would hide an equality check missing either field.
+        for (Pet updatedPet : new Pet[]{new PetBuilder(PET).withRequirement("Sensitive skin").build(),
+            new PetBuilder(PET).withBreed("Poodle").build()}) {
+            Appointment changedPet = new Appointment(OWNER, updatedPet, DATE,
+                    original.getStartTime(), original.getEndTime(), original.getService());
+            assertNotEquals(original, changedPet, updatedPet.toString());
+            assertTrue(original.isSameAppointment(changedPet));
+        }
     }
 
     @Test
     public void overlaps_intersectionsDetectedAndAdjacentSlotsAllowed() {
         Appointment appointment = create("10:30", "12:00");
+        // Interval EPs: identical, crossing either edge, enclosing, and enclosed.
+        // Keep the geometry here; command tests need only representative conflicts to test error handling.
         for (Appointment other : new Appointment[]{create("10:30", "12:00"), create("10:00", "11:00"),
                 create("11:30", "12:30"), create("10:00", "12:30"), create("11:00", "11:30")}) {
-            assertTrue(appointment.overlaps(other));
-            assertTrue(other.overlaps(appointment));
+            assertTrue(appointment.overlaps(other), other.toString());
+            assertTrue(other.overlaps(appointment), other.toString());
         }
-        for (Appointment other : new Appointment[]{create("09:00", "10:30"), create("12:00", "13:30")}) {
-            assertFalse(appointment.overlaps(other));
-            assertFalse(other.overlaps(appointment));
+        // Non-overlapping EPs: before/after. BVA: touching endpoints; interior: a gap on either side.
+        for (Appointment other : new Appointment[]{create("09:00", "10:30"), create("12:00", "13:30"),
+            create("09:00", "10:00"), create("12:30", "13:30")}) {
+            assertFalse(appointment.overlaps(other), other.toString());
+            assertFalse(other.overlaps(appointment), other.toString());
         }
+        // Other participants: owner/pet must not partition the single grooming schedule; date must.
         Appointment differentOwner = createAppointment(new Phone("81234567"), "Mochi", DATE,
                 new StartTime("11:00"), new EndTime("12:30"), Service.NAIL_TRIM);
         assertTrue(appointment.overlaps(differentOwner));
@@ -106,8 +115,9 @@ public class AppointmentTest {
     @Test
     public void matches_exactStartTimeOnly() {
         Appointment appointment = create("10:30", "12:00");
+        // EPs: same/different date and exact/non-exact start. BVA: one minute either side of the start.
         assertTrue(appointment.matches(DATE, LocalTime.of(10, 30)));
-        assertFalse(appointment.matches(DATE, LocalTime.of(10, 50)));
+        assertFalse(appointment.matches(DATE, LocalTime.of(10, 31)));
         assertFalse(appointment.matches(DATE, LocalTime.of(10, 29)));
         assertFalse(appointment.matches(DATE, LocalTime.of(12, 0)));
         assertFalse(appointment.matches(new AppointmentDate("19-09-2026"), LocalTime.of(10, 30)));
@@ -205,6 +215,7 @@ public class AppointmentTest {
 
     @Test
     public void equals_eachFieldParticipatesInEquality() {
+        // Each independently changed field is a distinct equality fault; other fields stay valid and unchanged.
         Appointment appointment = create("10:30", "12:00");
         assertTrue(appointment.equals(appointment));
         assertFalse(appointment.equals(null));
