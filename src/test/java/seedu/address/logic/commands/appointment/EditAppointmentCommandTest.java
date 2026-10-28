@@ -335,13 +335,10 @@ public class EditAppointmentCommandTest {
         EditAppointmentCommand.EditAppointmentDescriptor startAfterEnd =
                 new EditAppointmentCommand.EditAppointmentDescriptor();
         startAfterEnd.setStartTime(new StartTime("11:30"));
-        for (EditAppointmentCommand.EditAppointmentDescriptor descriptor : List.of(endEqualsStart, endBeforeStart,
-                startEqualsEnd, startAfterEnd)) {
-            assertFailure(new EditAppointmentCommand(ORIGINAL_DATE, ORIGINAL_START, descriptor, CLOCK),
-                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
-            assertFailure(new EditAppointmentCommand(Index.fromOneBased(1), descriptor, CLOCK),
-                    EditAppointmentCommand.MESSAGE_INVALID_DURATION);
-        }
+        assertInvalidTiming(endEqualsStart, EditAppointmentCommand.MESSAGE_INVALID_END_TIME);
+        assertInvalidTiming(endBeforeStart, EditAppointmentCommand.MESSAGE_INVALID_END_TIME);
+        assertInvalidTiming(startEqualsEnd, EditAppointmentCommand.MESSAGE_INVALID_START_TIME);
+        assertInvalidTiming(startAfterEnd, EditAppointmentCommand.MESSAGE_INVALID_START_TIME);
     }
     //@@author
     //@@author chunghean
