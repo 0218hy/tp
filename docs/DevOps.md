@@ -42,6 +42,11 @@ This project uses GitHub Actions for CI. The necessary workflow configuration fi
 
 As part of CI, Gradle generates JaCoCo coverage reports from the tests, and CI uploads the coverage data to Codecov. Codecov then provides information about test coverage.
 
+The build runs JavaFX UI tests on Linux, macOS, and Windows. The `check` task fails if any of the six UI test classes
+listed in the [Testing guide](Testing.md#javafx-ui-tests-on-supported-platforms) has no results or skipped tests.
+Codecov receives the Linux job's report; a skipped test does not contribute execution data and must not be counted as
+validated behavior on any platform.
+
 However, because Codecov is known to run into intermittent problems (e.g., report upload fails) due to issues on the Codecov service side, the CI is configured to pass even if the Codecov task failed. Therefore, developers are advised to check the code coverage levels periodically and take corrective actions if the coverage level falls below desired levels.
 
 To enable Codecov for forks of this project, follow the steps given in [this se-edu guide](https://se-education.org/guides/tutorials/codecov.html).

@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import javafx.css.PseudoClass;
 import javafx.scene.control.ScrollPane;
@@ -16,7 +14,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-@EnabledOnOs(OS.LINUX)
 public class ResultDisplayTest {
 
     //@@author khangsian0412

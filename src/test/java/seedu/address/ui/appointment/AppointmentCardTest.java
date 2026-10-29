@@ -9,8 +9,6 @@ import static seedu.address.testutil.TypicalClients.ALICE;
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -23,7 +21,6 @@ import seedu.address.model.appointment.StartTime;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
-@EnabledOnOs(OS.LINUX)
 public class AppointmentCardTest {
 
     @Test

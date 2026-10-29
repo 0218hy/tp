@@ -11,6 +11,7 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.pet.EditPetCommand;
@@ -189,15 +190,21 @@ public class EditPetCommandParser implements Parser<EditPetCommand> {
     }
 
     /**
-     * Returns whether the raw command arguments contain a prefix unsupported by {@code edit-pet}.
-     *
-     * @param args the raw command arguments to inspect
-     * @return {@code true} if an unsupported prefix is present
+     * Returns whether an unsupported prefix appears outside the requirements value.
+     * Prefix-like text after {@code r/} remains part of the requirements until another supported prefix starts.
      */
     private boolean hasUnknownPrefix(String args) {
-        return PARAMETER_PREFIX_PATTERN.matcher(args).results()
-                .map(match -> match.group().trim())
-                .anyMatch(prefix -> !SUPPORTED_PREFIXES.contains(prefix));
+        Matcher matcher = PARAMETER_PREFIX_PATTERN.matcher(args);
+        boolean isReadingRequirements = false;
+        while (matcher.find()) {
+            String prefix = matcher.group().trim();
+            if (SUPPORTED_PREFIXES.contains(prefix)) {
+                isReadingRequirements = prefix.equals(PREFIX_REQUIREMENTS.toString());
+            } else if (!isReadingRequirements) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

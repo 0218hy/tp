@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,7 +17,6 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
-@EnabledOnOs(OS.LINUX)
 public class PetListPanelTest {
 
     //@@author chunghean

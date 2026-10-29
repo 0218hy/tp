@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 //@@author
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,7 +40,6 @@ import seedu.address.ui.appointment.AppointmentListPanel;
 import seedu.address.ui.client.ClientListPanel;
 import seedu.address.ui.pet.PetListPanel;
 
-@EnabledOnOs(OS.LINUX)
 public class MainWindowTest {
 
     //@@author anderschow

@@ -24,6 +24,8 @@ public class CommandBox extends UiPart<Region> {
     private final CommandExecutor commandExecutor;
     private final List<String> commandHistory = new ArrayList<>();
     private int historyIndex;
+    private String commandDraft = "";
+    private boolean isCommandDraftDisplayed;
 
     @FXML
     private TextField commandTextField;
@@ -51,6 +53,8 @@ public class CommandBox extends UiPart<Region> {
 
         commandHistory.add(commandText);
         historyIndex = commandHistory.size();
+        commandDraft = "";
+        isCommandDraftDisplayed = false;
 
         try {
             commandExecutor.execute(commandText);
@@ -63,7 +67,7 @@ public class CommandBox extends UiPart<Region> {
     //@@author khangsian0412
     /**
      * Loads earlier or later submitted commands when the user presses the Up or Down arrow key.
-     * The history stops at its oldest entry and at the blank position after its newest entry.
+     * The history stops at its oldest entry; moving past its newest entry restores a saved draft.
      */
     private void handleHistoryNavigation(KeyEvent event) {
         if (commandHistory.isEmpty()) {
@@ -71,30 +75,41 @@ public class CommandBox extends UiPart<Region> {
         }
 
         if (event.getCode() == KeyCode.UP) {
-            saveCurrentCommandBeforeLoadingPrevious();
+            saveCurrentCommandBeforeNavigating();
             loadPreviousCommand();
             event.consume();
         } else if (event.getCode() == KeyCode.DOWN) {
+            saveCurrentCommandBeforeNavigating();
             loadNextCommand();
             event.consume();
         }
     }
 
     /**
-     * Saves a non-empty command being drafted before navigating away from it.
-     * An unchanged recalled command is already present in the history and is not added again.
+     * Saves an edited or unfinished command separately before navigating away from it.
+     * An unchanged recalled command is already present in the history and is not saved as a draft.
      */
-    private void saveCurrentCommandBeforeLoadingPrevious() {
+    private void saveCurrentCommandBeforeNavigating() {
         String currentCommand = commandTextField.getText();
         boolean isAtBlankPosition = historyIndex == commandHistory.size();
-        int currentEntryIndex = isAtBlankPosition ? commandHistory.size() - 1 : historyIndex;
-        boolean isNewOrEditedCommand = !currentCommand.equals(commandHistory.get(currentEntryIndex));
-        if (currentCommand.isEmpty() || !isNewOrEditedCommand) {
+        if (isAtBlankPosition) {
+            if (isCommandDraftDisplayed) {
+                commandDraft = currentCommand;
+                return;
+            }
+
+            boolean isDifferentFromNewestCommand = !currentCommand.isEmpty()
+                    && !currentCommand.equals(commandHistory.get(commandHistory.size() - 1));
+            if (isDifferentFromNewestCommand) {
+                commandDraft = currentCommand;
+            }
             return;
         }
 
-        commandHistory.add(currentCommand);
-        historyIndex = commandHistory.size() - 1;
+        boolean isEditedHistoryEntry = !currentCommand.equals(commandHistory.get(historyIndex));
+        if (isEditedHistoryEntry) {
+            commandDraft = currentCommand;
+        }
     }
 
     /** Loads the next oldest command, if one exists. */
@@ -104,21 +119,28 @@ public class CommandBox extends UiPart<Region> {
         }
 
         historyIndex--;
+        isCommandDraftDisplayed = false;
         setCommandText(commandHistory.get(historyIndex));
     }
 
-    /** Loads the next newest command, or clears the field after the newest command. */
+    /** Loads the next newer command, then the saved draft, then a blank command field. */
     private void loadNextCommand() {
         if (historyIndex >= commandHistory.size()) {
+            if (isCommandDraftDisplayed) {
+                isCommandDraftDisplayed = false;
+                setCommandText("");
+            }
             return;
         }
 
         historyIndex++;
         if (historyIndex == commandHistory.size()) {
-            setCommandText("");
+            setCommandText(commandDraft);
+            isCommandDraftDisplayed = !commandDraft.isEmpty();
             return;
         }
 
+        isCommandDraftDisplayed = false;
         setCommandText(commandHistory.get(historyIndex));
     }
 

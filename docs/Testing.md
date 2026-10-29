@@ -24,6 +24,20 @@ You can run tests in two ways.
 
 --------------------------------------------------------------------------------------------------------------------
 
+## JavaFX UI tests on supported platforms
+
+The `MainWindowTest`, `ResultDisplayTest`, pet card/list, and appointment card/list tests run on Linux, macOS, and
+Windows. They require a working graphical environment. Run `./gradlew clean check` in a macOS desktop session,
+`gradlew.bat clean check` on Windows, or `xvfb-run --auto-servernum ./gradlew clean check` on headless Linux.
+The CI workflow runs these checks on all three platforms and provides Xvfb on Linux.
+
+The `check` task verifies that all six UI test classes ran at least one test and skipped none. Inspect
+`build/reports/tests/test/index.html` or the `tests` and `skipped` attributes in
+`build/test-results/test/TEST-<fully-qualified-class-name>.xml` for the result of an individual class. A skipped
+test has not validated its UI behavior and does not contribute execution data to the coverage report.
+
+--------------------------------------------------------------------------------------------------------------------
+
 ## Types of tests
 
 This project has three types of tests:
