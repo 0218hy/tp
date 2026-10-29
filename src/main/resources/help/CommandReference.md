@@ -29,6 +29,7 @@ Edit client
   edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...
   Restrictions:
     Choose one target: a positive, one-based INDEX in the displayed client list, or the client's current 8-digit phone starting with 8 or 9. Index editing requires the client panel; phone lookup searches all clients.
+    INDEX follows the displayed filtered and sorted order. Phone lookup works for hidden clients and from other panels. Successful edits display the client panel and preserve its active filter; a client that no longer matches disappears from the displayed list.
     Supply at least one update. n/, p/, e/, and a/ follow the add-client field rules. A changed phone or email must remain unique.
     Repeat t/ to replace tags; use t/ alone to clear them. Omit t/ to keep existing tags.
     Each single-valued prefix may appear once. Client edits update linked pet owners. Linked ongoing and future appointments show updated owner details; completed appointments keep recorded details except for a changed phone identifier. An appointment is completed if its end date and time are at or before the edit time in Singapore time. Appointment dates, times, services and other pet details remain unchanged.

@@ -73,6 +73,28 @@ public class LogicManagerTest {
 
     //@@author anderschow
     @Test
+    public void execute_emailDomainCaseEdit_persistsSpellingAndSkipsExactNoOp() throws Exception {
+        logic.execute("add-client n/Alice Tan i/91234567 e/alice@example.com a/123 Test Road");
+        String edit = "edit-client i/91234567 e/alice@EXAMPLE.COM";
+        logic.execute(edit);
+        assertEquals("alice@EXAMPLE.COM", model.getBubuBook().getClientList().getFirst().getEmail().value);
+        Path savedFile = temporaryFolder.resolve("bububook.json");
+        ReadOnlyBubuBook reloaded = new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow();
+        assertEquals("alice@EXAMPLE.COM", reloaded.getClientList().getFirst().getEmail().value);
+
+        assertThrows(CommandException.class, AddClientCommand.MESSAGE_DUPLICATE_EMAIL, () -> logic.execute(
+                "add-client n/Bob Tan i/92345678 e/alice@example.com a/456 Test Road"));
+        assertEquals(1, model.getBubuBook().getClientList().size());
+
+        java.nio.file.attribute.FileTime sentinel = java.nio.file.attribute.FileTime.fromMillis(1000000);
+        java.nio.file.Files.setLastModifiedTime(savedFile, sentinel);
+        String saved = java.nio.file.Files.readString(savedFile);
+        logic.execute(edit);
+        assertEquals(sentinel, java.nio.file.Files.getLastModifiedTime(savedFile));
+        assertEquals(saved, java.nio.file.Files.readString(savedFile));
+    }
+
+    @Test
     public void execute_editClientIndex_requiresClientPanel() throws Exception {
         model.addClient(ALICE);
         for (String listCommand : new String[]{"list-pets", "list-appointments"}) {
@@ -81,8 +103,36 @@ public class LogicManagerTest {
             assertEquals(ALICE, model.getBubuBook().getClientList().get(0));
         }
         logic.execute("list-clients");
-        logic.execute("edit-client 1 n/Zoe Tan");
-        assertEquals("Zoe Tan", model.getFilteredClientList().get(0).getName().fullName);
+        CommandResult result = logic.execute("edit-client 1 n/Zoe Tan");
+        Client editedClient = new ClientBuilder(ALICE).withName("Zoe Tan").build();
+        assertEquals(List.of(editedClient), model.getBubuBook().getClientList());
+        assertEquals(List.of(editedClient), model.getFilteredClientList());
+        assertEquals(String.format(EditClientCommand.MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),
+                result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
+    }
+
+    @Test
+    public void execute_revisedClientManualCases_matchFeedbackAndPreserveRecords() throws Exception {
+        model.addClient(ALICE);
+        CommandResult result = logic.execute("list-clients q/zoe!");
+        assertEquals("No clients match \"zoe!\".", result.getFeedbackToUser());
+        assertEquals(CommandResult.DisplayType.CLIENTS, result.getDisplayType());
+        assertTrue(model.getFilteredClientList().isEmpty());
+        assertEquals(List.of(ALICE), model.getBubuBook().getClientList());
+        for (String query : List.of("list-clients q/", "list-clients q/   ")) {
+            assertThrows(ParseException.class, ListClientsCommand.MESSAGE_INVALID_KEYWORD, () -> logic.execute(query));
+            assertEquals(List.of(ALICE), model.getBubuBook().getClientList());
+        }
+        String[] commands = {"edit-client 0 n/Zoe Tan", "edit-client n/Zoe Tan", "edit-client i/ n/Zoe Tan"};
+        String[] messages = {"Index must be a positive integer.",
+            "Missing client selector. Use INDEX or i/CURRENT_PHONE.",
+            "Current phone selector (i/) is blank. Use i/CURRENT_PHONE."};
+        for (int i = 0; i < commands.length; i++) {
+            String command = commands[i];
+            assertThrows(ParseException.class, messages[i], () -> logic.execute(command));
+            assertEquals(List.of(ALICE), model.getBubuBook().getClientList());
+        }
     }
 
     @Test

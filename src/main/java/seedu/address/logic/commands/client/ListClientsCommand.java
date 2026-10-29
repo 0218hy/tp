@@ -3,6 +3,7 @@ package seedu.address.logic.commands.client;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_CLIENTS;
 
+import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -68,6 +69,7 @@ public class ListClientsCommand extends Command {
 
     /**
      * Checks whether the client's name, phone, email or address contains the search keyword, ignoring case.
+     * Name searches use NFC normalization, consistent with client-name storage.
      * Only called when this command has a non-null keyword.
      *
      * @param client Client whose contact details are searched.
@@ -75,7 +77,8 @@ public class ListClientsCommand extends Command {
      */
     private boolean matchesKeyword(Client client) {
         String query = keyword.toLowerCase(Locale.ROOT);
-        return client.getName().fullName.toLowerCase(Locale.ROOT).contains(query)
+        String nameQuery = Normalizer.normalize(keyword, Normalizer.Form.NFC).toLowerCase(Locale.ROOT);
+        return client.getName().fullName.toLowerCase(Locale.ROOT).contains(nameQuery)
                 || client.getPhone().value.toLowerCase(Locale.ROOT).contains(query)
                 || client.getEmail().value.toLowerCase(Locale.ROOT).contains(query)
                 || client.getAddress().value.toLowerCase(Locale.ROOT).contains(query);

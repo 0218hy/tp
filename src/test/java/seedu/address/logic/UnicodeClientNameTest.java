@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -19,6 +20,25 @@ import seedu.address.storage.JsonBubuBookStorage;
 public class UnicodeClientNameTest {
     @TempDir
     public Path testFolder;
+
+    @Test
+    public void addAndSearch_canonicallyEquivalentNames_matchIgnoringCase() throws Exception {
+        BuBuParser parser = new BuBuParser();
+        for (String name : List.of("Jos\u00e9 Tan", "Jose\u0301 Tan")) {
+            Model model = new ModelManager();
+            parser.parseCommand("add-client n/" + name
+                    + " i/84445555 e/li@example.com a/123 Test Road").execute(model);
+            for (String query : List.of("Jos\u00e9 Tan", "Jose\u0301 Tan", "JOS\u00c9 TAN", "JOSE\u0301 TAN",
+                    "se\u0301")) {
+                parser.parseCommand("list-clients q/" + query).execute(model);
+                assertEquals(model.getBubuBook().getClientList(), model.getFilteredClientList());
+            }
+            for (String query : List.of("Jose Tan", "Jos\u00e8 Tan")) {
+                parser.parseCommand("list-clients q/" + query).execute(model);
+                assertEquals(List.of(), model.getFilteredClientList());
+            }
+        }
+    }
 
     @Test
     public void addAndEdit_unicodeNames_surviveStorageRoundTrip() throws Exception {

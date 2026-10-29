@@ -23,6 +23,16 @@ public class ListClientsCommandTest {
 
     //@@author anderschow
     @Test
+    public void execute_emailQuery_preservesLiteralUnicodeMatching() {
+        Client sam = new ClientBuilder().withName("Sam Tan").withEmail("cafe\u0301@example.com").build();
+        model.addClient(sam);
+        new ListClientsCommand("CAFE\u0301").execute(model);
+        assertEquals(List.of(sam), model.getFilteredClientList());
+        new ListClientsCommand("CAF\u00c9").execute(model);
+        assertEquals(List.of(), model.getFilteredClientList());
+    }
+
+    @Test
     public void execute_queryWithContactPunctuation_matchesLiteralSubstring() throws Exception {
         Client sam = new ClientBuilder().withName("Sam Tan").withPhone("89998888")
                 .withEmail("sam+grooming_test!/care@example.com").withAddress("10 Sunset Road, #01-02").build();

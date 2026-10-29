@@ -234,6 +234,7 @@ How the parsing works:
 Index-based commands accept exactly one positive integer index:
 
 * `delete-client INDEX` uses the currently displayed client list.
+* `edit-client INDEX ...` uses the currently displayed client list, including its active filter and sort order.
 * `delete-pet INDEX` uses the currently displayed pet list.
 * `delete-appointment INDEX` uses the currently displayed appointment list, whether it is the ongoing/future view or a
   date-filtered view.
@@ -243,21 +244,26 @@ Index-based commands accept exactly one positive integer index:
   `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
   search the saved BubuBook instead of relying on the displayed list.
 
-`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion or appointment edit when the
+`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion or edit when the
 corresponding record list is not displayed. This prevents an index from being interpreted against a different record type.
 
-#### Identifier-based client editing
+#### Client editing by displayed index or phone number
 
 The following sequence diagram shows editing a client using their current phone number:
 
 ![Sequence diagram for editing a client by phone number](images/EditClientSequenceDiagram.png)
 
-`BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser requires `i/CURRENT_PHONE` and at least
-one update field. `i/` selects the existing client; `p/` supplies a replacement phone number. Names, emails,
-addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is rejected.
+`BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser accepts either a positive, one-based
+`INDEX` or `i/CURRENT_PHONE`, and requires at least one update field. Supplying both selectors is rejected.
+For example, `edit-client 1 n/Zoe Tan` edits the first displayed client, while
+`edit-client i/91234567 n/Zoe Tan` selects a client by their current phone number.
+`p/` supplies a replacement phone number. Names, emails, addresses, and tags use `n/`, `e/`, `a/`, and `t/`.
 
-`EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
-or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
+For index selection, `LogicManager` requires the client panel to be displayed. `EditClientCommand` selects from
+`Model.getFilteredClientList()` in its displayed order, including any active search filter and alphabetical sorting.
+An out-of-range index is rejected without changing records. For phone selection, the command searches all saved
+clients independently of the displayed panel or search filter, so hidden clients can still be edited.
+It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
 `BubuBook#setClient` replaces the client, refreshes pet owner profiles, and calls `AppointmentList.updateOwner`.
 Linked ongoing and future appointment owner snapshots receive the edited client details. Completed snapshots retain
 their recorded details except for a changed phone number. Completion means the appointment's end date and time are
@@ -267,8 +273,8 @@ reused when it would make a registered client ambiguous with a different histori
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
 Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
-records and restores the previous records if saving fails. No client-panel guard is needed because selection does
-not depend on a displayed index.
+records and restores the previous records if saving fails. An edited client can disappear from the displayed list
+if the updated details no longer match its active filter. Only the phone-selector form bypasses the client-panel guard.
 
 #### Identifier-based pet editing
 
@@ -1141,6 +1147,11 @@ testers are expected to do more *exploratory* testing.
       Expected: All clients with `Road` anywhere in their name, phone, email, or address are displayed alphabetically.
       The status message reports the number of matches. This includes Amelia Lim and Zoe Tan from the adding-client tests.
 
+   6. Prerequisites: No client's name, phone, email, or address contains the literal substring `zoe!`.
+      Test case: `list-clients q/zoe!`<br>
+      Expected: The query is accepted because punctuation is supported. The client panel shows an empty list and
+      the status message is `No clients match "zoe!".` All saved client records remain unchanged.
+
 3. Handling no matches and restoring the full list
 
    1. Prerequisites: No client's contact details contain `zzzznomatch`.
@@ -1157,8 +1168,9 @@ testers are expected to do more *exploratory* testing.
 
 4. Rejecting invalid search input
 
-   1. Test case: `list-clients q/`, `list-clients q/   `, or `list-clients q/zoe!`<br>
-      Expected: The command is rejected with `Search keyword must be 1-60 characters and use valid text characters.`
+   1. Test case: `list-clients q/` or `list-clients q/   `<br>
+      Expected: No client records change. The command is rejected with
+      `Search keyword must be 1-60 characters, not blank, and contain no control characters.`
 
    2. Test case: Enter `list-clients q/` followed by 60 consecutive `a` characters, then repeat with 61.<br>
       Expected: The 60-character keyword is accepted and reports matching clients or no matches. The 61-character
@@ -1172,7 +1184,7 @@ testers are expected to do more *exploratory* testing.
 
 ### Editing a client
 
-1. Identifying a client independently of the displayed list
+1. Identifying a client by current phone number or displayed index
 
    1. Prerequisites: A saved client uses phone `91234567`. Note their contact details and tags.
 
@@ -1186,10 +1198,19 @@ testers are expected to do more *exploratory* testing.
    4. Test case: Run `list-appointments`, then `edit-client i/91234567 n/Zoe Lim`.<br>
       Expected: The edit succeeds and the client list replaces the appointment panel.
 
+   5. Prerequisites: At least one client is saved. Run `list-clients` to clear any search filter and display the
+      client panel. Note the details of the client at displayed index 1.
+      Test case: `edit-client 1 n/Zoe Tan`<br>
+      Expected: The first displayed client's name becomes Zoe Tan, with their phone, email, address and tags
+      unchanged. Other clients remain unchanged. The status message begins with `Edited client:` and contains
+      the updated client details. The client panel remains displayed; the index refers to the displayed order.
+
 2. Rejecting invalid edits
 
-   1. Test case: `edit-client 1 n/Zoe Tan`, `edit-client n/Zoe Tan`, or `edit-client i/ n/Zoe Tan`<br>
-      Expected: No client changes. An invalid-command-format message and usage are shown.
+   1. Test case: `edit-client 0 n/Zoe Tan`, `edit-client n/Zoe Tan`, or `edit-client i/ n/Zoe Tan`<br>
+      Expected: No client changes. The respective messages are `Index must be a positive integer.`,
+      `Missing client selector. Use INDEX or i/CURRENT_PHONE.`, and
+      `Current phone selector (i/) is blank. Use i/CURRENT_PHONE.`
 
    2. Test case: `edit-client i/91234567`, `edit-client i/91234567 p/123`, or
       `edit-client i/91234567 n/Zoe n/Amy`<br>
