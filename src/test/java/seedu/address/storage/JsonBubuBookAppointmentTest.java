@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -269,7 +271,8 @@ public class JsonBubuBookAppointmentTest {
         storage.saveBubuBook(new BubuBook());
         assertEquals(new BubuBook(), storage.readBubuBook().orElseThrow());
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
+            assertEquals(Set.of(storage.getBubuBookFilePath(), temporaryFolder.resolve("bububook.json.lock")),
+                    paths.collect(Collectors.toSet()));
         }
     }
 
@@ -328,7 +331,8 @@ public class JsonBubuBookAppointmentTest {
         assertThrows(IOException.class, () -> storage.saveBubuBook(new BubuBook()));
         assertEquals("keep", Files.readString(marker));
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
+            assertEquals(Set.of(storage.getBubuBookFilePath(), temporaryFolder.resolve("bububook.json.lock")),
+                    paths.collect(Collectors.toSet()));
         }
     }
 

@@ -767,6 +767,16 @@ Clients, pets, and appointments are saved together in `data/bububook.json` autom
 If saving fails, BuBu restores the previous records and displays an error. The `list-pets` and `list-appointments`
 commands only update the display and do not save the file.
 
+If another BuBu window changes the same data file, your next change is rejected with
+`Records changed outside this BuBu window. Close and reopen BuBu, then retry your command.`
+The other window's saved records are preserved, and your attempted change is undone in memory.
+Reopen the affected window to load the latest records before entering the command again.
+If another window is still saving, BuBu instead asks you to retry your command.
+
+BuBu keeps a small `data/bububook.json.lock` file beside the records to coordinate saves between windows.
+Leave it in place while BuBu is open. It is normal for this file to remain after closing the app;
+the operating system releases the lock when the save finishes or the process exits.
+
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.

@@ -383,6 +383,18 @@ preferences are loaded separately.
 
 #### Saving and rollback
 
+`JsonBubuBookStorage` remembers the exact bytes from each successful read or save, keyed by canonical file path.
+A missing file is recorded separately from an existing file; saving over an existing file without reading it is
+rejected. Before replacing records, storage acquires an operating-system lock on `bububook.json.lock` and checks
+that the current bytes still match. The check and replacement share the same lock, preventing two BuBu processes
+from both accepting a stale version. Saves in the same JVM are serialized before opening lock channels.
+The sidecar file remains on disk so all writers keep using the same lock; the lock itself is released after saving.
+
+A changed or deleted file raises `RecordSaveConflictException` and tells the user to reopen BuBu. A busy lock asks
+the user to retry. `LogicManager` preserves these messages for every command and restores the pre-command records.
+Only a successful replacement updates the remembered version. Manual file edits must still be made with BuBu closed,
+because external editors do not participate in this locking protocol.
+
 When saving data:
 
 * `JsonBubuBookStorage` serializes the complete book and writes it to a temporary file.
