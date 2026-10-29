@@ -93,4 +93,11 @@ public class ListPetsCommandParserTest {
         // EP: null command arguments
         assertThrows(NullPointerException.class, () -> parser.parse(null));
     }
+
+    @Test
+    public void parse_tabBeforePrefixInsidePhone_reportsInvalidPhone() {
+        // EP: a tab does not start another field; the entire phone value is invalid
+        assertThrows(ParseException.class, ListPetsCommandParser.MESSAGE_INVALID_OWNER, () ->
+                parser.parse("i/9123\tp/Mochi"));
+    }
 }

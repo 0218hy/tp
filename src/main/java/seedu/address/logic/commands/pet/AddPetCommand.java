@@ -8,7 +8,9 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_REQUIREMENTS;
 import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_SPECIES;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -41,6 +43,8 @@ public class AddPetCommand extends Command {
     public static final String MESSAGE_SUCCESS = "Pet added: %s (%s) under %s.";
     public static final String MESSAGE_SUCCESS_WITH_BREED = "Pet added: %s (%s, %s) under %s.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddPetCommand.class);
+
     private final PetName name;
     private final String ownerPhone;
     private final Species species;
@@ -63,6 +67,8 @@ public class AddPetCommand extends Command {
     /**
      * Finds the registered owner, checks for a duplicate pet, and adds the profile.
      *
+     * @param model Non-null model containing the registered clients and saved pets.
+     * @return Feedback describing the added pet and its owner.
      * @throws CommandException if the owner is not registered or already has a pet with this name.
      */
     @Override
@@ -88,6 +94,7 @@ public class AddPetCommand extends Command {
                 return client;
             }
         }
+        logger.fine("Pet addition rejected: owner is not registered.");
         throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
     }
 
@@ -99,6 +106,7 @@ public class AddPetCommand extends Command {
     private void checkForDuplicate(Model model, Pet pet) throws CommandException {
         for (Pet existingPet : model.getBubuBook().getPetList()) {
             if (existingPet.isSamePet(pet)) {
+                logger.fine("Pet addition rejected: owner already has a pet with the same normalized name.");
                 throw new CommandException(String.format(MESSAGE_DUPLICATE_PET, existingPet.getName()));
             }
         }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.client.Client;
+import seedu.address.model.pet.Breed;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 import seedu.address.model.pet.Requirement;
@@ -90,6 +91,7 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_currentPetWithCanonicallyEquivalentOwnerName_returnsOwner() throws Exception {
+        // EP: current-format owner reference uses canonically equivalent Unicode text
         Client owner = new ClientBuilder(ALICE).withName(COMPOSED_OWNER_NAME).build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, DECOMPOSED_OWNER_NAME, owner.getPhone().value,
                 VALID_SPECIES, null, VALID_REQUIREMENT);
@@ -99,6 +101,7 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_legacyPetWithCanonicallyEquivalentOwnerName_returnsOwner() throws Exception {
+        // EP: legacy owner reference uses canonically equivalent Unicode text
         Client owner = new ClientBuilder(ALICE).withName(DECOMPOSED_OWNER_NAME).build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
 
@@ -107,6 +110,7 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_legacyPetWithCanonicallyEquivalentClientNames_throwsAmbiguousOwnerException() {
+        // EP: normalization leaves more than one possible legacy owner
         Client firstCanonicallyEquivalentOwner = new ClientBuilder(ALICE).withName(COMPOSED_OWNER_NAME).build();
         Client secondCanonicallyEquivalentOwner = new ClientBuilder(BOB).withName(DECOMPOSED_OWNER_NAME).build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, VALID_SPECIES, VALID_REQUIREMENT);
@@ -117,12 +121,38 @@ public class JsonAdaptedPetTest {
 
     @Test
     public void toModelType_ownerPhoneAndCanonicallyDifferentName_throwsIllegalValueException() {
+        // EP: matching owner phone with a genuinely different stored name
         Client owner = new ClientBuilder(ALICE).withName("Jose Tan").build();
         JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, COMPOSED_OWNER_NAME, owner.getPhone().value,
                 VALID_SPECIES, null, VALID_REQUIREMENT);
 
         assertThrows(IllegalValueException.class, JsonAdaptedPet.MESSAGE_OWNER_DETAILS_MISMATCH, () ->
                 pet.toModelType(List.of(owner)));
+    }
+    @Test
+    public void toModelType_phoneWithoutOwnerName_returnsRegisteredOwner() throws Exception {
+        // EP: current-format owner is identified by phone alone
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, null, ALICE.getPhone().value,
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+        assertSame(ALICE, pet.toModelType(VALID_CLIENTS).getOwner());
+    }
+
+    @Test
+    public void toModelType_unknownPhone_doesNotFallBackToMatchingName() {
+        // EP: name matches a client, but the supplied phone identifies no registered client
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, "89999999",
+                VALID_SPECIES, null, VALID_REQUIREMENT);
+        assertThrows(IllegalValueException.class, JsonAdaptedPet.MESSAGE_OWNER_NOT_FOUND, () ->
+                pet.toModelType(VALID_CLIENTS));
+    }
+
+    @Test
+    public void toModelType_invalidBreed_throwsIllegalValueException() {
+        // EP: stored optional breed is present but invalid
+        // BVA: one character, immediately below the two-character minimum
+        JsonAdaptedPet pet = new JsonAdaptedPet(VALID_NAME, VALID_OWNER_NAME, ALICE.getPhone().value,
+                VALID_SPECIES, "X", VALID_REQUIREMENT);
+        assertThrows(IllegalValueException.class, Breed.MESSAGE_CONSTRAINTS, () -> pet.toModelType(VALID_CLIENTS));
     }
     // @@author
 

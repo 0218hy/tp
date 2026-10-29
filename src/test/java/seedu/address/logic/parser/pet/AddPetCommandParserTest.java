@@ -112,6 +112,41 @@ public class AddPetCommandParserTest {
     }
 
     @Test
+    public void parse_emptyRequiredValues_reportsMissingField() {
+        // EP: each mandatory prefix is present with an empty value; other fields remain valid
+        // BVA: zero characters after trimming the supplied field value
+        List<String> values = List.of("Mochi", "91234567", "Dog", "Calm with baths");
+        List<String> labels = List.of("PET_NAME", "OWNER_PHONE", "SPECIES", "REQUIREMENTS");
+        for (int index = 0; index < values.size(); index++) {
+            String args = VALID_FIELDS.replace(values.get(index), "   ");
+            String message = String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, labels.get(index));
+            assertThrows(ParseException.class, message, () -> parser.parse(args));
+        }
+    }
+
+    @Test
+    public void parse_emptyOptionalBreed_throwsParseException() {
+        // EP: optional breed is present but blank, rather than omitted
+        // BVA: zero characters after trimming, below the two-character minimum
+        assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
+                parser.parse(VALID_FIELDS + " b/   "));
+    }
+
+    @Test
+    public void parse_validPhoneWithMissingName_reportsMissingName() {
+        // EP: phone syntax is valid; owner existence is checked only during command execution
+        assertThrows(ParseException.class,
+                String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, "PET_NAME"), () ->
+                parser.parse("i/81112222"));
+    }
+
+    @Test
+    public void parse_nullInput_throwsNullPointerException() {
+        // EP: programmer supplies null command arguments
+        assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
     public void parse_eachRequiredFieldMissing_throwsParseException() {
         // EP: each required field omitted in turn
         List<String> fields = List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths");
@@ -229,6 +264,39 @@ public class AddPetCommandParserTest {
         // BVA: 241 characters, immediately above the 240-character maximum
         assertThrows(ParseException.class, Requirement.MESSAGE_CONSTRAINTS, () ->
                 parser.parse(VALID_FIELDS.replace("Calm with baths", "R".repeat(MAX_REQUIREMENT_LENGTH + 1))));
+    }
+
+    @Test
+    public void parse_tabBeforePrefixInsideRequirements_preservesText() throws Exception {
+        // EP: a tab before a supported prefix is requirement text, not a field separator
+        String requirements = "Keep calm\tb/soft x/notes";
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement(requirements));
+
+        assertEquals(expected, parser.parse(VALID_FIELDS.replace("Calm with baths", requirements)));
+    }
+
+    @Test
+    public void parse_tabBetweenFields_reportsInvalidName() {
+        // EP: tabs do not separate fields; the embedded tab remains part of the pet name
+        assertThrows(ParseException.class, PetName.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Mochi\ti/91234567 s/Dog r/Calm with baths"));
+    }
+
+    @Test
+    public void parse_leadingTabBeforeRequirements_createsCommand() throws Exception {
+        // EP: surrounding whitespace is trimmed before both structure validation and tokenization
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement("Needs x/ care"));
+
+        assertEquals(expected, parser.parse("\tr/Needs x/ care p/Mochi i/91234567 s/Dog"));
+    }
+
+    @Test
+    public void parse_spaceBeforeBreedAfterRequirements_checksFollowingPrefixes() {
+        // EP: an ordinary space starts the breed field, so a later unknown prefix is rejected
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
+                parser.parse(VALID_FIELDS + " b/Golden x/notes"));
     }
 
     @Test

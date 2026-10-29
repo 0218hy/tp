@@ -44,7 +44,8 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
     private static final String FIELD_OWNER_IDENTIFIER = "OWNER_PHONE";
     private static final String FIELD_SPECIES = "SPECIES";
     private static final String FIELD_REQUIREMENTS = "REQUIREMENTS";
-    private static final String PARAMETER_PREFIX_REGEX = "(?:^|\\s)[a-zA-Z]/";
+    // Match the ordinary-space separator used by ArgumentTokenizer.
+    private static final String PARAMETER_PREFIX_REGEX = "(?:^| )[a-zA-Z]/";
     private static final int MAX_FIELD_OCCURRENCES = 1;
     private static final Prefix[] PET_FIELD_PREFIXES = {PREFIX_PET_NAME, PREFIX_OWNER_IDENTIFIER,
         PREFIX_SPECIES, PREFIX_BREED, PREFIX_REQUIREMENTS};
@@ -55,15 +56,18 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Parses and validates the supplied pet fields, including the optional breed.
+     * Supplied non-empty values are validated before missing required fields are reported.
      *
-     * @param args The text following the {@code add-pet} command word.
+     * @param args Non-null text following the {@code add-pet} command word.
+     * @return A command whose owner existence and duplicate pet checks are deferred until execution.
      * @throws ParseException if the command structure or a field value is invalid.
      */
     @Override
     public AddPetCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + args.trim(), PET_FIELD_PREFIXES);
-        validateStructure(args, fields);
+        String input = args.trim();
+        ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + input, PET_FIELD_PREFIXES);
+        validateStructure(input, fields);
 
         String nameValue = getFieldValue(fields, PREFIX_PET_NAME);
         String ownerPhoneValue = getFieldValue(fields, PREFIX_OWNER_IDENTIFIER);
@@ -133,7 +137,10 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         return new Requirement(value);
     }
 
-    /** Returns the supplied field value, or an empty string if the field is missing. */
+    /**
+     * Returns the supplied field value, or an empty string if the field is missing.
+     * Repeated fields must have been rejected by structure validation.
+     */
     private String getFieldValue(ArgumentMultimap fields, Prefix prefix) {
         assert fields.getAllValues(prefix).size() <= MAX_FIELD_OCCURRENCES
                 : "Repeated fields must be rejected before reading their values";
@@ -207,7 +214,7 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Returns whether the input contains an unsupported parameter prefix outside the requirements value.
-     * Prefix-like text after {@code r/} is treated as part of the requirements until another supported prefix starts.
+     * After {@code r/}, only a supported prefix preceded by an ordinary space starts another field.
      */
     private boolean hasUnknownPrefix(String args) {
         Matcher matcher = PARAMETER_PREFIX_PATTERN.matcher(args);

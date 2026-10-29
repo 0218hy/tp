@@ -383,7 +383,7 @@ Storage reconstructs the saved data in the following order:
 
 Loading fails if required lists or fields are missing, records are invalid, clients or pets are duplicated, or
 appointments overlap. If the data file is missing, BuBu starts with sample data. If it is unreadable, BuBu starts
-with an empty in-memory book and blocks commands to prevent that empty book from overwriting the file. User
+with an empty in-memory book and blocks commands other than `help` to prevent that empty book from overwriting the file. User
 preferences are loaded separately.
 
 #### Saving and rollback

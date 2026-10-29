@@ -96,7 +96,7 @@ displayed, the deletion is rejected rather than applying the index to another li
 
 ### Shared error behavior
 
-If the data file is invalid at startup, commands are blocked with
+If the data file is invalid at startup, commands other than `help` are blocked with
 `Unable to verify existing records. Please contact support.` Correct the file and restart BuBu before continuing.
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
@@ -135,7 +135,7 @@ help
 The command makes no changes when it cannot be completed.
 
 * `help` does not save records and does not require write access to the data file.
-* `Unable to verify existing records. Please contact support.` — commands are blocked if the data file was found to be invalid at startup.
+* `help` remains available even when an invalid data file prevents record commands from running.
 
 ### Adding a client: `add-client`
 
@@ -341,6 +341,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 * `b/BREED` — optional; 2–50 letters, digits, spaces, apostrophes, hyphens or full stops. Omit it when unknown; an empty supplied value is invalid.
 * `r/REQUIREMENTS` — required; 5–240 characters and may contain `/`, e.g. `shampoo/conditioner`. A space followed by a recognised prefix starts another field.
 * Each prefix may appear only once. Under one owner, pet names must be unique after ignoring case and extra whitespace. Different owners may have pets with the same name.
+* Separate fields with ordinary spaces. Tabs inside the command are part of field values, not field separators.
 
 #### Examples
 
@@ -351,7 +352,7 @@ add-pet p/PET_NAME i/OWNER_IDENTIFIER s/SPECIES [b/BREED] r/REQUIREMENTS
 
 * On success, BuBu displays `Pet added: PET_NAME (SPECIES, BREED) under OWNER.` The breed is omitted from the message when not supplied.
 * The active pet filter is preserved. A new pet appears only if it matches the filter. The client filter and selected panel are unchanged; use `list-pets` to view all pets.
-* Changes are saved automatically. A save failure restores the previous records and displays `Unable to save a pet. Please try again.`
+* Changes are saved automatically. A save failure restores the previous records in memory and displays one of the save-error messages below.
 
 #### Error handling
 
@@ -360,10 +361,14 @@ The command makes no changes when it cannot be completed.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a name, owner phone, species, breed or requirement is invalid.
 * After the command structure is accepted, supplied non-empty fields are validated before missing fields are reported.
+* `Missing required field: FIELD.` followed by the command format and example — a mandatory field is omitted or blank.
+  The owner is looked up only after all required fields are supplied and their formats are valid.
 * `Invalid command format!` followed by the `add-pet` usage and example — unsupported prefixes or text outside a field are supplied.
 * `No saved client has this phone number. Add the client before adding a pet.` — the phone format is valid, but no registered client has that number.
 * `This client already has a pet named PET_NAME.` — the name conflicts with another pet under that owner.
-* `Unable to save a pet. Please try again.` — the updated records could not be saved.
+* `Records changed outside this BuBu window. Close and reopen BuBu, then retry your command.` — the data file changed or was deleted since it was loaded. Reopen BuBu to load the current records before retrying.
+* `Another BuBu window is saving records. Retry your command.` — another save holds the data-file lock. Wait for it to finish, then retry. If the records have changed, BuBu will ask you to reopen the app.
+* `Unable to save a pet. Please try again.` — another storage error prevented saving the updated records.
 
 ### Listing pet profiles: `list-pets`
 

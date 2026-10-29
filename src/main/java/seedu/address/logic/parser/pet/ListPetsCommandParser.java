@@ -27,9 +27,9 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
     private static final int MAX_OWNER_FIELDS = 1;
 
     /**
-     * Matches command-style, single-letter prefixes so unsupported fields are not mistaken for phone text.
+     * Matches single-letter prefixes at the start or after an ordinary space, as in ArgumentTokenizer.
      */
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)[a-zA-Z]/");
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^| )[a-zA-Z]/");
 
     /**
      * Separates a valid phone followed by stray text from a malformed phone number.
@@ -40,7 +40,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
     /**
      * Parses an optional owner identifier and rejects repeated or unsupported fields.
      *
-     * @param args The text following the {@code list-pets} command word.
+     * @param args Non-null text following the {@code list-pets} command word.
      * @return A command for all pets or for the specified owner's pets.
      * @throws ParseException if the command structure or phone number is invalid.
      */
@@ -52,7 +52,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
             return new ListPetsCommand(null);
         }
 
-        // The tokenizer recognizes a prefix only when whitespace precedes it, including the first prefix.
+        // The tokenizer requires an ordinary space before each prefix, including the first prefix.
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + input, PREFIX_OWNER_IDENTIFIER);
         validateStructure(input, fields);
         Phone ownerPhone = parseOwnerPhone(fields);
@@ -78,6 +78,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
 
     /**
      * Parses the owner identifier as a valid Singapore mobile phone number.
+     * Repeated owner identifiers must have been rejected by structure validation.
      *
      * @param fields The tokenized owner identifier fields.
      * @throws ParseException if the phone number is invalid or followed by extra text.
