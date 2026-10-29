@@ -10,8 +10,6 @@ import static seedu.address.testutil.TypicalClients.getTypicalBubuBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -133,11 +131,10 @@ public class DeleteClientCommandTest {
 
     //@@author chunghean
     @Test
-    public void execute_clientWithSamePhoneAsHistoricalOwner_preservesHistoricalAppointment() throws Exception {
-        Client registeredOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
-                .withEmail("bob@example.com").build();
+    public void execute_clientWithChangedEmail_deletesHistoricalAppointmentByPhone() throws Exception {
         Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
                 .withEmail("alice@example.com").build();
+        Client registeredOwner = new ClientBuilder(historicalOwner).withEmail("new@example.com").build();
         Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
         Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
                 new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
@@ -148,11 +145,11 @@ public class DeleteClientCommandTest {
         Model deletionModel = new ModelManager(book, new UserPrefs());
 
         String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
-                Messages.format(registeredOwner), "0 pets", "0 appointments");
+                Messages.format(registeredOwner), "0 pets", "1 appointment");
 
         assertEquals(expectedMessage, new DeleteClientCommand(registeredOwner.getPhone())
                 .execute(deletionModel).getFeedbackToUser());
-        assertEquals(List.of(historicalAppointment), deletionModel.getBubuBook().getAppointmentList());
+        assertTrue(deletionModel.getBubuBook().getAppointmentList().isEmpty());
     }
     //@@author
 

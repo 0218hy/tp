@@ -68,14 +68,12 @@ public class Appointment {
     /**
      * Returns whether this appointment is linked to {@code candidate}.
      *
-     * <p>Phone numbers alone are insufficient because a new client may reuse a phone number found in a
-     * standalone historical snapshot. A matching phone and email identify linked historical snapshots.</p>
+     * <p>The owner's phone is the shared identifier for clients, pets, and appointments. Historical
+     * profile fields, including email, may differ after an edit and do not determine ownership.</p>
      */
     public boolean isForOwner(Client candidate) {
         requireNonNull(candidate);
-        return owner.equals(candidate)
-                || (owner.getPhone().equals(candidate.getPhone())
-                && owner.getEmail().equals(candidate.getEmail()));
+        return owner.getPhone().equals(candidate.getPhone());
     }
     //@@author
 

@@ -64,22 +64,25 @@ public class AppointmentListTest {
 
     //@@author chunghean
     @Test
-    public void updateOwner_samePhoneDifferentOwner_doesNotUpdateHistoricalSnapshot() {
+    public void updateOwner_samePhoneWithChangedEmail_updatesPhoneAndPreservesHistory() {
         Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
                 .withEmail("alice@example.com").build();
         Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
         Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
                 new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
                 Service.FULL_GROOM);
-        Client currentOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
-                .withEmail("bob@example.com").build();
+        Client currentOwner = new ClientBuilder(historicalOwner).withEmail("new@example.com").build();
         Client editedOwner = new ClientBuilder(currentOwner).withPhone("92345678").build();
         AppointmentList appointments = new AppointmentList();
         appointments.setAppointments(List.of(historicalAppointment));
 
         appointments.updateOwner(currentOwner, editedOwner);
 
-        assertSame(historicalAppointment, appointments.getAppointmentList().get(0));
+        Appointment updated = appointments.getAppointmentList().get(0);
+        assertEquals(editedOwner.getPhone(), updated.getOwnerPhone());
+        assertEquals(historicalOwner.getEmail(), updated.getOwner().getEmail());
+        assertEquals(historicalOwner.getName(), updated.getOwner().getName());
+        assertEquals(historicalPet.getRequirement(), updated.getPet().getRequirement());
     }
     //@@author
     //@@author

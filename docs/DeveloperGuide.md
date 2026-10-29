@@ -443,10 +443,20 @@ Client and pet edits refresh the respective participant snapshots in linked ongo
 Completed appointments preserve historical details except for linked owner-phone and pet-name changes. Deleting a
 client or pet removes its related appointments from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
-Loading reuses equal registered objects when available and accepts historical snapshots independently of the
-registered lists. Phone numbers alone are not used to associate a snapshot with a registered client, so a standalone
-snapshot remains distinct even when a registered client has the same phone. Invalid, mismatched, or overlapping records
-are rejected.
+Loading reuses equal registered objects when available and can reconstruct historical snapshots independently of the
+registered lists. This storage capability does not provide a supported JSON import or data-merging workflow.
+Owner identity is the phone number throughout clients, pets, and appointments. `Appointment.isForOwner` compares
+phones; `isForPet` compares the owner phone and normalized pet name. Historical names, emails, and addresses may differ
+from current profile values after edits and do not change identity. Client phone edits propagate the new phone to
+linked pets and appointments, including completed appointments.
+
+BuBu supports records maintained through its commands and unchanged backups of its own saved files. Importing external
+JSON, merging books, and manually modifying records are unsupported. In particular, assigning the same phone to different
+people in manually constructed client and appointment records violates the ownership invariant. Such records may pass
+structural validation; BuBu treats a shared phone as one owner and does not infer separate identities from snapshot
+emails or names. The loader rejects detected invalid fields, duplicate registered clients or pets, mismatched snapshot
+participants, and overlapping appointments, but is not a general-purpose validator for externally constructed books.
+
 Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
 and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
 format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
@@ -460,8 +470,8 @@ on the appointment's end date and time, not its start time:
 | After the edit time (ongoing or future) | Refresh the owner snapshot | Refresh the pet snapshot |
 
 Both paths preserve the appointment date, start/end times and service. Client edits preserve pet details other than
-the pet's owner information; pet edits preserve the appointment's recorded owner details. These rules apply to linked
-snapshots only; an unrelated historical owner is not associated by phone number alone.
+the pet's owner information; pet edits preserve the appointment's recorded owner details. These rules apply to
+appointments linked by the owner's phone, with the normalized pet name additionally identifying the pet.
 
 The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
@@ -975,7 +985,7 @@ Use case ends.
 5.  Should not consume excessive memory, maintaining an active runtime memory footprint below 500 MB under normal operation.
 6.  Should persist all data immediately to the local storage file upon the completion of each mutating command so that data is preserved in the event of an abrupt application exit or crash.
 7.  Should be distributed as a single standalone executable JAR file and run without requiring an external installer, setup wizard, or administrative privileges.
-8.  Should store all application data locally in a human-editable plain-text file without requiring an external database management system.
+8.  Should store all application data locally in a human-readable plain-text file without requiring an external database management system. Record changes are made through BuBu commands; manual file editing and external JSON import are unsupported.
 9.  Should operate completely offline without requiring an active internet connection, cloud services, or external server components.
 10. Should be designed for a single user per instance, relying on the host operating system's user account security without managing separate in-app user accounts or access levels.
 11. Should maintain atomic state updates such that any command that encounters a parsing or execution error leaves stored data completely unmodified.
