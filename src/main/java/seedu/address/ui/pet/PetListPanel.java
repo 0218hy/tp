@@ -3,6 +3,7 @@ package seedu.address.ui.pet;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -29,6 +30,9 @@ public class PetListPanel extends UiPart<Region> {
     /** Custom cell that displays one pet using a {@link PetCard}. */
     class PetListViewCell extends ListCell<Pet> {
         PetListViewCell() {
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            setMaxWidth(Double.MAX_VALUE);
+            setPrefWidth(0);
             indexProperty().addListener((observable, oldIndex, newIndex) -> updateItem(getItem(), isEmpty()));
         }
 
@@ -44,6 +48,7 @@ public class PetListPanel extends UiPart<Region> {
 
             boolean showOwnerHeading = startsOwnerGroup(pet, getIndex());
             PetCard card = new PetCard(pet, getIndex() + 1, showOwnerHeading);
+            card.getRoot().prefWidthProperty().bind(widthProperty());
             setGraphic(card.getRoot());
         }
 
