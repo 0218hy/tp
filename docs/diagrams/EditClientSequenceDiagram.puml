@@ -32,9 +32,9 @@ ec -> model ++: setClient(clientToEdit, editedClient)
 note right of model
   Replace the client, refresh pet owners,
   and update linked appointment phone numbers.
+  The active client filter remains applied.
 end note
 model --> ec --
-ec -> model : updateFilteredClientList(PREDICATE_SHOW_ALL_CLIENTS)
 ec --> logic --: CommandResult (CLIENTS)
 note right of logic
   Save records; restore previous records if saving fails.

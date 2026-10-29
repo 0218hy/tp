@@ -87,6 +87,8 @@ public class Client {
     /**
      * Returns true if both clients have the same identity and data fields.
      * This defines a stronger notion of equality between two clients.
+     * Email spelling is compared exactly so persisted changes are detected;
+     * {@link #isSameClient(Client)} retains domain-insensitive identity comparison.
      */
     @Override
     public boolean equals(Object other) {
@@ -101,7 +103,7 @@ public class Client {
 
         return name.equals(otherClient.name)
                 && phone.equals(otherClient.phone)
-                && email.equals(otherClient.email)
+                && email.value.equals(otherClient.email.value)
                 && address.equals(otherClient.address)
                 && tags.equals(otherClient.tags);
     }
@@ -109,7 +111,7 @@ public class Client {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email.value, address, tags);
     }
 
     @Override

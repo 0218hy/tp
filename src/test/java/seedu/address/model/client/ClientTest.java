@@ -106,6 +106,17 @@ public class ClientTest {
     }
 
     @Test
+    public void equals_emailDomainCase_distinguishesDataButNotIdentity() {
+        Client lower = new ClientBuilder(ALICE).withEmail("alice@example.com").build();
+        Client upper = new ClientBuilder(lower).withEmail("alice@EXAMPLE.COM").build();
+        assertFalse(lower.equals(upper));
+        assertTrue(lower.isSameClient(new ClientBuilder(upper).withPhone(VALID_PHONE_BOB).build()));
+        Client copy = new ClientBuilder(upper).build();
+        assertEquals(upper, copy);
+        assertEquals(upper.hashCode(), copy.hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Client.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
