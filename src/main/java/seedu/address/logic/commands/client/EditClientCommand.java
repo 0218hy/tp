@@ -119,7 +119,9 @@ public class EditClientCommand extends Command {
         }
         Client editedClient = createEditedClient(clientToEdit, editClientDescriptor);
 
-        ClientConflictCheck.validate(model.getBubuBook().getClientList(), editedClient, clientToEdit);
+        //@@author chunghean
+        ClientConflictCheck.validate(model.getBubuBook(), editedClient, clientToEdit);
+        //@@author
 
         model.setClient(clientToEdit, editedClient);
         return new CommandResult(String.format(MESSAGE_EDIT_CLIENT_SUCCESS, Messages.format(editedClient)),

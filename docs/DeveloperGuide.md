@@ -259,6 +259,8 @@ addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is reject
 or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
 `BubuBook#setClient` replaces the client, refreshes pet owner profiles, and propagates a changed phone number to linked
 appointment owner snapshots while retaining their other saved owner details.
+New or changed phone numbers are also checked against historical appointment owner snapshots. A phone number cannot be
+reused when it would make a registered client ambiguous with a different historical owner.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
 Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
@@ -413,7 +415,9 @@ Client edits update linked appointment owner references, while deleting a client
 from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
 Loading reuses equal registered objects when available and accepts historical snapshots independently of the
-registered lists. Invalid, mismatched, or overlapping records are rejected.
+registered lists. Phone numbers alone are not used to associate a snapshot with a registered client, so a standalone
+snapshot remains distinct even when a registered client has the same phone. Invalid, mismatched, or overlapping records
+are rejected.
 Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
 and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
 format contains insufficient information to reconstruct its profile; no placeholder profiles are created.

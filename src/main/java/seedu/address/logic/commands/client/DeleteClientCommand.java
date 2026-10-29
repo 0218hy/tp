@@ -79,9 +79,7 @@ public class DeleteClientCommand extends Command {
 
             clientToDelete = lastShownList.get(targetIndex.getZeroBased());
         } else {
-            //TODO: use SLAP
             clientToDelete = model.getBubuBook().getClientList().stream()
-                    //@@author chunghean
                     .filter(client -> client.getPhone().equals(phoneNumber))
                     .findFirst()
                     .orElseThrow(() -> new CommandException(MESSAGE_CLIENT_NOT_FOUND));
@@ -92,7 +90,8 @@ public class DeleteClientCommand extends Command {
                 .filter(pet -> pet.getOwner().isSameClient(clientToDelete))
                 .count();
         long appointmentCount = model.getBubuBook().getAppointmentList().stream()
-                .filter(appointment -> appointment.getOwnerPhone().equals(clientToDelete.getPhone()))
+                .filter(appointment -> appointment.isForOwner(clientToDelete))
+                //@@author
                 .count();
 
         model.deleteClient(clientToDelete);

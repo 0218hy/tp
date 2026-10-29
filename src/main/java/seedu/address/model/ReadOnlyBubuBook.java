@@ -26,4 +26,9 @@ public interface ReadOnlyBubuBook {
      */
     ObservableList<Appointment> getAppointmentList();
     //@@author
+
+    //@@author chunghean
+    /** Returns whether an appointment snapshot uses the candidate's phone number for a different owner. */
+    boolean hasAppointmentOwnerConflict(Client candidate);
+    //@@author
 }
