@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
@@ -40,7 +41,14 @@ public class JsonUserPrefsStorage {
      * @throws DataLoadingException if the file format is not as expected.
      */
     public Optional<UserPrefs> readUserPrefs(Path prefsFilePath) throws DataLoadingException {
-        return JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        //@@author 0218hy
+        Optional<UserPrefs> prefs = JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        // Field-based deserialization bypasses the non-null check in UserPrefs.setGuiSettings.
+        if (prefs.isPresent() && prefs.get().getGuiSettings() == null) {
+            throw new DataLoadingException(new IllegalValueException("GUI settings must not be null."));
+        }
+        return prefs;
+        //@@author
     }
 
     /**
