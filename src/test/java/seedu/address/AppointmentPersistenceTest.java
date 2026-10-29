@@ -12,6 +12,8 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -213,7 +215,8 @@ public class AppointmentPersistenceTest {
         Model restarted = new MainApp().initModelManager(storage, new UserPrefs());
         assertEquals(new BubuBook(), restarted.getBubuBook());
         try (var paths = Files.list(temporaryFolder)) {
-            assertEquals(List.of(storage.getBubuBookFilePath()), paths.toList());
+            assertEquals(Set.of(storage.getBubuBookFilePath(), temporaryFolder.resolve("bububook.json.lock")),
+                    paths.collect(Collectors.toSet()));
         }
     }
 
@@ -289,6 +292,7 @@ public class AppointmentPersistenceTest {
                 super.saveBubuBook(appointmentBook);
             }
         };
+        failOnce.readBubuBook();
         BubuBook allRecordsBefore = new BubuBook(model.getBubuBook());
         LogicManager failingLogic = logicFor(model, storageWith(failOnce));
         CommandException exception = assertThrows(CommandException.class, () -> failingLogic.execute(COMMAND));
