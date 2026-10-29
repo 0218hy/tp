@@ -62,7 +62,8 @@ public class AddClientCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        ClientConflictCheck.validate(model.getBubuBook().getClientList(), toAdd, null);
+        ClientConflictCheck.validate(model.getBubuBook(), toAdd, null);
+        //@@author
 
         model.addClient(toAdd);
         return new CommandResult(String.format(

@@ -26,7 +26,7 @@ import seedu.address.testutil.ClientBuilder;
 import seedu.address.testutil.PetBuilder;
 
 public class BubuBookIntegrationTest {
-    private final Appointment appointment = createAppointment(ALICE.getPhone(), "Milo",
+    private final Appointment appointment = createAppointment(ALICE, "Milo",
             new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM);
 
     //@@author 0218hy

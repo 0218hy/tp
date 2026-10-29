@@ -55,7 +55,7 @@ public class DeletePetCommand extends Command {
         this.ownerPhone = requireNonNull(ownerPhone);
     }
 
-    //@@author chunghean
+    //@@author
     @Override
     public Optional<CommandResult.DisplayType> getRequiredDisplayType() {
         return targetIndex == null

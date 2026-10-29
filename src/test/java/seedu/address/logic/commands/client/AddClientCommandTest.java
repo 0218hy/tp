@@ -19,12 +19,19 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.BubuBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.appointment.Appointment;
+import seedu.address.model.appointment.AppointmentDate;
+import seedu.address.model.appointment.EndTime;
+import seedu.address.model.appointment.Service;
+import seedu.address.model.appointment.StartTime;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.ClientBuilder;
+import seedu.address.testutil.PetBuilder;
 
 public class AddClientCommandTest {
 
@@ -54,6 +61,28 @@ public class AddClientCommandTest {
         assertThrows(CommandException.class, AddClientCommand.MESSAGE_DUPLICATE_CLIENT, () ->
                 addCommand.execute(modelStub));
     }
+
+    //@@author chunghean
+    @Test
+    public void execute_phoneUsedByDifferentAppointmentOwner_throwsCommandException() {
+        Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
+        Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        BubuBook book = new BubuBook();
+        book.addAppointment(historicalAppointment);
+        Model model = new ModelManager(book, new UserPrefs());
+        Client newOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
+                .withEmail("bob@example.com").build();
+
+        assertThrows(CommandException.class, ClientConflictCheck.MESSAGE_HISTORICAL_PHONE_CONFLICT, () ->
+                new AddClientCommand(newOwner).execute(model));
+        assertTrue(model.getBubuBook().getClientList().isEmpty());
+        assertEquals(List.of(historicalAppointment), model.getBubuBook().getAppointmentList());
+    }
+    //@@author
 
     @Test
     public void equals() {

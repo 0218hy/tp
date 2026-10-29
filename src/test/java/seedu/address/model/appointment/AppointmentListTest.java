@@ -61,6 +61,27 @@ public class AppointmentListTest {
         assertEquals(new Phone("99999999"), appointments.getAppointmentList().get(0).getOwnerPhone());
         assertEquals(new Phone("81234567"), appointments.getAppointmentList().get(1).getOwnerPhone());
     }
+
+    //@@author chunghean
+    @Test
+    public void updateOwner_samePhoneDifferentOwner_doesNotUpdateHistoricalSnapshot() {
+        Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
+        Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        Client currentOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
+                .withEmail("bob@example.com").build();
+        Client editedOwner = new ClientBuilder(currentOwner).withPhone("92345678").build();
+        AppointmentList appointments = new AppointmentList();
+        appointments.setAppointments(List.of(historicalAppointment));
+
+        appointments.updateOwner(currentOwner, editedOwner);
+
+        assertSame(historicalAppointment, appointments.getAppointmentList().get(0));
+    }
+    //@@author
     //@@author
 
     //@@author khangsian0412

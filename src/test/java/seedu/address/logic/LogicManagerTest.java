@@ -135,7 +135,7 @@ public class LogicManagerTest {
     public void execute_clientSaveFailures_preserveCauseAndRestoreRelatedRecords() {
         model.addClient(ALICE);
         model.addPet(new PetBuilder(ALICE).build());
-        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+        model.addAppointment(createAppointment(ALICE, "Milo", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
         String[] commands = {
@@ -410,7 +410,7 @@ public class LogicManagerTest {
         model.addClient(AMY);
         model.addClient(ALICE);
         model.addPet(new PetBuilder(ALICE).build());
-        model.addAppointment(createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate("01-01-9999"),
+        model.addAppointment(createAppointment(ALICE, "Milo", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         logic.execute("list-clients q/" + ALICE.getPhone());
 

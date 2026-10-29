@@ -157,6 +157,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 * Each required prefix may appear only once. Surrounding whitespace is trimmed; blank required values are rejected.
 * Phone numbers and emails must be unique across clients. Email domains are compared case-insensitively, while the local part (before `@`) remains case-sensitive: `alice@example.com` conflicts with `alice@EXAMPLE.COM`, but `Alice@example.com` is distinct. The entered spelling is preserved for display and storage. Names and addresses need not be unique.
 * The same uniqueness rule applies when loading saved data. If an older file contains emails differing only in domain capitalization, loading fails and commands are blocked to protect the original file; no clients are automatically merged or deleted. Back up the file, correct the conflicting contact details in the saved JSON, then restart BuBu.
+* A phone number already present in an unrelated historical appointment owner snapshot cannot be reused for a new client or a changed client phone number. This prevents client edits or deletions from changing another person's historical appointment.
 
 Required-field errors identify the field and distinguish an absent prefix from a blank value. For example, a missing `i/` reports `Phone number (i/) is required. Example: i/91234567.`, while a blank `e/` reports `Email (e/) cannot be blank.` A repeated `n/` reports `Name (n/) was supplied more than once. Keep only one n/ field.` The same wording applies to name, phone, email and address. Repeated `t/` fields remain valid. If multiple fields have errors, correct the reported field and retry.
 
@@ -179,6 +180,7 @@ The command makes no changes when it cannot be completed.
 * Repeated field — `n/`, `i/`, `e/` or `a/` appears more than once.
 * Field validation error — a name, phone number, email, address or tag violates the rules above.
 * `The phone number already belongs to another client.` - choose a different phone number.
+* `The phone number is already used by a different historical appointment owner.` - choose a phone number not present in an unrelated historical appointment.
 * `The email already belongs to another client.` - choose a different email address.
 * `The phone number and email already belong to saved clients.` - change both fields; they may conflict with the same client or two different clients. Clients hidden by filters are checked too.
 * Invalid command format — text appears before the recognised fields.
@@ -241,6 +243,7 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 * `t/TAG` — optional alphanumeric tags replacing all existing tags. Repeat it to supply multiple tags; use `t/` alone to clear tags. Omit it to keep tags.
 * Supply at least one update. Each of `i/`, `n/`, `p/`, `e/` and `a/` may appear only once.
 * A changed phone or email must not belong to another saved client, including clients hidden by a search. Email domains are compared case-insensitively; the local part (before `@`) remains case-sensitive, as for `add-client`.
+* A changed phone must also not reuse the phone number in an unrelated historical appointment owner snapshot.
 * The old `edit` command is unsupported.
 
 Missing selectors are reported separately from blank `i/` selectors. Supply either a displayed index or `i/CURRENT_PHONE`; combining both is rejected. Unexpected positional text is reported separately from invalid numeric indexes. Invalid `i/` values are identified as current-phone errors, while invalid `p/` values are identified as new-phone errors. Both phone values must be eight digits beginning with 8 or 9. Supply at least one update using `n/`, `p/`, `e/`, `a/` or `t/`.
@@ -267,6 +270,7 @@ The command makes no changes when it cannot be completed.
 * Duplicate prefix or field validation error — a single-valued prefix is repeated or a supplied value is invalid.
 * `No saved client has this phone number.` — the current phone does not identify a saved client.
 * `The phone number already belongs to another client.` - choose a different phone number.
+* `The phone number is already used by a different historical appointment owner.` - choose a phone number not present in an unrelated historical appointment.
 * `The email already belongs to another client.` - choose a different email address.
 * `The phone number and email already belong to saved clients.` - change both fields; they may conflict with the same client or two different clients. Clients hidden by filters are checked too.
 * Save failure — the client update was not saved and previous records were restored in memory, including related pet and appointment records. If write access was denied, check write permissions for the data file and folder, then retry. For other storage errors, check that the data folder is available and has free space, then retry. This does not guarantee that the data file on disk was restored.

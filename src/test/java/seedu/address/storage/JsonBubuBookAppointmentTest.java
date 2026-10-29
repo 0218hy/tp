@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -67,6 +68,30 @@ public class JsonBubuBookAppointmentTest {
         assertEquals(book, restored);
         assertSame(restored.getClientList().get(0), restoredAppointment.getOwner());
         assertSame(restored.getPetList().get(0), restoredAppointment.getPet());
+    }
+    //@@author
+
+    //@@author chunghean
+    @Test
+    public void readBubuBook_conflictingRegisteredOwnerSnapshot_preservesDistinctOwner() throws Exception {
+        JsonBubuBookStorage storage = storage("conflicting-owner.json");
+        Client registeredOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
+                .withEmail("bob@example.com").build();
+        Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
+        Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        JsonUtil.saveJsonFile(new JsonSerializableBubuBook(List.of(new JsonAdaptedClient(registeredOwner)),
+                List.of(), List.of(new JsonAdaptedAppointment(historicalAppointment))),
+                storage.getBubuBookFilePath());
+
+        var restored = storage.readBubuBook().orElseThrow();
+
+        assertEquals(List.of(registeredOwner), restored.getClientList());
+        assertEquals(List.of(historicalAppointment), restored.getAppointmentList());
+        assertNotEquals(restored.getClientList().get(0), restored.getAppointmentList().get(0).getOwner());
     }
     //@@author
 

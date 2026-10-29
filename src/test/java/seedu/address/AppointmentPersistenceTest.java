@@ -312,7 +312,7 @@ public class AppointmentPersistenceTest {
 
     private BubuBook historicalBook() {
         BubuBook book = new BubuBook();
-        book.addAppointment(createAppointment(ALICE.getPhone(), "BuBu", new AppointmentDate("01-01-2000"),
+        book.addAppointment(createAppointment(ALICE, "BuBu", new AppointmentDate("01-01-2000"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
         return book;
     }
