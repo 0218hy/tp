@@ -112,6 +112,41 @@ public class AddPetCommandParserTest {
     }
 
     @Test
+    public void parse_emptyRequiredValues_reportsMissingField() {
+        // EP: each mandatory prefix is present with an empty value; other fields remain valid
+        // BVA: zero characters after trimming the supplied field value
+        List<String> values = List.of("Mochi", "91234567", "Dog", "Calm with baths");
+        List<String> labels = List.of("PET_NAME", "OWNER_PHONE", "SPECIES", "REQUIREMENTS");
+        for (int index = 0; index < values.size(); index++) {
+            String args = VALID_FIELDS.replace(values.get(index), "   ");
+            String message = String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, labels.get(index));
+            assertThrows(ParseException.class, message, () -> parser.parse(args));
+        }
+    }
+
+    @Test
+    public void parse_emptyOptionalBreed_throwsParseException() {
+        // EP: optional breed is present but blank, rather than omitted
+        // BVA: zero characters after trimming, below the two-character minimum
+        assertThrows(ParseException.class, Breed.MESSAGE_CONSTRAINTS, () ->
+                parser.parse(VALID_FIELDS + " b/   "));
+    }
+
+    @Test
+    public void parse_validPhoneWithMissingName_reportsMissingName() {
+        // EP: phone syntax is valid; owner existence is checked only during command execution
+        assertThrows(ParseException.class,
+                String.format(AddPetCommandParser.MESSAGE_MISSING_FIELD, "PET_NAME"), () ->
+                parser.parse("i/81112222"));
+    }
+
+    @Test
+    public void parse_nullInput_throwsNullPointerException() {
+        // EP: programmer supplies null command arguments
+        assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
     public void parse_eachRequiredFieldMissing_throwsParseException() {
         // EP: each required field omitted in turn
         List<String> fields = List.of("p/Mochi", "i/91234567", "s/Dog", "r/Calm with baths");

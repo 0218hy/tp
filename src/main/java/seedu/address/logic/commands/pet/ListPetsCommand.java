@@ -42,7 +42,7 @@ public class ListPetsCommand extends Command {
     /**
      * Updates the displayed pet profiles and returns concise feedback.
      *
-     * @param model The model containing the saved owners and pet profiles.
+     * @param model Non-null model containing the saved owners and pet profiles.
      * @return Confirmation that all pets are listed, the match count, or an empty-result message.
      * @throws CommandException if the specified owner phone is not registered.
      */

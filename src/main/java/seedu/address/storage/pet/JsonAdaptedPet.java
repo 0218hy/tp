@@ -61,7 +61,7 @@ public class JsonAdaptedPet {
     }
 
     /**
-     * Converts a given {@code Pet} into this class for Jackson use.
+     * Copies a non-null pet's details and owner identifiers for JSON storage.
      */
     public JsonAdaptedPet(Pet source) {
         name = source.getName().value;
@@ -76,6 +76,8 @@ public class JsonAdaptedPet {
      * Converts the stored fields into a {@code Pet} linked to a registered owner.
      * Uses the owner's phone when present, or the legacy owner name otherwise.
      *
+     * @param clients Non-null list of validated clients with unique phone numbers and no null entries.
+     * @return A pet linked to a client from the supplied list.
      * @throws IllegalValueException if there were any data constraints violated in the adapted pet.
      */
     public Pet toModelType(List<Client> clients) throws IllegalValueException {

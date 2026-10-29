@@ -63,6 +63,8 @@ public class AddPetCommand extends Command {
     /**
      * Finds the registered owner, checks for a duplicate pet, and adds the profile.
      *
+     * @param model Non-null model containing the registered clients and saved pets.
+     * @return Feedback describing the added pet and its owner.
      * @throws CommandException if the owner is not registered or already has a pet with this name.
      */
     @Override

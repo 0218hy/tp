@@ -55,8 +55,10 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
 
     /**
      * Parses and validates the supplied pet fields, including the optional breed.
+     * Supplied non-empty values are validated before missing required fields are reported.
      *
-     * @param args The text following the {@code add-pet} command word.
+     * @param args Non-null text following the {@code add-pet} command word.
+     * @return A command whose owner existence and duplicate pet checks are deferred until execution.
      * @throws ParseException if the command structure or a field value is invalid.
      */
     @Override
@@ -133,7 +135,10 @@ public class AddPetCommandParser implements Parser<AddPetCommand> {
         return new Requirement(value);
     }
 
-    /** Returns the supplied field value, or an empty string if the field is missing. */
+    /**
+     * Returns the supplied field value, or an empty string if the field is missing.
+     * Repeated fields must have been rejected by structure validation.
+     */
     private String getFieldValue(ArgumentMultimap fields, Prefix prefix) {
         assert fields.getAllValues(prefix).size() <= MAX_FIELD_OCCURRENCES
                 : "Repeated fields must be rejected before reading their values";

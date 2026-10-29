@@ -36,7 +36,7 @@ public class ResultDisplay extends UiPart<Region> {
     /**
      * Displays successful command feedback and clears any previous error styling.
      *
-     * @param feedbackToUser Feedback to display.
+     * @param feedbackToUser Non-null feedback to display.
      */
     public void setFeedbackToUser(String feedbackToUser) {
         showFeedback(feedbackToUser, false);
@@ -45,7 +45,7 @@ public class ResultDisplay extends UiPart<Region> {
     /**
      * Displays failed command feedback and clears any previous success styling.
      *
-     * @param feedbackToUser Feedback to display.
+     * @param feedbackToUser Non-null feedback to display.
      */
     public void setErrorFeedbackToUser(String feedbackToUser) {
         showFeedback(feedbackToUser, true);

@@ -40,7 +40,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
     /**
      * Parses an optional owner identifier and rejects repeated or unsupported fields.
      *
-     * @param args The text following the {@code list-pets} command word.
+     * @param args Non-null text following the {@code list-pets} command word.
      * @return A command for all pets or for the specified owner's pets.
      * @throws ParseException if the command structure or phone number is invalid.
      */
@@ -78,6 +78,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
 
     /**
      * Parses the owner identifier as a valid Singapore mobile phone number.
+     * Repeated owner identifiers must have been rejected by structure validation.
      *
      * @param fields The tokenized owner identifier fields.
      * @throws ParseException if the phone number is invalid or followed by extra text.

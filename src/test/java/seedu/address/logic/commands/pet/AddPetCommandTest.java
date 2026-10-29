@@ -50,10 +50,9 @@ public class AddPetCommandTest {
                 command("mochi", OWNER_PHONE, null).execute(model));
 
         // EP: same owner and duplicate name after whitespace normalization
-        assertThrows(CommandException.class, "This client already has a pet named Mo chi.", () -> {
-            command("Mo chi", OWNER_PHONE, null).execute(model);
-            command("Mo  chi", OWNER_PHONE, null).execute(model);
-        });
+        command("Mo chi", OWNER_PHONE, null).execute(model);
+        assertThrows(CommandException.class, "This client already has a pet named Mo chi.", () ->
+                command("Mo  chi", OWNER_PHONE, null).execute(model));
 
         // EP: different owner and same normalized pet name
         command("Mochi", TypicalClients.BENSON.getPhone().value, null).execute(model);

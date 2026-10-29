@@ -17,7 +17,7 @@ public class PetOwnerPhoneMatchesPredicate implements Predicate<Pet> {
     /**
      * Creates a predicate for pets belonging to {@code ownerPhone}.
      *
-     * @param ownerPhone A valid owner phone number.
+     * @param ownerPhone Non-null owner phone number to match.
      */
     public PetOwnerPhoneMatchesPredicate(Phone ownerPhone) {
         this.ownerPhone = requireNonNull(ownerPhone);
@@ -30,7 +30,7 @@ public class PetOwnerPhoneMatchesPredicate implements Predicate<Pet> {
     /**
      * Returns whether {@code pet} belongs to the configured owner.
      *
-     * @param pet The pet to test.
+     * @param pet Non-null pet to test.
      */
     @Override
     public boolean test(Pet pet) {

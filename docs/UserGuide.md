@@ -96,7 +96,7 @@ displayed, the deletion is rejected rather than applying the index to another li
 
 ### Shared error behavior
 
-If the data file is invalid at startup, commands are blocked with
+If the data file is invalid at startup, commands other than `help` are blocked with
 `Unable to verify existing records. Please contact support.` Correct the file and restart BuBu before continuing.
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
@@ -135,7 +135,7 @@ help
 The command makes no changes when it cannot be completed.
 
 * `help` does not save records and does not require write access to the data file.
-* `Unable to verify existing records. Please contact support.` — commands are blocked if the data file was found to be invalid at startup.
+* `help` remains available even when an invalid data file prevents record commands from running.
 
 ### Adding a client: `add-client`
 
@@ -360,6 +360,8 @@ The command makes no changes when it cannot be completed.
 * `Each pet field may be specified only once.` — a prefix is repeated.
 * Field validation error — a name, owner phone, species, breed or requirement is invalid.
 * After the command structure is accepted, supplied non-empty fields are validated before missing fields are reported.
+* `Missing required field: FIELD.` followed by the command format and example — a mandatory field is omitted or blank.
+  The owner is looked up only after all required fields are supplied and their formats are valid.
 * `Invalid command format!` followed by the `add-pet` usage and example — unsupported prefixes or text outside a field are supplied.
 * `No saved client has this phone number. Add the client before adding a pet.` — the phone format is valid, but no registered client has that number.
 * `This client already has a pet named PET_NAME.` — the name conflicts with another pet under that owner.
