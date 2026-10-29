@@ -5,7 +5,9 @@ import static seedu.address.logic.parser.pet.PetCliSyntax.PREFIX_OWNER_IDENTIFIE
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PETS;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -27,6 +29,8 @@ public class ListPetsCommand extends Command {
     public static final String MESSAGE_OWNER_NOT_FOUND = "No saved client has this phone number.";
     public static final String MESSAGE_OWNER_PETS = "Found %d pet(s) under %s.";
     public static final String MESSAGE_OWNER_NO_PETS = "%s has no saved pet profiles.";
+
+    private static final Logger logger = LogsCenter.getLogger(ListPetsCommand.class);
 
     private final PetOwnerPhoneMatchesPredicate predicate;
 
@@ -51,12 +55,14 @@ public class ListPetsCommand extends Command {
         requireNonNull(model);
         if (predicate == null) {
             model.updateFilteredPetList(PREDICATE_SHOW_ALL_PETS);
+            logger.fine(() -> "Pet list updated: all owners, " + model.getFilteredPetList().size() + " pet(s).");
             return new CommandResult(MESSAGE_ALL_PETS, CommandResult.DisplayType.PETS);
         }
 
         Client owner = findOwner(model);
         model.updateFilteredPetList(predicate);
         int count = model.getFilteredPetList().size();
+        logger.fine(() -> "Pet list updated: owner filter applied, " + count + " pet(s).");
         String feedback = count == 0 ? String.format(MESSAGE_OWNER_NO_PETS, owner.getName())
                 : String.format(MESSAGE_OWNER_PETS, count, owner.getName());
         return new CommandResult(feedback, CommandResult.DisplayType.PETS);

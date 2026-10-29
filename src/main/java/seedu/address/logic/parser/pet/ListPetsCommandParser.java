@@ -27,9 +27,9 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
     private static final int MAX_OWNER_FIELDS = 1;
 
     /**
-     * Matches command-style, single-letter prefixes so unsupported fields are not mistaken for phone text.
+     * Matches single-letter prefixes at the start or after an ordinary space, as in ArgumentTokenizer.
      */
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)[a-zA-Z]/");
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^| )[a-zA-Z]/");
 
     /**
      * Separates a valid phone followed by stray text from a malformed phone number.
@@ -52,7 +52,7 @@ public class ListPetsCommandParser implements Parser<ListPetsCommand> {
             return new ListPetsCommand(null);
         }
 
-        // The tokenizer recognizes a prefix only when whitespace precedes it, including the first prefix.
+        // The tokenizer requires an ordinary space before each prefix, including the first prefix.
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(" " + input, PREFIX_OWNER_IDENTIFIER);
         validateStructure(input, fields);
         Phone ownerPhone = parseOwnerPhone(fields);

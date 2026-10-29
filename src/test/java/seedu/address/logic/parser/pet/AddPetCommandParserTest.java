@@ -267,6 +267,39 @@ public class AddPetCommandParserTest {
     }
 
     @Test
+    public void parse_tabBeforePrefixInsideRequirements_preservesText() throws Exception {
+        // EP: a tab before a supported prefix is requirement text, not a field separator
+        String requirements = "Keep calm\tb/soft x/notes";
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement(requirements));
+
+        assertEquals(expected, parser.parse(VALID_FIELDS.replace("Calm with baths", requirements)));
+    }
+
+    @Test
+    public void parse_tabBetweenFields_reportsInvalidName() {
+        // EP: tabs do not separate fields; the embedded tab remains part of the pet name
+        assertThrows(ParseException.class, PetName.MESSAGE_CONSTRAINTS, () ->
+                parser.parse("p/Mochi\ti/91234567 s/Dog r/Calm with baths"));
+    }
+
+    @Test
+    public void parse_leadingTabBeforeRequirements_createsCommand() throws Exception {
+        // EP: surrounding whitespace is trimmed before both structure validation and tokenization
+        AddPetCommand expected = new AddPetCommand(new PetName("Mochi"), "91234567",
+                Species.DOG, null, new Requirement("Needs x/ care"));
+
+        assertEquals(expected, parser.parse("\tr/Needs x/ care p/Mochi i/91234567 s/Dog"));
+    }
+
+    @Test
+    public void parse_spaceBeforeBreedAfterRequirements_checksFollowingPrefixes() {
+        // EP: an ordinary space starts the breed field, so a later unknown prefix is rejected
+        assertThrows(ParseException.class, AddPetCommandParser.MESSAGE_INVALID_FORMAT, () ->
+                parser.parse(VALID_FIELDS + " b/Golden x/notes"));
+    }
+
+    @Test
     public void parse_belowMinimumRequirementLength_throwsParseException() {
         // EP: non-blank requirement shorter than the minimum
         // BVA: 4 characters, immediately below the 5-character minimum
