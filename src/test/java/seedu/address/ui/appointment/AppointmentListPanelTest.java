@@ -3,6 +3,7 @@ package seedu.address.ui.appointment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.AppointmentTestUtil.createAppointment;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
@@ -13,15 +14,26 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.appointment.AppointmentDate;
 import seedu.address.model.appointment.EndTime;
 import seedu.address.model.appointment.Service;
 import seedu.address.model.appointment.StartTime;
+import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
 public class AppointmentListPanelTest {
+
+    private static final double DEFAULT_WINDOW_WIDTH = 740;
+    private static final double MINIMUM_WINDOW_WIDTH = 450;
+    private static final double WIDTH_TOLERANCE = 1;
+    private static final String LONG_REQUIREMENT = "long note ".repeat(24);
 
     //@@author chunghean
     @Test
@@ -145,6 +157,37 @@ public class AppointmentListPanelTest {
         });
     }
 
+    @Test
+    public void longCareNotes_inActualListView_wrapWithinDefaultAndMinimumWidths() {
+        JavaFxTestUtils.runAndWait(() -> {
+            assertLongCareNotesFitListView(DEFAULT_WINDOW_WIDTH);
+            assertLongCareNotesFitListView(MINIMUM_WINDOW_WIDTH);
+        });
+    }
+
+    private static void assertLongCareNotesFitListView(double windowWidth) {
+        Appointment appointment = new Appointment(ALICE,
+                new PetBuilder(ALICE).withRequirement(LONG_REQUIREMENT).build(),
+                new AppointmentDate("01-01-2027"), new StartTime("10:00"),
+                new EndTime("11:00"), Service.FULL_GROOM);
+        AppointmentListPanel panel = new AppointmentListPanel(FXCollections.observableArrayList(appointment));
+        Region panelRoot = panel.getRoot();
+        StackPane sceneRoot = new StackPane(panelRoot);
+        new Scene(sceneRoot, windowWidth, 600);
+        sceneRoot.applyCss();
+        sceneRoot.layout();
+
+        ListView<Appointment> listView = panelListView(panel);
+        ListCell<Appointment> cell = listViewCell(listView);
+        Region card = (Region) cell.getGraphic();
+        Label careNotes = (Label) card.lookup("#careNotes");
+
+        assertTrue(listView.getWidth() > 0);
+        assertTrue(card.getWidth() > 0);
+        assertTrue(card.getBoundsInParent().getWidth() <= listView.getWidth() + WIDTH_TOLERANCE);
+        assertTrue(careNotes.getHeight() > careNotes.prefHeight(Double.MAX_VALUE));
+    }
+
     private static Appointment appointmentOn(String date, String startTime, String endTime) {
         return createAppointment(ALICE.getPhone(), "Milo", new AppointmentDate(date),
                 new StartTime(startTime), new EndTime(endTime), Service.FULL_GROOM);
@@ -173,5 +216,25 @@ public class AppointmentListPanelTest {
         } catch (ReflectiveOperationException exception) {
             throw new AssertionError(exception);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ListView<Appointment> panelListView(AppointmentListPanel panel) {
+        try {
+            Field field = AppointmentListPanel.class.getDeclaredField("appointmentListView");
+            field.setAccessible(true);
+            return (ListView<Appointment>) field.get(panel);
+        } catch (ReflectiveOperationException exception) {
+            throw new AssertionError(exception);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ListCell<Appointment> listViewCell(ListView<Appointment> listView) {
+        return listView.getSkin().getNode().lookupAll(".list-cell").stream()
+                .map(node -> (ListCell<Appointment>) node)
+                .filter(cell -> !cell.isEmpty())
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("The appointment ListView did not create a populated cell."));
     }
 }
