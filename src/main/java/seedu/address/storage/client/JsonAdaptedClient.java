@@ -68,6 +68,11 @@ public class JsonAdaptedClient {
     public Client toModelType() throws IllegalValueException {
         final List<Tag> clientTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            //@@author 0218hy
+            if (tag == null) {
+                throw new IllegalValueException("Client tag must not be null.");
+            }
+            //@@author
             clientTags.add(tag.toModelType());
         }
 

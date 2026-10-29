@@ -3,6 +3,7 @@ package seedu.address.ui.pet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalClients.ALICE;
 
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,10 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.ClientBuilder;
@@ -20,6 +24,11 @@ import seedu.address.testutil.PetBuilder;
 import seedu.address.ui.JavaFxTestUtils;
 
 public class PetListPanelTest {
+
+    private static final double DEFAULT_WINDOW_WIDTH = 740;
+    private static final double MINIMUM_WINDOW_WIDTH = 450;
+    private static final double WIDTH_TOLERANCE = 1;
+    private static final String LONG_REQUIREMENT = "long note ".repeat(24);
 
     //@@author chunghean
     @Test
@@ -151,6 +160,34 @@ public class PetListPanelTest {
         });
     }
 
+    @Test
+    public void longRequirement_inActualListView_wrapsWithinDefaultAndMinimumWidths() {
+        JavaFxTestUtils.runAndWait(() -> {
+            assertLongRequirementFitsListView(DEFAULT_WINDOW_WIDTH);
+            assertLongRequirementFitsListView(MINIMUM_WINDOW_WIDTH);
+        });
+    }
+
+    private static void assertLongRequirementFitsListView(double windowWidth) {
+        Pet pet = new PetBuilder(ALICE).withRequirement(LONG_REQUIREMENT).build();
+        PetListPanel panel = new PetListPanel(FXCollections.observableArrayList(pet));
+        Region panelRoot = panel.getRoot();
+        StackPane sceneRoot = new StackPane(panelRoot);
+        new Scene(sceneRoot, windowWidth, 600);
+        sceneRoot.applyCss();
+        sceneRoot.layout();
+
+        ListView<Pet> listView = panelListView(panel);
+        ListCell<Pet> cell = listViewCell(listView);
+        Region card = (Region) cell.getGraphic();
+        Label requirement = (Label) card.lookup("#requirement");
+
+        assertTrue(listView.getWidth() > 0);
+        assertTrue(card.getWidth() > 0);
+        assertTrue(card.getBoundsInParent().getWidth() <= listView.getWidth() + WIDTH_TOLERANCE);
+        assertTrue(requirement.getHeight() > requirement.prefHeight(Double.MAX_VALUE));
+    }
+
     private static void assertCardAt(ListView<Pet> listView, int index, boolean headingVisible,
             String expectedIndex, String expectedName) {
         PetListPanel.PetListViewCell cell = JavaFxTestUtils.getCellAt(listView, index,
@@ -181,6 +218,15 @@ public class PetListPanelTest {
         } catch (ReflectiveOperationException exception) {
             throw new AssertionError(exception);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ListCell<Pet> listViewCell(ListView<Pet> listView) {
+        return listView.getSkin().getNode().lookupAll(".list-cell").stream()
+                .map(node -> (ListCell<Pet>) node)
+                .filter(cell -> !cell.isEmpty())
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("The pet ListView did not create a populated cell."));
     }
 
     private static ObservableList<Pet> panelList(PetListPanel panel) {

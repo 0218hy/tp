@@ -33,6 +33,7 @@ import seedu.address.model.ReadOnlyBubuBook;
 import seedu.address.model.appointment.Appointment;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
+import seedu.address.storage.RecordSaveConflictException;
 import seedu.address.storage.Storage;
 
 /**
@@ -167,6 +168,11 @@ public class LogicManager implements Logic {
             model.setBubuBook(previousBubuBook);
             logger.log(Level.WARNING, command.getClass().getSimpleName()
                     + " save failed; previous model state restored", ioe);
+            //@@author 0218hy
+            if (ioe instanceof RecordSaveConflictException) {
+                throw new CommandException(ioe.getMessage(), ioe);
+            }
+            //@@author
             if (command instanceof AddPetCommand) {
                 throw new CommandException(MESSAGE_UNABLE_TO_SAVE_PET, ioe);
             }

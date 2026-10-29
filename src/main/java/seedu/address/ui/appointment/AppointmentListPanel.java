@@ -3,6 +3,7 @@ package seedu.address.ui.appointment;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -29,6 +30,9 @@ public class AppointmentListPanel extends UiPart<Region> {
     /** Custom cell that displays one appointment using an {@link AppointmentCard}. */
     class AppointmentListViewCell extends ListCell<Appointment> {
         AppointmentListViewCell() {
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            setMaxWidth(Double.MAX_VALUE);
+            setPrefWidth(0);
             indexProperty().addListener((observable, oldIndex, newIndex) -> updateItem(getItem(), isEmpty()));
         }
 
@@ -44,6 +48,7 @@ public class AppointmentListPanel extends UiPart<Region> {
 
             boolean showDateHeading = startsDateGroup(appointment, getIndex());
             AppointmentCard card = new AppointmentCard(appointment, getIndex() + 1, showDateHeading);
+            card.getRoot().prefWidthProperty().bind(widthProperty());
             setGraphic(card.getRoot());
         }
 
