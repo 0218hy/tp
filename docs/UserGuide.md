@@ -101,7 +101,7 @@ If the data file is invalid at startup, commands are blocked with
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
 
-Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records continue to save automatically. Exiting may still save UI preferences separately.
+Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records save automatically; commands that leave the records unchanged skip saving. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`.
 
 Examples using existing clients or pets assume those records have already been added. Replace their identifiers with
 values from your own records. Appointment examples also require a future date and an available slot.
@@ -753,7 +753,7 @@ exit
 #### Success and other behavior
 
 * On success, BuBu displays `Exiting BuBu as requested ...` and closes.
-* Records are saved automatically during normal command execution, including a save attempt before this command completes. Session command history is not retained.
+* `exit` does not save record data. Record changes are saved when the commands that make them succeed. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`. Session command history is not retained.
 
 #### Error handling
 
@@ -764,8 +764,9 @@ The command makes no changes when it cannot be completed.
 ### Saving the data
 
 Clients, pets, and appointments are saved together in `data/bububook.json` automatically after successful changes.
-If saving fails, BuBu restores the previous records and displays an error. The `list-pets` and `list-appointments`
-commands only update the display and do not save the file.
+If saving fails, BuBu restores the previous records and displays an error. Read-only commands (`help`, `exit`,
+`list-clients`, `list-pets` and `list-appointments`) do not create or rewrite this file. Other commands also skip
+saving when the records are unchanged. Window preferences are saved separately in `preferences.json` during shutdown.
 
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.

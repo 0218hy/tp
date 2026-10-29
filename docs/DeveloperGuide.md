@@ -66,7 +66,8 @@ All clients, pets, and appointments are saved together in `data/bububook.json` t
 When upgrading from a version using `data/groombook.json`, close the app and copy that file to
 `data/bububook.json` before starting the new version. Keep the original file as a backup.
 
-`list-pets` and `list-appointments` read records without saving; record-changing commands save the shared book. Saving writes a temporary file before replacing
+`help`, `exit`, `list-clients`, `list-pets` and `list-appointments` do not save records. Other commands save the shared
+book only when its persisted contents change. Saving writes a temporary file before replacing
 the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
 commands so the saved file cannot be overwritten with an empty book.
 
@@ -116,8 +117,8 @@ How the command is executed and saved:
 6. If saving fails, `Logic` restores the backup copy in `Model` and the UI displays a storage error.
 
 The rollback restores client, pet, and appointment records in memory, but does not restore UI selection or filters.
-Parse and command validation failures occur before saving. Read-only commands such as `list-pets` and
-`list-appointments` do not trigger a save.
+Parse and command validation failures occur before saving. `help`, `exit`, `list-clients`, `list-pets` and
+`list-appointments` do not trigger a record save. Other commands also skip saving if the book is unchanged.
 
 Each of the four main components (also shown in the diagram above),
 
@@ -202,12 +203,12 @@ How the `Logic` component works:
 1. `LogicManager` passes the input to `BuBuParser.parseCommand`. For feature commands, `BuBuParser` creates the
    matching parser (e.g., `DeleteClientCommandParser`) and calls `parse(arguments)`. It creates `ClearCommand`,
    `HelpCommand`, and `ExitCommand` directly.
-2. Before executing the returned `Command`, `LogicManager` rejects commands if the saved book was unreadable at
-   startup and checks any display requirement declared by `Command.getRequiredDisplayType()`.
-3. The command executes against `Model` and returns a `CommandResult`. `ListPetsCommand` and
-   `ListAppointmentsCommand` skip saving. For all other commands, the current implementation takes a book snapshot
-   before execution and saves the book afterwards; if saving fails, it restores the snapshot and throws a
-   `CommandException` instead of returning success.
+2. Before executing the returned `Command`, `LogicManager` rejects commands other than `HelpCommand` if the saved
+   book was unreadable at startup and checks any display requirement declared by `Command.getRequiredDisplayType()`.
+3. `LogicManager` takes a book snapshot, then the command executes against `Model` and returns a `CommandResult`.
+   `HelpCommand`, `ExitCommand`, `ListClientsCommand`, `ListPetsCommand` and `ListAppointmentsCommand` skip record
+   saving. Other commands save only if the resulting book differs from the snapshot. If saving fails, the snapshot
+   is restored and a `CommandException` is thrown instead of returning success.
 4. After successful execution and any required save, `LogicManager` updates its current display type from the
    result and returns it to the UI. `UNCHANGED` preserves the previously selected list.
 
@@ -386,7 +387,8 @@ preferences are loaded separately.
 
 #### Saving and rollback
 
-When saving data:
+`help`, `exit`, `list-clients`, `list-pets` and `list-appointments` never trigger a record save. Other commands skip
+saving when the resulting book equals the pre-command snapshot. When records have changed:
 
 * `JsonBubuBookStorage` serializes the complete book and writes it to a temporary file.
 * It replaces `data/bububook.json` only after the temporary file has been written successfully.
@@ -395,8 +397,9 @@ When saving data:
 
 The rollback restores the in-memory records. It does not restore a previous version of the data file.
 
-The record path is relative to the working directory used to launch BuBu. Preferences are saved separately in
-`preferences.json` and do not use the shared-book rollback path.
+The record path is relative to the working directory used to launch BuBu. `MainApp.stop()` attempts to save window
+preferences separately in `preferences.json` during shutdown; it does not save the book. Preference saves do not
+use the shared-book rollback path.
 
 #### Pet-profile persistence
 
@@ -444,7 +447,8 @@ The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointm
 Client deletion flows through `DeleteClientCommand` → `ModelManager.deleteClient()` →
 `BubuBook.removeClient()`, which removes the client, its pets, and its related appointments.
 Appointment changes use the saving and rollback process described above. `clear` removes all clients, pets, and
-appointments, including historical and future bookings, and saves the empty BubuBook in the same file.
+appointments, including historical and future bookings, and saves the empty BubuBook in the same file if records
+were removed. Clearing an already empty book does not write the file.
 
 At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
 schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.

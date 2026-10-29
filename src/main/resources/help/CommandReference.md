@@ -1,7 +1,7 @@
 AVAILABLE COMMANDS
 
 General behavior
-  Read-only commands (help, list-clients, list-pets, list-appointments, and exit) do not write record data. Record-changing commands save automatically.
+  Read-only commands (help, list-clients, list-pets, list-appointments, and exit) do not write record data. Other commands save automatically only when records change. Shutdown attempts to save window preferences separately in preferences.json.
   If records are corrupt at startup, help remains available; other commands are blocked. Exit through the window controls if the exit command is unavailable.
 
 Help
@@ -102,7 +102,7 @@ Clear all clients, pets, and appointments
 
 Exit
   exit
-  Restrictions: Takes no parameters; extra text is ignored. Does not write record data; window preferences may be saved separately.
+  Restrictions: Takes no parameters; extra text is ignored. Does not write record data. Shutdown attempts to save window preferences separately in preferences.json.
 
 Command input
   Press Up/Down to recall commands from the current session. Up stops at the oldest command; Down past the newest restores a blank prompt. A partially typed command is retained while you navigate.
