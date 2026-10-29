@@ -259,7 +259,10 @@ Missing selectors are reported separately from blank `i/` selectors. Supply eith
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment dates, times, services and other pet details remain unchanged. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time.
+* Editing a client updates their saved profile, linked pet owner profiles, and owner details in ongoing and future appointments.
+* Completed appointments retain their recorded name, email, address and tags, so later client profile changes do not rewrite those past appointment details. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time. Use `list-clients` to obtain the client's current contact details.
+* Phone numbers are an exception: because they identify clients, a phone-number change also updates linked pets and all linked appointments, including completed appointments. Changing an email does not break these links.
+* Client edits preserve appointment dates, times, services and other pet details. Completed appointments can still be affected by linked pet renames or deletion: deleting a client or pet also deletes their linked appointments, including completed ones.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling

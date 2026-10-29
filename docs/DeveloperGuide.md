@@ -266,8 +266,11 @@ clients independently of the displayed panel or search filter, so hidden clients
 It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
 `BubuBook#setClient` replaces the client, refreshes pet owner profiles, and calls `AppointmentList.updateOwner`.
 Linked ongoing and future appointment owner snapshots receive the edited client details. Completed snapshots retain
-their recorded details except for a changed phone number. Completion means the appointment's end date and time are
-at or before the edit time in Singapore time. Appointment dates, times, services and other pet details are preserved.
+their recorded name, email, address and tags so later client profile edits preserve the context of the completed
+appointment. Completion means the appointment's end date and time are at or before the edit time in Singapore time.
+Ownership is determined by phone number, independently of snapshot email, name or address. Phone changes propagate
+to linked pets and all linked appointments, including completed ones, to preserve that relationship. Appointment
+dates, times, services and other pet details are preserved during client edits.
 New or changed phone numbers are also checked against historical appointment owner snapshots. A phone number cannot be
 reused when it would make a registered client ambiguous with a different historical owner.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
@@ -468,6 +471,10 @@ on the appointment's end date and time, not its start time:
 | --- | --- | --- |
 | Before or exactly at the edit time (completed) | Update only a changed owner phone | Update only a changed pet name |
 | After the edit time (ongoing or future) | Refresh the owner snapshot | Refresh the pet snapshot |
+
+This snapshot policy preserves the recorded profile details of completed work while keeping current contact details
+in the registered client profile. It does not make completed appointments immutable: linked owner-phone and pet-name
+changes still propagate, and deleting a client or pet removes their linked completed appointments as well.
 
 Both paths preserve the appointment date, start/end times and service. Client edits preserve pet details other than
 the pet's owner information; pet edits preserve the appointment's recorded owner details. These rules apply to
