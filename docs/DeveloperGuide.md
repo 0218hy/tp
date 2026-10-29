@@ -259,6 +259,8 @@ addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is reject
 or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
 `BubuBook#setClient` replaces the client, refreshes pet owner profiles, and propagates a changed phone number to linked
 appointment owner snapshots while retaining their other saved owner details.
+New or changed phone numbers are also checked against historical appointment owner snapshots. A phone number cannot be
+reused when it would make a registered client ambiguous with a different historical owner.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
 
 Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
@@ -413,7 +415,9 @@ Client edits update linked appointment owner references, while deleting a client
 from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
 Loading reuses equal registered objects when available and accepts historical snapshots independently of the
-registered lists. Invalid, mismatched, or overlapping records are rejected.
+registered lists. Phone numbers alone are not used to associate a snapshot with a registered client, so a standalone
+snapshot remains distinct even when a registered client has the same phone. Invalid, mismatched, or overlapping records
+are rejected.
 Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
 and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
 format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
@@ -1028,21 +1032,21 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: Zoe Tan from the successful addition above exists. No client uses `93456789` or `other@example.com`.
 
    2. Test case: `add-client n/Other Client i/91234567 e/other@example.com a/30 Bedok Road`<br>
-      Expected: No client is added. The status message is `A client with this phone number or email already exists.`
+      Expected: No client is added. The status message is `The phone number already belongs to another client.`
 
    3. Test case: `add-client n/Other Client i/93456789 e/zoe@example.com a/30 Bedok Road`<br>
-      Expected: No client is added. The same duplicate-client message is shown even though the phone number differs.
+      Expected: No client is added. The status message is `The email already belongs to another client.`
 
 3. Rejecting missing or repeated required fields
 
    1. Test case: `add-client n/Test Client i/93456789 a/30 Bedok Road`<br>
-      Expected: No client is added. The status message is `Missing required field: e/.`.
+      Expected: No client is added. The status message is `Email (e/) is required. Example: e/alice@example.com.`
 
    2. Test case: `add-client n/Test Client i/93456789 e/ a/30 Bedok Road`<br>
-      Expected: No client is added. The same missing-email message is shown for an empty email field.
+      Expected: No client is added. The status message is `Email (e/) cannot be blank.`
 
    3. Test case: `add-client n/Test Client n/Another Client i/93456789 e/test@example.com a/30 Bedok Road`<br>
-      Expected: No client is added. The status message is `Repeated field: Each client field may be specified only once`.
+      Expected: No client is added. The status message is `Name (n/) was supplied more than once. Keep only one n/ field.`
 
    4. Other cases to try: Omit or leave blank each of `n/`, `i/`, and `a/` in an otherwise complete command;
       repeat each of `i/`, `e/`, and `a/`.<br>
@@ -1153,19 +1157,22 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `edit-client i/91234567`, `edit-client i/91234567 p/123`, or
       `edit-client i/91234567 n/Zoe n/Amy`<br>
-      Expected: No client changes. The error reports a missing update, invalid phone number, or repeated field.
+      Expected: No client changes. The respective messages are `No update supplied. Provide at least one of n/, p/, e/, a/ or t/.`,
+      `New phone number (p/) must be eight digits beginning with 8 or 9.`, and
+      `Multiple values specified for the following single-valued field(s): n/`.
 
    3. Test case: `edit-client i/89998888 n/Zoe Tan` when that phone number is not saved<br>
       Expected: No client changes. The message is `No saved client has this phone number.`.
 
    4. Test case: `edit-client i/91234567 i/82345678 n/Zoe Tan`<br>
-      Expected: No client changes. Repeated identifiers are rejected.
+      Expected: No client changes. The status message is
+      `Multiple values specified for the following single-valued field(s): i/`.
 
    5. Prerequisites: Another saved client has phone `82345678` and email `other@example.com`.
 
    6. Test case: `edit-client i/91234567 p/82345678` or `edit-client i/91234567 e/other@example.com`<br>
-      Expected: Both edits are rejected with `A client with this phone number or email already exists.`,
-      even when the other client is hidden by a search.
+      Expected: The phone edit is rejected with `The phone number already belongs to another client.` and the email edit
+      is rejected with `The email already belongs to another client.`, even when the other client is hidden by a search.
 
 3. Updating linked records and saving changes
 
@@ -1387,19 +1394,20 @@ testers are expected to do more *exploratory* testing.
 
 2. Deleting a pet using its name and owner's phone number
 
-   1. Prerequisites: The BubuBook contains a pet named `Milo` whose owner's phone number is `98765432`.
+   1. Prerequisites: The BubuBook contains a pet named `Milo` whose owner's phone number is `98765432`. No pet owner
+      uses the valid phone number `81234567`.
 
    1. Test case: `delete-pet p/Milo i/98765432`<br>
       Expected: `Milo` is deleted. The status message is `Deleted pet: Milo`.
 
-   1. Test case: `delete-pet p/Milo i/12345678`<br>
-      Expected: No pet is deleted. The status message states that no pet matches the specified name and owner phone number.
+   1. Test case: `delete-pet p/Milo i/81234567`<br>
+      Expected: No pet is deleted. The status message is `No pet with the specified name and owner phone number was found.`
 
    1. Test case: `delete-pet p/Milo`<br>
       Expected: No pet is deleted. The status message shows the command usage.
 
    1. Test case: `delete-pet p/Milo i/123a`<br>
-      Expected: No pet is deleted. The status message states that phone numbers must contain only digits and have at least three digits.
+      Expected: No pet is deleted. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
 
    1. With two pets named `Milo` owned by people with different phone numbers, repeat the valid test case for one owner.<br>
       Expected: Only that owner's `Milo` is deleted.

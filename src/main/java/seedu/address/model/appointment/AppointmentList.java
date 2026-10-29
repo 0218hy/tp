@@ -15,7 +15,6 @@ import javafx.collections.ObservableList;
 import seedu.address.model.appointment.exceptions.AppointmentNotFoundException;
 import seedu.address.model.appointment.exceptions.OverlappingAppointmentException;
 import seedu.address.model.client.Client;
-import seedu.address.model.client.Phone;
 import seedu.address.model.pet.Pet;
 import seedu.address.model.pet.PetName;
 
@@ -94,12 +93,24 @@ public class AppointmentList {
     }
 
     //@@author chunghean
-    /** Removes every appointment belonging to the given owner phone number. */
-    public void removeAppointmentsForOwner(Phone ownerPhone) {
-        requireNonNull(ownerPhone);
-        internalList.removeIf(appointment -> appointment.getOwnerPhone().equals(ownerPhone));
+    /** Removes every appointment linked to the given owner. */
+    public void removeAppointmentsForOwner(Client owner) {
+        requireNonNull(owner);
+        internalList.removeIf(appointment -> appointment.isForOwner(owner));
     }
 
+    //@@author
+
+    //@@author chunghean
+    /**
+     * Returns whether an appointment uses {@code candidate}'s phone for a different owner snapshot.
+     */
+    public boolean hasUnrelatedOwnerWithPhone(Client candidate) {
+        requireNonNull(candidate);
+        return internalList.stream().anyMatch(appointment ->
+                appointment.getOwnerPhone().equals(candidate.getPhone())
+                        && !appointment.getOwner().equals(candidate));
+    }
     //@@author
 
     //@@author anderschow
@@ -113,7 +124,9 @@ public class AppointmentList {
         LocalDateTime now = LocalDateTime.now(clock);
         for (int index = 0; index < internalList.size(); index++) {
             Appointment appointment = internalList.get(index);
-            if (appointment.getOwnerPhone().equals(currentOwner.getPhone())) {
+            boolean isLinkedToCurrentOwner = appointment.isForOwner(currentOwner);
+            //@@author
+            if (isLinkedToCurrentOwner) {
                 if (appointment.getDate().value.atTime(appointment.getEndTime().value).isAfter(now)) {
                     internalList.set(index, appointment.withOwner(editedOwner));
                 } else if (!currentOwner.getPhone().equals(editedOwner.getPhone())) {

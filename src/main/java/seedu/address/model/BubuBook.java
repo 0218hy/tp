@@ -67,6 +67,14 @@ public class BubuBook implements ReadOnlyBubuBook {
         clients.add(client);
     }
 
+    //@@author chunghean
+    @Override
+    public boolean hasAppointmentOwnerConflict(Client candidate) {
+        requireNonNull(candidate);
+        return appointments.hasUnrelatedOwnerWithPhone(candidate);
+    }
+    //@@author
+
     /** Updates a client and every pet referencing that client. */
     public void setClient(Client target, Client editedClient) {
         requireAllNonNull(target, editedClient);
@@ -79,7 +87,7 @@ public class BubuBook implements ReadOnlyBubuBook {
     public void removeClient(Client client) {
         requireNonNull(client);
         clients.remove(client);
-        appointments.removeAppointmentsForOwner(client.getPhone());
+        appointments.removeAppointmentsForOwner(client);
         pets.removeAllOwnedBy(client);
     }
 

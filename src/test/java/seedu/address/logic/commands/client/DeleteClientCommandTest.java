@@ -10,6 +10,8 @@ import static seedu.address.testutil.TypicalClients.getTypicalBubuBook;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_CLIENT;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_CLIENT;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -128,6 +130,31 @@ public class DeleteClientCommandTest {
         assertTrue(deletionModel.getBubuBook().getPetList().isEmpty());
         assertTrue(deletionModel.getBubuBook().getAppointmentList().isEmpty());
     }
+
+    //@@author chunghean
+    @Test
+    public void execute_clientWithSamePhoneAsHistoricalOwner_preservesHistoricalAppointment() throws Exception {
+        Client registeredOwner = new ClientBuilder().withName("Bob Lim").withPhone("91234567")
+                .withEmail("bob@example.com").build();
+        Client historicalOwner = new ClientBuilder().withName("Alice Tan").withPhone("91234567")
+                .withEmail("alice@example.com").build();
+        Pet historicalPet = new PetBuilder(historicalOwner).withName("Milo").build();
+        Appointment historicalAppointment = new Appointment(historicalOwner, historicalPet,
+                new AppointmentDate("01-01-2000"), new StartTime("10:00"), new EndTime("11:00"),
+                Service.FULL_GROOM);
+        BubuBook book = new BubuBook();
+        book.addClient(registeredOwner);
+        book.addAppointment(historicalAppointment);
+        Model deletionModel = new ModelManager(book, new UserPrefs());
+
+        String expectedMessage = String.format(DeleteClientCommand.MESSAGE_DELETE_CLIENT_SUCCESS,
+                Messages.format(registeredOwner), "0 pets", "0 appointments");
+
+        assertEquals(expectedMessage, new DeleteClientCommand(registeredOwner.getPhone())
+                .execute(deletionModel).getFeedbackToUser());
+        assertEquals(List.of(historicalAppointment), deletionModel.getBubuBook().getAppointmentList());
+    }
+    //@@author
 
     //@@author chunghean
     @Test

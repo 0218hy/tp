@@ -20,4 +20,13 @@ public class AppointmentTestUtil {
         return new Appointment(owner, pet, date, startTime, endTime, service);
     }
     //@@author
+
+    //@@author chunghean
+    /** Creates an appointment linked to the supplied client profile. */
+    public static Appointment createAppointment(Client owner, String petName, AppointmentDate date,
+            StartTime startTime, EndTime endTime, Service service) {
+        Pet pet = new PetBuilder(owner).withName(petName).build();
+        return new Appointment(owner, pet, date, startTime, endTime, service);
+    }
+    //@@author
 }
