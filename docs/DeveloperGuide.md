@@ -363,7 +363,8 @@ The `Storage` component:
   `JsonAdaptedClient`, `JsonAdaptedPet`, and `JsonAdaptedAppointment` records. Each client record can contain
   multiple `JsonAdaptedTag` records.
 * represents pets with `JsonAdaptedPet`, which stores each owner's name and phone. It uses these identifiers to
-  resolve the registered client when the data is loaded, and stores an optional breed when present.
+  resolve the registered client when the data is loaded. The `breed` property contains a string when known and
+  JSON `null` when no breed is set; older records with no `breed` property are also accepted when loading.
 * represents appointments with `JsonAdaptedAppointment`, which stores client and pet snapshots so appointments
   can be reconstructed independently of the current registered records. Legacy appointment records identify their
   participants using `ownerPhone` and `petName` instead of snapshots.
@@ -408,9 +409,11 @@ Pet edits are persisted through the same shared-book path as other record-changi
 `StorageManager` → `data/bububook.json`.
 
 `Pet` is immutable, so an edit replaces one complete profile rather than mutating individual fields. The optional
-breed is serialized only when present; clearing a breed with `b/` therefore removes the stored breed value for that
-pet on the next successful save. This applies equally to an edit that changes a pet's name, species, breed, or
-requirements.
+breed is serialized as a nullable property: adding a pet without `b/BREED` writes `"breed": null`, and clearing an
+existing breed with `b/` writes the same value on the next successful save. The property is retained, not omitted.
+Loading accepts either an absent `breed` property or `"breed": null` as an unknown breed. This representation also
+applies to pet snapshots stored within appointments; completed snapshots retain their historical breed under the
+participant-update rules below.
 
 #### Appointment persistence
 
@@ -1356,7 +1359,8 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: `edit-pet p/Mochi i/87438807 b/`<br>
       Expected: The pet's breed is removed. The status message is `Edited pet: Mochi`. `list-pets i/87438807` no
-      longer displays a breed for that pet.
+      longer displays a breed for that pet. After closing BuBu, inspect the pet in `data/bububook.json`: its `breed`
+      property is present with value `null`, as it is for a pet added without a breed. Relaunching keeps the breed unset.
 
 3. Matching pets by both name and owner
 
