@@ -31,7 +31,7 @@ Edit client
     Choose one target: a positive, one-based INDEX in the displayed client list, or the client's current 8-digit phone starting with 8 or 9. Index editing requires the client panel; phone lookup searches all clients.
     Supply at least one update. n/, p/, e/, and a/ follow the add-client field rules. A changed phone or email must remain unique.
     Repeat t/ to replace tags; use t/ alone to clear them. Omit t/ to keep existing tags.
-    Each single-valued prefix may appear once. A phone change updates linked pet owners and appointment owner identifiers. Ongoing and future appointments show updated owner details; completed appointments keep recorded details except for the phone identifier.
+    Each single-valued prefix may appear once. Client edits update linked pet owners. Linked ongoing and future appointments show updated owner details; completed appointments keep recorded details except for a changed phone identifier. An appointment is completed if its end date and time are at or before the edit time in Singapore time. Appointment dates, times, services and other pet details remain unchanged.
 
 Delete client
   delete-client INDEX
@@ -58,7 +58,7 @@ Edit pet
     p/ and i/ are required and identify the pet by its current name and owner's 8-digit phone starting with 8 or 9. Name lookup ignores case and repeated whitespace.
     Supply at least one update. NEW_PET_NAME follows the pet-name rules and must remain unique for that owner after normalization. SPECIES follows add-pet rules.
     BREED follows add-pet rules; use b/ with no value to remove the breed. REQUIREMENTS follows add-pet rules.
-    Each prefix may appear once. Ownership cannot be changed. Renaming a pet updates its name in linked appointments; other appointment details remain unchanged.
+    Each prefix may appear once. Ownership cannot be changed. Linked ongoing and future appointments receive updated pet details; completed appointments keep recorded pet details except for a changed pet name. An appointment is completed if its end date and time are at or before the edit time in Singapore time. Appointment dates, times, services and recorded owner details remain unchanged.
 
 Delete pet
   delete-pet INDEX

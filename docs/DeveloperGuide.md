@@ -257,8 +257,10 @@ addresses, and tags use `n/`, `e/`, `a/`, and `t/`. Index-based syntax is reject
 
 `EditClientCommand` searches all saved clients by their current phone number, independently of the displayed panel
 or search filter. It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
-`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and propagates a changed phone number to linked
-appointment owner snapshots while retaining their other saved owner details.
+`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and calls `AppointmentList.updateOwner`.
+Linked ongoing and future appointment owner snapshots receive the edited client details. Completed snapshots retain
+their recorded details except for a changed phone number. Completion means the appointment's end date and time are
+at or before the edit time in Singapore time. Appointment dates, times, services and other pet details are preserved.
 New or changed phone numbers are also checked against historical appointment owner snapshots. A phone number cannot be
 reused when it would make a registered client ambiguous with a different historical owner.
 After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
@@ -286,10 +288,11 @@ The execution flow is:
    record panel or a pet filter.
 4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
-5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList`. If the pet name
-   changed, `BubuBook` also updates that pet's name in matching appointment snapshots; the other appointment snapshot
-   details remain unchanged. The command preserves the active pet filter and returns a success
-   `CommandResult`.
+5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList` and calls
+   `AppointmentList.updatePet`. Linked appointments ending strictly after the edit time in Singapore time receive
+   the edited pet details. Completed appointments, including those ending exactly at the edit time, retain their
+   recorded pet details except for a changed pet name. The recorded owner, appointment date, times and service are
+   preserved. The command preserves the active pet filter and returns a success `CommandResult`.
 6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
    failed write does not leave an in-memory edit that was not persisted.
 
@@ -322,11 +325,11 @@ The `Model` component,
   can remain in the schedule as historical records; scheduling commands enforce that new appointments start in the
   future.
 * keeps linked records consistent when they are edited or removed. Replacing a client updates its pets' owner
-  references; if the phone changes, appointment snapshots receive the new phone while retaining their other saved
-  owner details. Renaming a pet updates the pet name in its existing appointment snapshots while preserving the other
-  appointment snapshot details; other pet-field edits do not rewrite those snapshots. Removing a client also removes
-  that client's pets and appointments; removing a pet removes its appointments. Clearing the book removes all three
-  record types.
+  references and the owner snapshots in linked ongoing and future appointments. Pet edits refresh the pet snapshots
+  in linked ongoing and future appointments. Appointments ending at or before the edit time in Singapore time retain
+  historical details, except for linked owner-phone and pet-name changes. Profile edits preserve appointment dates,
+  times and services. Removing a client also removes that client's pets and appointments; removing a pet removes its
+  appointments. Clearing the book removes all three record types.
 * validates replacement data before applying it to the live book. This applies when loading or replacing the book and
   when replacing its client, pet, or appointment lists. The observable list instances remain connected to the model so
   existing UI views continue to receive changes.
@@ -411,8 +414,9 @@ requirements.
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
 `Appointment` holds immutable `Client` and `Pet` objects. `AddAppointmentCommandParser` parses participant
 identifiers; `AddAppointmentCommand` resolves them against the full registered lists when executed.
-Client edits update linked appointment owner references, while deleting a client or pet removes its related appointments
-from the active `BubuBook` before the change is saved.
+Client and pet edits refresh the respective participant snapshots in linked ongoing and future appointments.
+Completed appointments preserve historical details except for linked owner-phone and pet-name changes. Deleting a
+client or pet removes its related appointments from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
 Loading reuses equal registered objects when available and accepts historical snapshots independently of the
 registered lists. Phone numbers alone are not used to associate a snapshot with a registered client, so a standalone
@@ -421,6 +425,18 @@ are rejected.
 Older appointments containing only `ownerPhone` and `petName` are resolved against registered clients and pets
 and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
 format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
+
+`AppointmentList.updateOwner` and `updatePet` use the edit time from the Singapore-time clock. The boundary is based
+on the appointment's end date and time, not its start time:
+
+| End date and time relative to the edit | Client edit | Pet edit |
+| --- | --- | --- |
+| Before or exactly at the edit time (completed) | Update only a changed owner phone | Update only a changed pet name |
+| After the edit time (ongoing or future) | Refresh the owner snapshot | Refresh the pet snapshot |
+
+Both paths preserve the appointment date, start/end times and service. Client edits preserve pet details other than
+the pet's owner information; pet edits preserve the appointment's recorded owner details. These rules apply to linked
+snapshots only; an unrelated historical owner is not associated by phone number alone.
 
 The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
 The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
@@ -1180,7 +1196,9 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `edit-client i/91234567 p/89998888`, then `list-pets i/89998888`<br>
       Expected: The client's phone changes and the same pet appears under the new phone.
-      The linked appointment's owner phone also becomes `89998888`; its other booking details remain unchanged.
+      The linked appointment's owner phone also becomes `89998888`. Ongoing and future bookings receive the current
+      owner details; completed bookings retain their other recorded owner details. Appointment dates, times and
+      services remain unchanged.
 
    3. Test case: `edit-client i/91234567 n/Zoe Tan`, then `edit-client i/89998888 n/Zoe Tan`<br>
       Expected: The old identifier is rejected as unknown. The new identifier succeeds.

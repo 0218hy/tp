@@ -258,7 +258,7 @@ Missing selectors are reported separately from blank `i/` selectors. Supply eith
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment times, services and other pet details remain unchanged. Completion is determined by the appointment's end time in Singapore.
+* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment dates, times, services and other pet details remain unchanged. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -433,7 +433,7 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
 * The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
-* Existing appointments retain their recorded pet details. The owner is unchanged.
+* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements. Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time. Appointment dates, times, services and recorded owner details remain unchanged.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -770,11 +770,13 @@ commands only update the display and do not save the file.
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Editing a client refreshes owner details
-in ongoing and future bookings. Completed bookings preserve their recorded client details, except phone identifiers.
-Other pet details remain as recorded when the booking was made.
-Changing a client's phone number updates linked booking identifiers. Deleting a client or pet also deletes their
-linked bookings. The pet's recorded name is used for display, including its original capitalization.
+Bookings use the same data file as their registered clients and pets. Client edits refresh owner details in linked
+ongoing and future bookings; pet edits refresh their pet details. A booking is ongoing or future if its end date
+and time are strictly after the time of the edit in Singapore time. Bookings ending before or exactly at that time
+are completed and retain their historical details, except that linked owner-phone and pet-name changes still apply.
+Profile edits do not change appointment dates, times or services. Pet edits keep the recorded owner details;
+client edits keep the recorded pet details other than the pet's owner information.
+Deleting a client or pet also deletes their linked bookings. The recorded pet name is displayed with its capitalization.
 
 Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
 registered. If either is missing, restore the missing participant from a backup before upgrading; those older
