@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import seedu.address.model.client.Client;
 import seedu.address.model.pet.Pet;
 import seedu.address.testutil.ClientBuilder;
@@ -104,41 +106,56 @@ public class PetListPanelTest {
     }
 
     @Test
-    public void updateItem_afterFilteringAndDeletion_recalculatesGroupHeading() {
+    public void listView_afterFilteringAndDeletion_recalculatesGroupHeading() {
         JavaFxTestUtils.runAndWait(() -> {
             Pet firstPet = new PetBuilder(ALICE).withName("Bubu").build();
             Pet secondPet = new PetBuilder(ALICE).withName("Mochi").build();
             ObservableList<Pet> savedPets = FXCollections.observableArrayList(firstPet, secondPet);
             FilteredList<Pet> displayedPets = new FilteredList<>(savedPets);
             PetListPanel panel = new PetListPanel(displayedPets);
-            PetListPanel.PetListViewCell cell = panel.new PetListViewCell();
-            cell.updateIndex(1);
-            cell.updateItem(secondPet, false);
-            assertCard(cell, false, "2. ", "Mochi");
+            ListView<Pet> listView = panelListView(panel);
+            Scene scene = new Scene(panel.getRoot(), 800, 600);
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 1, false, "2. ", "Mochi");
+
+            // EP: changing the preceding pet should refresh the unchanged cell's group heading
+            Client differentOwner = new ClientBuilder(ALICE).withPhone("81234567").build();
+            Pet replacementPet = new PetBuilder(differentOwner).withName("Luna").build();
+            savedPets.set(0, replacementPet);
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 1, true, "2. ", "Mochi");
+
+            savedPets.set(0, firstPet);
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 1, false, "2. ", "Mochi");
 
             // EP: filtering makes an existing pet the first item in its owner group
             displayedPets.setPredicate(pet -> pet.equals(secondPet));
-            cell.updateIndex(0);
-            cell.updateItem(secondPet, false);
-            assertCard(cell, true, "1. ", "Mochi");
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 0, true, "1. ", "Mochi");
 
             // EP: removing the filter restores a preceding pet with the same owner
             displayedPets.setPredicate(pet -> true);
-            cell.updateIndex(1);
-            cell.updateItem(secondPet, false);
-            assertCard(cell, false, "2. ", "Mochi");
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 1, false, "2. ", "Mochi");
 
             // EP: deletion makes an existing pet the first item in its owner group
             savedPets.remove(firstPet);
-            cell.updateIndex(0);
-            cell.updateItem(secondPet, false);
-            assertCard(cell, true, "1. ", "Mochi");
+            JavaFxTestUtils.layoutScene(scene);
+            assertCardAt(listView, 0, true, "1. ", "Mochi");
 
             // EP: deleting all pets produces an empty cell
             savedPets.clear();
-            cell.updateItem(null, true);
-            assertNull(cell.getGraphic());
+            JavaFxTestUtils.layoutScene(scene);
+            assertEquals(0, listView.getItems().size());
         });
+    }
+
+    private static void assertCardAt(ListView<Pet> listView, int index, boolean headingVisible,
+            String expectedIndex, String expectedName) {
+        PetListPanel.PetListViewCell cell = JavaFxTestUtils.getCellAt(listView, index,
+                PetListPanel.PetListViewCell.class);
+        assertCard(cell, headingVisible, expectedIndex, expectedName);
     }
 
     private static void assertCard(PetListPanel.PetListViewCell cell, boolean headingVisible,
@@ -156,13 +173,17 @@ public class PetListPanelTest {
     // @@author
 
     @SuppressWarnings("unchecked")
-    private static ObservableList<Pet> panelList(PetListPanel panel) {
+    private static ListView<Pet> panelListView(PetListPanel panel) {
         try {
             var field = PetListPanel.class.getDeclaredField("petListView");
             field.setAccessible(true);
-            return ((javafx.scene.control.ListView<Pet>) field.get(panel)).getItems();
+            return (ListView<Pet>) field.get(panel);
         } catch (ReflectiveOperationException exception) {
             throw new AssertionError(exception);
         }
+    }
+
+    private static ObservableList<Pet> panelList(PetListPanel panel) {
+        return panelListView(panel).getItems();
     }
 }
