@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ public class JsonUtil {
     private static final Logger logger = LogsCenter.getLogger(JsonUtil.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules()
+            .configure(JsonParser.Feature.STRICT_DUPLICATE_DETECTION, true)
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
@@ -88,9 +90,19 @@ public class JsonUtil {
      * Converts a given string representation of JSON data to an instance of a class
      * @param <T> The generic type to create an instance of
      * @return The instance of T with the specified values in the JSON string
+     * @throws IOException if the input is invalid, contains duplicate fields, or has trailing content
      */
     public static <T> T fromJsonString(String json, Class<T> instanceClass) throws IOException {
-        return objectMapper.readValue(json, instanceClass);
+        //@@author 0218hy
+        try (JsonParser parser = objectMapper.getFactory().createParser(json)) {
+            T result = objectMapper.readValue(parser, instanceClass);
+            // Check the complete document before a partial load can later overwrite ignored records.
+            if (parser.nextToken() != null) {
+                throw new IOException("Unexpected trailing content after JSON value.");
+            }
+            return result;
+        }
+        //@@author
     }
 
     /**
