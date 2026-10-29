@@ -101,7 +101,7 @@ If the data file is invalid at startup, commands are blocked with
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
 
-Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records continue to save automatically. Exiting may still save UI preferences separately.
+Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records save automatically; commands that leave the records unchanged skip saving. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`.
 
 Examples using existing clients or pets assume those records have already been added. Replace their identifiers with
 values from your own records. Appointment examples also require a future date and an available slot.
@@ -258,7 +258,7 @@ Missing selectors are reported separately from blank `i/` selectors. Supply eith
 #### Success and other behavior
 
 * On success, BuBu displays `Edited client: ...` and selects the client panel while preserving its active filter. Updated clients appear only if they still match the filter; a client that stops matching remains saved but disappears from the view.
-* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment times, services and other pet details remain unchanged. Completion is determined by the appointment's end time in Singapore.
+* Linked pet owner profiles and owner details in ongoing and future appointments are updated, so `list-appointments` shows the current name and address. Completed appointments retain their recorded details, except that phone-number changes still update linked owner identifiers. Appointment dates, times, services and other pet details remain unchanged. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -433,7 +433,7 @@ edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
 * The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
-* Existing appointments retain their recorded pet details. The owner is unchanged.
+* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements. Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time. Appointment dates, times, services and recorded owner details remain unchanged.
 * Changes are saved automatically. If saving fails, BuBu restores the previous records and displays a storage error.
 
 #### Error handling
@@ -753,7 +753,7 @@ exit
 #### Success and other behavior
 
 * On success, BuBu displays `Exiting BuBu as requested ...` and closes.
-* Records are saved automatically during normal command execution, including a save attempt before this command completes. Session command history is not retained.
+* `exit` does not save record data. Record changes are saved when the commands that make them succeed. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`. Session command history is not retained.
 
 #### Error handling
 
@@ -764,8 +764,9 @@ The command makes no changes when it cannot be completed.
 ### Saving the data
 
 Clients, pets, and appointments are saved together in `data/bububook.json` automatically after successful changes.
-If saving fails, BuBu restores the previous records and displays an error. The `list-pets` and `list-appointments`
-commands only update the display and do not save the file.
+If saving fails, BuBu restores the previous records and displays an error. Read-only commands (`help`, `exit`,
+`list-clients`, `list-pets` and `list-appointments`) do not create or rewrite this file. Other commands also skip
+saving when the records are unchanged. Window preferences are saved separately in `preferences.json` during shutdown.
 
 If another BuBu window changes the same data file, your next change is rejected with
 `Records changed outside this BuBu window. Close and reopen BuBu, then retry your command.`
@@ -780,11 +781,13 @@ the operating system releases the lock when the save finishes or the process exi
 If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
 `data/bububook.json` before launching the new version. Keep the original file as a backup.
 The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Editing a client refreshes owner details
-in ongoing and future bookings. Completed bookings preserve their recorded client details, except phone identifiers.
-Other pet details remain as recorded when the booking was made.
-Changing a client's phone number updates linked booking identifiers. Deleting a client or pet also deletes their
-linked bookings. The pet's recorded name is used for display, including its original capitalization.
+Bookings use the same data file as their registered clients and pets. Client edits refresh owner details in linked
+ongoing and future bookings; pet edits refresh their pet details. A booking is ongoing or future if its end date
+and time are strictly after the time of the edit in Singapore time. Bookings ending before or exactly at that time
+are completed and retain their historical details, except that linked owner-phone and pet-name changes still apply.
+Profile edits do not change appointment dates, times or services. Pet edits keep the recorded owner details;
+client edits keep the recorded pet details other than the pet's owner information.
+Deleting a client or pet also deletes their linked bookings. The recorded pet name is displayed with its capitalization.
 
 Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
 registered. If either is missing, restore the missing participant from a backup before upgrading; those older
