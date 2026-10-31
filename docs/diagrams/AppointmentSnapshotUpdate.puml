@@ -1,0 +1,65 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+title Updating appointment snapshots after editing a client
+
+actor Groomer as user
+Participant ":EditClientCommand" as command LOGIC_COLOR
+Participant ":ModelManager" as model MODEL_COLOR
+Participant ":BubuBook" as book MODEL_COLOR
+Participant ":AppointmentList" as appointments MODEL_COLOR
+Participant "appointment:Appointment" as appointment MODEL_COLOR
+
+user -> command : execute(model)
+activate command
+
+command -> model : setClient(current, edited)
+activate model
+
+model -> book : setClient(current, edited)
+activate book
+
+book -> appointments : updateOwner(current, edited)
+activate appointments
+
+note over appointments
+For each linked appointment,
+compare its end time with the
+current Singapore time.
+end note
+
+alt appointment is in the future or ongoing
+    appointments -> appointment : withOwner(editedOwner)
+    appointment --> appointments : updated appointment
+    note right of appointments
+        Update full client details within appointment
+    end note
+else appointment is completed
+    alt client phone number changed in edit
+        appointments -> appointment : withOwnerPhone(newPhone)
+        appointment --> appointments : updated appointment
+        note right of appointments
+            Update client phone only, within appointment
+        end note
+    else client phone unchanged in edit
+        note right of appointments
+            Preserve the historical
+            appointment snapshot (do nothing)
+        end note
+    end
+end
+
+appointments --> book : return
+deactivate appointments
+
+book --> model : return
+deactivate book
+
+model --> command : return
+deactivate model
+
+command --> user : CommandResult
+deactivate command
+
+@enduml

@@ -54,10 +54,6 @@ appointment index, with `nd/` and `nst/` prefixes reserved for replacement date 
 `EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
 phone-identified client-edit flow.
 
-Replacing the BubuBook validates all collections before changing existing records and keeps
-observable list views connected to the model. Client edits update linked pet owners.
-The `clear` command removes all clients, pets, and appointments, including historical bookings.
-
 All clients, pets, and appointments are saved together in `data/bububook.json` through
 `JsonBubuBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
 `preferences.json` remains separate for window settings. The former `addressbook.json` and
@@ -65,12 +61,6 @@ All clients, pets, and appointments are saved together in `data/bububook.json` t
 
 When upgrading from a version using `data/groombook.json`, close the app and copy that file to
 `data/bububook.json` before starting the new version. Keep the original file as a backup.
-
-`help`, `exit`, `list-clients`, `list-pets` and `list-appointments` do not save records. Other commands save the shared
-book only when its persisted contents change. Saving writes a temporary file before replacing
-the previous file. If saving fails, the previous in-memory book is restored. Unreadable data blocks
-commands so the saved file cannot be overwritten with an empty book.
-
 
 ### Architecture
 
@@ -231,84 +221,9 @@ How the parsing works:
   pet names. For example, `EditAppointmentCommandParser` uses all three utilities because it supports an index,
   an owner phone number, and a pet name.
 
-Index-based commands accept exactly one positive integer index:
-
-* `delete-client INDEX` uses the currently displayed client list.
-* `edit-client INDEX ...` uses the currently displayed client list, including its active filter and sort order.
-* `delete-pet INDEX` uses the currently displayed pet list.
-* `delete-appointment INDEX` uses the currently displayed appointment list, whether it is the ongoing/future view or a
-  date-filtered view.
-* `edit-appointment INDEX ...` uses the currently displayed appointment list.
-* Identifier forms such as `delete-client i/PHONE_NUMBER`, `edit-client i/CURRENT_PHONE [p/NEW_PHONE] ...`,
-  `delete-pet p/PET_NAME i/OWNER_IDENTIFIER`, and
-  `edit-pet p/PET_NAME i/OWNER_IDENTIFIER [n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`
-  search the saved BubuBook instead of relying on the displayed list.
-
-`LogicManager` tracks the current `DisplayType` and rejects an index-based deletion or edit when the
-corresponding record list is not displayed. This prevents an index from being interpreted against a different record type.
-
-#### Client editing by displayed index or phone number
-
-The following sequence diagram shows editing a client using their current phone number:
-
-![Sequence diagram for editing a client by phone number](images/EditClientSequenceDiagram.png)
-
-`BuBuParser` routes `edit-client` to `EditClientCommandParser`. The parser accepts either a positive, one-based
-`INDEX` or `i/CURRENT_PHONE`, and requires at least one update field. Supplying both selectors is rejected.
-For example, `edit-client 1 n/Zoe Tan` edits the first displayed client, while
-`edit-client i/91234567 n/Zoe Tan` selects a client by their current phone number.
-`p/` supplies a replacement phone number. Names, emails, addresses, and tags use `n/`, `e/`, `a/`, and `t/`.
-
-For index selection, `LogicManager` requires the client panel to be displayed. `EditClientCommand` selects from
-`Model.getFilteredClientList()` in its displayed order, including any active search filter and alphabetical sorting.
-An out-of-range index is rejected without changing records. For phone selection, the command searches all saved
-clients independently of the displayed panel or search filter, so hidden clients can still be edited.
-It rejects unknown identifiers and phone/email conflicts with other saved clients before mutation.
-`BubuBook#setClient` replaces the client, refreshes pet owner profiles, and calls `AppointmentList.updateOwner`.
-Linked ongoing and future appointment owner snapshots receive the edited client details. Completed snapshots retain
-their recorded name, email, address and tags so later client profile edits preserve the context of the completed
-appointment. Completion means the appointment's end date and time are at or before the edit time in Singapore time.
-Ownership is determined by phone number, independently of snapshot email, name or address. Phone changes propagate
-to linked pets and all linked appointments, including completed ones, to preserve that relationship. Appointment
-dates, times, services and other pet details are preserved during client edits.
-New or changed phone numbers are also checked against historical appointment owner snapshots. A phone number cannot be
-reused when it would make a registered client ambiguous with a different historical owner.
-After a phone change, subsequent commands must use the new phone in `i/`; the old phone no longer identifies that client.
-
-Successful edits preserve the active client filter and return `DisplayType.CLIENTS`. `LogicManager` saves the updated
-records and restores the previous records if saving fails. An edited client can disappear from the displayed list
-if the updated details no longer match its active filter. Only the phone-selector form bypasses the client-panel guard.
-
-#### Identifier-based pet editing
-
-`edit-pet` is deliberately identifier-based rather than index-based. A displayed index is transient: it depends on the
-currently selected panel and any active pet filter. A pet's current name together with its owner's phone number is a
-stable, domain-level identifier because pet names only need to be unique within an owner.
-
-The execution flow is:
-
-1. `BuBuParser` routes `edit-pet` to `EditPetCommandParser`.
-2. The parser tokenizes the target prefixes (`p/` and `i/`) and the optional update prefixes (`n/`, `s/`, `b/`, and
-   `r/`). It rejects a preamble, unknown prefix, duplicate prefix, missing target selector, invalid value, or a command
-   with no updates. It constructs an `EditPetDescriptor` containing only the requested changes.
-3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the normalized current pet name and exact
-   owner-phone pair. Both target lookup and the later duplicate check use `PetName.getNormalizedName()`, which ignores
-   letter case and leading, trailing, or repeated whitespace.
-   It intentionally does not use `getFilteredPetList()`, so the command works regardless of the currently displayed
-   record panel or a pet filter.
-4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
-   Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
-5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList` and calls
-   `AppointmentList.updatePet`. Linked appointments ending strictly after the edit time in Singapore time receive
-   the edited pet details. Completed appointments, including those ending exactly at the edit time, retain their
-   recorded pet details except for a changed pet name. The recorded owner, appointment date, times and service are
-   preserved. The command preserves the active pet filter and returns a success `CommandResult`.
-6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
-   failed write does not leave an in-memory edit that was not persisted.
-
-The descriptor uses an explicit `isBreedEdited` flag. This distinguishes an omitted `b/` prefix (keep the existing
-breed) from an empty `b/` value (set the optional breed to `null`, thereby clearing it). The owner has no descriptor
-field, which makes transferring a pet impossible through this command by design.
+Commands that use displayed indexes declare their required DisplayType; LogicManager rejects them when the corresponding
+list is not currently displayed. The detailed index and identifier selection behavior is described in
+[Stable Record Selection and Displayed Indexes](#stable-record-selection-and-displayed-indexes).
 
 ### Model component
 
@@ -334,12 +249,8 @@ The `Model` component,
   rejects overlapping time slots regardless of owner or pet, while permitting adjacent appointments. Past appointments
   can remain in the schedule as historical records; scheduling commands enforce that new appointments start in the
   future.
-* keeps linked records consistent when they are edited or removed. Replacing a client updates its pets' owner
-  references and the owner snapshots in linked ongoing and future appointments. Pet edits refresh the pet snapshots
-  in linked ongoing and future appointments. Appointments ending at or before the edit time in Singapore time retain
-  historical details, except for linked owner-phone and pet-name changes. Profile edits preserve appointment dates,
-  times and services. Removing a client also removes that client's pets and appointments; removing a pet removes its
-  appointments. Clearing the book removes all three record types.
+* `BubuBook` coordinates linked-record updates. The detailed appointment snapshot policy is described in
+  [Historical Appointment Snapshots and Linked-Record Consistency](#historical-appointment-snapshots-and-linked-record-consistency).
 * validates replacement data before applying it to the live book. This applies when loading or replacing the book and
   when replacing its client, pet, or appointment lists. The observable list instances remain connected to the model so
   existing UI views continue to receive changes.
@@ -390,39 +301,14 @@ Storage reconstructs the saved data in the following order:
 2. Pets are loaded and their owners are resolved against the loaded clients.
 3. Appointments and their participant snapshots are loaded.
 
-Loading fails if required lists or fields are missing, records are invalid, clients or pets are duplicated, or
-appointments overlap. If the data file is missing, BuBu starts with sample data. If it is unreadable, BuBu starts
-with an empty in-memory book and blocks commands other than `help` to prevent that empty book from overwriting the file. User
-preferences are loaded separately.
+Loading fails if required fields or lists are missing, records are invalid, clients or pets are duplicated, or
+appointments overlap. If the data file is missing, BuBu starts with sample data. Startup behavior for an unreadable file
+is described in [Reliable Persistence and Recovery](#reliable-persistence-and-recovery).
 
 #### Saving and rollback
 
-`JsonBubuBookStorage` remembers the exact bytes from each successful read or save, keyed by canonical file path.
-A missing file is recorded separately from an existing file; saving over an existing file without reading it is
-rejected. Before replacing records, storage acquires an operating-system lock on `bububook.json.lock` and checks
-that the current bytes still match. The check and replacement share the same lock, preventing two BuBu processes
-from both accepting a stale version. Saves in the same JVM are serialized before opening lock channels.
-The sidecar file remains on disk so all writers keep using the same lock; the lock itself is released after saving.
-
-A changed or deleted file raises `RecordSaveConflictException` and tells the user to reopen BuBu. A busy lock asks
-the user to retry. `LogicManager` preserves these messages for every command and restores the pre-command records.
-Only a successful replacement updates the remembered version. Manual file edits must still be made with BuBu closed,
-because external editors do not participate in this locking protocol.
-
-When saving data:
-`help`, `exit`, `list-clients`, `list-pets` and `list-appointments` never trigger a record save. Other commands skip
-saving when the resulting book equals the pre-command snapshot. When records have changed:
-
-* `JsonBubuBookStorage` serializes the complete book and writes it to a temporary file.
-* It replaces `data/bububook.json` only after the temporary file has been written successfully.
-* `LogicManager` copies the current book before executing a command.
-* If saving throws an `IOException`, `LogicManager` restores that copy and reports a storage error.
-
-The rollback restores the in-memory records. It does not restore a previous version of the data file.
-
-The record path is relative to the working directory used to launch BuBu. `MainApp.stop()` attempts to save window
-preferences separately in `preferences.json` during shutdown; it does not save the book. Preference saves do not
-use the shared-book rollback path.
+The save and rollback mechanism, including temporary-file replacement, file locking, stale-write detection, and
+restoration of the in-memory book after failure, is described in [Reliable Persistence and Recovery](#reliable-persistence-and-recovery).
 
 #### Pet-profile persistence
 
@@ -440,18 +326,9 @@ participant-update rules below.
 #### Appointment persistence
 
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
-`Appointment` holds immutable `Client` and `Pet` objects. `AddAppointmentCommandParser` parses participant
-identifiers; `AddAppointmentCommand` resolves them against the full registered lists when executed.
-Client and pet edits refresh the respective participant snapshots in linked ongoing and future appointments.
-Completed appointments preserve historical details except for linked owner-phone and pet-name changes. Deleting a
-client or pet removes its related appointments from the active `BubuBook` before the change is saved.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
 Loading reuses equal registered objects when available and can reconstruct historical snapshots independently of the
 registered lists. This storage capability does not provide a supported JSON import or data-merging workflow.
-Owner identity is the phone number throughout clients, pets, and appointments. `Appointment.isForOwner` compares
-phones; `isForPet` compares the owner phone and normalized pet name. Historical names, emails, and addresses may differ
-from current profile values after edits and do not change identity. Client phone edits propagate the new phone to
-linked pets and appointments, including completed appointments.
 
 BuBu supports records maintained through its commands and unchanged backups of its own saved files. Importing external
 JSON, merging books, and manually modifying records are unsupported. In particular, assigning the same phone to different
@@ -464,41 +341,6 @@ Older appointments containing only `ownerPhone` and `petName` are resolved again
 and saved as snapshots on the next write. If a legacy participant is missing, loading fails because the old
 format contains insufficient information to reconstruct its profile; no placeholder profiles are created.
 
-`AppointmentList.updateOwner` and `updatePet` use the edit time from the Singapore-time clock. The boundary is based
-on the appointment's end date and time, not its start time:
-
-| End date and time relative to the edit | Client edit | Pet edit |
-| --- | --- | --- |
-| Before or exactly at the edit time (completed) | Update only a changed owner phone | Update only a changed pet name |
-| After the edit time (ongoing or future) | Refresh the owner snapshot | Refresh the pet snapshot |
-
-This snapshot policy preserves the recorded profile details of completed work while keeping current contact details
-in the registered client profile. It does not make completed appointments immutable: linked owner-phone and pet-name
-changes still propagate, and deleting a client or pet removes their linked completed appointments as well.
-
-Both paths preserve the appointment date, start/end times and service. Client edits preserve pet details other than
-the pet's owner information; pet edits preserve the appointment's recorded owner details. These rules apply to
-appointments linked by the owner's phone, with the normalized pet name additionally identifying the pet.
-
-The scheduling flow is `AddAppointmentCommand` → `BubuBook` → `StorageManager` → `data/bububook.json`.
-The deletion flow is `DeleteAppointmentCommand` → `ModelManager.deleteAppointment()` →
-`BubuBook.removeAppointment()` → `AppointmentList.removeAppointment()`.
-Client deletion flows through `DeleteClientCommand` → `ModelManager.deleteClient()` →
-`BubuBook.removeClient()`, which removes the client, its pets, and its related appointments.
-Appointment changes use the saving and rollback process described above. `clear` removes all clients, pets, and
-appointments, including historical and future bookings, and saves the empty BubuBook in the same file if records
-were removed. Clearing an already empty book does not write the file.
-
-At startup, `MainApp` loads the complete book once. A missing file starts with sample clients and an empty
-schedule. An invalid file produces a log warning and an empty model; commands are blocked to preserve the file.
-
-The default app parser enables scheduling directly. `AddAppointmentCommand` checks the complete saved client
-and pet lists at execution time, independently of display filters. The owner phone must identify a registered
-client, and the pet must belong to that owner. Pet matching uses `PetName.getNormalizedName()` so case and
-repeated whitespace do not affect identity. Appointments use the shared `PetName` value type while JSON still
-stores names as strings. Historical appointments can load even after their client or pet has been removed.
-The full create-client, create-pet, schedule, save, and restart flow is tested through the default parser.
-
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -507,98 +349,97 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 ## **Implementation**
 
-This section describes some noteworthy details on how certain features are implemented.
+This section describes selected implementation mechanisms that involve non-trivial design decisions or coordination
+across multiple components.
 
-### \[Proposed\] Undo/redo feature
+### Stable record selection and displayed indexes
 
-#### Proposed Implementation
+BuBu supports both displayed-index and identifier-based record selection. These two forms serve different purposes.
 
-The proposed undo/redo mechanism is facilitated by `VersionedBubuBook`. It extends `BubuBook` with an undo/redo history, stored internally as a `bubuBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+A displayed index is meaningful only relative to the currently displayed and filtered list. Before executing an
+index-based command, `LogicManager` checks the command's required `DisplayType`. The command is rejected if the
+corresponding client, pet, or appointment list is not currently displayed. If the check succeeds, the index is resolved
+against the filtered list in the order shown to the user.
 
-* `VersionedBubuBook#commit()` — Saves the current BubuBook state in its history.
-* `VersionedBubuBook#undo()` — Restores the previous BubuBook state from its history.
-* `VersionedBubuBook#redo()` — Restores a previously undone BubuBook state from its history.
+Identifier-based commands search the complete `BubuBook` instead of the currently displayed list. Clients can be
+identified by their current phone number, pets by their normalized name together with their owner's phone number, and
+appointments by their date and start time. These commands therefore continue to work even when the target record is
+hidden by a display filter.
 
-These operations are exposed in the `Model` interface as `Model#commitBubuBook()`, `Model#undoBubuBook()` and `Model#redoBubuBook()` respectively.
+This distinction prevents a temporary display position from being treated as a permanent domain identity. It also allows
+short index-based commands for fast interaction while retaining stable identifier-based commands for operations that
+should not depend on the current display state.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+#### Design consideration:
 
-Step 1. The user launches the application for the first time. The `VersionedBubuBook` will be initialized with the initial BubuBook state, and the `currentStatePointer` pointing to that single BubuBook state.
+* Index-based commands are concise, but they depend on the selected panel, active filter, and sort order.
+Identifier-based commands are more stable and can search the complete book, but require more input. BuBu supports both
+forms and applies each only where its behavior is appropriate.
 
-![UndoRedoState0](images/UndoRedoState0.png)
+### Historical appointment snapshots and linked-record consistency
 
-Step 2. The user executes `delete-client 5` command to delete the 5th client in the BubuBook. The `delete-client` command calls `Model#commitBubuBook()`, causing the modified state of the BubuBook after the `delete-client 5` command executes to be saved in the `bubuBookStateList`, and the `currentStatePointer` is shifted to the newly inserted BubuBook state.
+BuBu stores each appointment as an immutable record containing snapshots of the client and pet involved in that appointment.
+The registered client and pet profiles contain current information, while the appointment snapshots preserve the information
+recorded for a particular booking.
 
-![UndoRedoState1](images/UndoRedoState1.png)
+This separation prevents edits to current profiles from rewriting the historical details of completed appointments.
+At the same time, ongoing and future appointments should reflect the latest client and pet information.
 
-Step 3. The user executes `add n/David …​` to add a new client. The `add` command also calls `Model#commitBubuBook()`, causing another modified BubuBook state to be saved into the `bubuBookStateList`.
+BubuBook coordinates changes across the related collections. When a client is edited, it replaces the client in
+UniqueClientList, updates the owners of linked pets, and delegates appointment updates to AppointmentList.updateOwner.
+When a pet is edited, it replaces the pet and delegates linked appointment updates to AppointmentList.updatePet.
 
-![UndoRedoState2](images/UndoRedoState2.png)
+The update rules are:
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitBubuBook()`, so the BubuBook state will not be saved into the `bubuBookStateList`.
+| Appointment status at the edit time | After Client edit                                                                | After Pet edit                                                      |
+|-------------------------------------|----------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| Ongoing or future                   | Refresh the complete client snapshot                                             | Refresh the complete pet snapshot                                   | 
+| Completed                           | Preserve the recorded client details, but propagate a changed owner phone number | Preserve the recorded pet details, but propagate a changed pet name |
 
-</div>
+An appointment is considered completed when its end date and time is at or before the edit time in Singapore time.
+An appointment currently in progress is treated as ongoing.
 
-Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoBubuBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous BubuBook state, and restores the BubuBook to that state.
+These update rules are centralized in `BubuBook` and `AppointmentList`, ensuring that all client and pet edits apply the same snapshot policy.
 
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial BubuBook state, then there are no previous BubuBook states to restore. The `undo` command uses `Model#canUndoBubuBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoBubuBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the BubuBook to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `bubuBookStateList.size() - 1`, pointing to the latest BubuBook state, then there are no undone BubuBook states to restore. The `redo` command uses `Model#canRedoBubuBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list-clients`. Commands that do not modify the BubuBook, such as `list-clients`, will usually not call `Model#commitBubuBook()`, `Model#undoBubuBook()` or `Model#redoBubuBook()`. Thus, the `bubuBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitBubuBook()`. Since the `currentStatePointer` is not pointing at the end of the `bubuBookStateList`, all BubuBook states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
+![Updating appointment snapshots after editing a client](images/AppointmentSnapshotUpdate.png)
 
 #### Design considerations:
 
-**Aspect: How undo & redo execute:**
+* Storing only references to current client and pet profiles would simplify updates, but completed appointments would
+change whenever a profile was edited.
+* Preserving snapshots in completed appointments preserves the original phone number, but after a client changes their
+phone number, the completed appointment would no longer match the current client or pet. Operations such as lookup,
+editing, or deletion could miss the appointment and leave linked records inconsistent.
 
-* **Alternative 1 (current choice):** Saves the entire BubuBook.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
+Therefore, BuBu propagates phone-number changes even for completed appointments, while preserving other historical details.
 
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete-client`, just save the client being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
+### Reliable persistence and recovery
 
-_{more aspects and alternatives to be added}_
+When a command changes a record, BuBu saves the updated `BubuBook` through the Storage component settings are stored separately in preferences.json.
 
-### \[Proposed\] Data archiving
+When a command changes a record, BuBu saves the change as follows:
+1. LogicManager makes a copy of the current `BubuBook`.
+2. The command updates the copy held by the running application.
+3. The updated book is written to a temporary file.
+4. BuBu obtains a lock so that only one application instance writes at a time.
+5. BuBu checks that data/bububook.json is still the same file version that it previously read.
+6. If the file is unchanged, the temporary file replaces it.
+   The file-version check prevents one application instance from overwriting another instance's changes. For example,
+   if two instances both read version 1, and the first instance saves version 2, the second instance will reject its
+   save because it is still based on version 1.
 
-_{Explain here how the data archiving feature will be implemented}_
+If writing fails, BuBu restores the previous in-memory records and reports an error. If the file was changed or deleted
+by another process, BuBu rejects the save with a RecordSaveConflictException and asks the user to reopen the application.
 
+If BuBu cannot read the record file at startup, it creates an empty in-memory book but blocks record-changing commands.
+This prevents the empty book from overwriting the unreadable file.
 
---------------------------------------------------------------------------------------------------------------------
+![Safely saving a changed BubuBook](images/SafePersistence.png)
+
+#### Design consideration:
+
+* Writing directly to the record file would be simpler, but a failed write could leave it incomplete. Using a temporary
+  file, a write lock, and a file-version check adds complexity but reduces the risk of data loss.
 
 ## **Documentation, logging, testing, dev-ops**
 
