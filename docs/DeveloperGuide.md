@@ -370,7 +370,7 @@ This distinction prevents a temporary display position from being treated as a p
 short index-based commands for fast interaction while retaining stable identifier-based commands for operations that
 should not depend on the current display state.
 
-#### Design consideration:
+**Design consideration:**
 
 * Index-based commands are concise, but they depend on the selected panel, active filter, and sort order.
 Identifier-based commands are more stable and can search the complete book, but require more input. BuBu supports both
@@ -403,7 +403,7 @@ These update rules are centralized in `BubuBook` and `AppointmentList`, ensuring
 
 ![Updating appointment snapshots after editing a client](images/AppointmentSnapshotUpdate.png)
 
-#### Design considerations:
+**Design considerations:**
 
 * Storing only references to current client and pet profiles would simplify updates, but completed appointments would
 change whenever a profile was edited.
@@ -436,7 +436,7 @@ This prevents the empty book from overwriting the unreadable file.
 
 ![Safely saving a changed BubuBook](images/SafePersistence.png)
 
-#### Design consideration:
+**Design consideration:**
 
 * Writing directly to the record file would be simpler, but a failed write could leave it incomplete. Using a temporary
   file, a write lock, and a file-version check adds complexity but reduces the risk of data loss.
