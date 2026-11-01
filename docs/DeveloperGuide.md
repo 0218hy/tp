@@ -94,7 +94,7 @@ The **API** of this component is specified in [`Ui.java`](../src/main/java/seedu
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-`UiManager` implements `Ui` and creates the `MainWindow` when the application starts. Both hold a reference to the `Logic` API. The diagram focuses on UI ownership and card creation. Shared `UiPart<T>` inheritance and dependencies on `Logic` and model records are summarized in its legend; JavaFX controls, internal list-cell classes, and the command callback are omitted for clarity.
+`UiManager` implements `Ui` and creates the `MainWindow` when the application starts. Both hold a reference to the `Logic` API. The diagram focuses on UI ownership and card creation. Shared `UiPart<T>` inheritance and dependencies on `Logic` and model records are described below; JavaFX controls, internal list-cell classes, and the command callback are omitted for clarity.
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `ClientListPanel`,
 `PetListPanel`, `AppointmentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from

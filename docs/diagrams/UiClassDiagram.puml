@@ -45,11 +45,4 @@ ClientListPanel -[hidden]right-> PetListPanel
 PetListPanel -[hidden]right-> AppointmentListPanel
 }
 
-legend bottom
-  Solid diamond = owned UI part; hollow triangle = implements.
-  Dashed open arrow = creates dependency.
-  MainWindow, its UI parts, and all cards extend UiPart<T>.
-  UiManager and MainWindow use the Logic API.
-  Each list panel and card uses its corresponding Model record.
-endlegend
 @enduml
