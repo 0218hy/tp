@@ -312,9 +312,9 @@ field, which makes transferring a pet impossible through this command by design.
 
 ### Model component
 
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="850" alt="ModelManager, BubuBook collections, domain record fields, and interfaces" />
+<img src="images/ModelClassDiagram.png" width="100%" alt="Model API, owned record containers, and filtered and sorted display views" />
 
 
 The `Model` component,
@@ -351,9 +351,9 @@ The `Model` component,
 * has no dependency on the `Logic`, `UI`, or `Storage` components. Those components use the model API to interact with
   the domain data.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The model diagram below shows the API and coordination classes, the collections owned by `BubuBook`, and the relationships between client, pet, and appointment records.<br>
+<div markdown="span" class="alert alert-info">:information_source: **Note:** These are complementary class diagrams. The overview above shows the model API, owned containers, and display views. Collection membership uses ordinary associations because immutable records can be shared with snapshots. The diagram below expands the record fields and participant relationships; an appointment's owner and pet are snapshots and may differ from the currently registered profiles. Association labels identify participant references, which are not repeated as attributes.<br>
 
-<img src="images/BetterModelClassDiagram.png" width="850" alt="BubuBook record collections, ownership, and cascading relationships" />
+<img src="images/BetterModelClassDiagram.png" width="100%" alt="Client, Pet, and Appointment fields, participant multiplicities, and snapshot update rules" />
 
 </div>
 

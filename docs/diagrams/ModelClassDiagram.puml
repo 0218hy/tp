@@ -1,98 +1,74 @@
 @startuml
-' Use the model colors and class styling from style.puml without sequence-only settings.
+' Model overview; domain attributes and participant links are expanded in BetterModelClassDiagram.
 !define MODEL_COLOR #9D0012
+skinparam style strictuml
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam class {
     FontColor #FFFFFF
-    FontSize 15
+    FontSize 16
     BorderThickness 1
     BorderColor #FFFFFF
     StereotypeFontColor #FFFFFF
     FontName Arial
     AttributeFontColor #FFFFFF
-    AttributeFontSize 13
+    AttributeFontSize 14
     AttributeFontName Arial
 }
-skinparam package {
-    BackgroundColor #FFFFFF
-    BorderThickness 1
-    FontSize 16
-}
+skinparam noteFontSize 14
+skinparam interfaceFontStyle plain
+skinparam classStereotypeFontStyle plain
 skinparam DefaultTextAlignment center
-skinparam packageStyle Rectangle
 skinparam Shadowing false
+skinparam nodesep 35
+skinparam ranksep 45
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
 
-title Model component: API, collections, and records
+title Model component: API, containers, and display views
 
-package "Model API and coordination" {
-    interface Model
-    interface ReadOnlyBubuBook
-    interface ReadOnlyUserPrefs
-    class ModelManager
-    class UserPrefs
+interface Model <<interface>>
+interface ReadOnlyBubuBook <<interface>>
+interface ReadOnlyUserPrefs <<interface>>
+
+class ModelManager {
+    - filteredClients: FilteredList<Client>
+    - sortedClients: SortedList<Client>
+    - filteredPets: FilteredList<Pet>
+    - sortedPets: SortedList<Pet>
+    - filteredAppointments: FilteredList<Appointment>
+    - sortedAppointments: SortedList<Appointment>
 }
 
-package "Shared book and collections" {
-    class BubuBook
-    class UniqueClientList
-    class UniquePetList
-    class AppointmentList
+class UserPrefs {
+    - guiSettings: GuiSettings
 }
 
-package "Domain records" {
-    class Client {
-        ClientName name
-        Phone phone
-        Email email
-        Address address
-        Set<Tag> tags
-    }
+class BubuBook
+class UniqueClientList
+class UniquePetList
+class AppointmentList
+class Client
+class Pet
+class Appointment
 
-    class Pet {
-        PetName name
-        Species species
-        Breed breed [optional]
-        Requirement groomingRequirements
-    }
+ModelManager .up.|> Model
+BubuBook .up.|> ReadOnlyBubuBook
+UserPrefs .up.|> ReadOnlyUserPrefs
+Model .right.> ReadOnlyBubuBook : returns
+Model .left.> ReadOnlyUserPrefs : returns
+ModelManager *-right-> "1" BubuBook : bubuBook
+ModelManager *-left-> "1" UserPrefs : userPrefs
 
-    class Appointment {
-        AppointmentDate date
-        StartTime startTime
-        EndTime endTime
-        Service service
-    }
-}
+BubuBook *-down-> "1" UniqueClientList : clients
+BubuBook *-down-> "1" UniquePetList : pets
+BubuBook *-down-> "1" AppointmentList : appointments
 
-ModelManager ..|> Model
-BubuBook ..|> ReadOnlyBubuBook
-UserPrefs ..|> ReadOnlyUserPrefs
-Model ..> ReadOnlyBubuBook : exposes
-Model ..> ReadOnlyUserPrefs : exposes
-ModelManager *--> "1" BubuBook
-ModelManager *--> "1" UserPrefs
+' Records can be shared with snapshots and other lists; membership is not composition.
+UniqueClientList "0..*" --> "0..*" Client : stores
+UniquePetList "0..*" --> "0..*" Pet : stores
+AppointmentList "0..*" --> "0..*" Appointment : stores
 
-BubuBook *--> "1" UniqueClientList
-BubuBook *--> "1" UniquePetList
-BubuBook *--> "1" AppointmentList
-UniqueClientList *--> "*" Client : unique by phone or email
-UniquePetList *--> "*" Pet : unique per owner phone and normalized name
-AppointmentList *--> "*" Appointment : rejects overlap; allows adjacent slots
-
-Pet --> "1 owner" Client
-Appointment --> "1 owner snapshot" Client
-Appointment --> "1 pet snapshot" Pet
-
-note right of ModelManager
-  Maintains filtered and sorted
-  observable display views.
-end note
-
-note bottom of BubuBook
-  Replacements are validated before application.
-  Client edits refresh pet owners and propagate changed phones
-  to appointment snapshots. Pet renames update appointment names.
-  Removing a client or pet removes its related records.
-end note
 @enduml
