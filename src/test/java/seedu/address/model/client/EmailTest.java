@@ -13,15 +13,15 @@ public class EmailTest {
 
     //@@author anderschow
     @Test
-    public void equals_domainCaseIgnored_localPartCasePreserved() {
+    public void equals_caseIgnored_spellingPreserved() {
         Email lower = new Email("alice@example.com");
-        Email mixed = new Email("alice@Example.COM");
+        Email mixed = new Email("Alice@Example.COM");
         assertEquals(lower, mixed);
         assertEquals(mixed, lower);
         assertEquals(lower.hashCode(), mixed.hashCode());
-        assertEquals("alice@Example.COM", mixed.value);
-        assertEquals("alice@Example.COM", mixed.toString());
-        assertFalse(lower.equals(new Email("Alice@EXAMPLE.COM")));
+        assertEquals("Alice@Example.COM", mixed.value);
+        assertEquals("Alice@Example.COM", mixed.toString());
+        assertEquals(lower, new Email("ALICE@example.com"));
     }
     //@@author
 
