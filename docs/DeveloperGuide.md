@@ -236,6 +236,7 @@ Index-based commands accept exactly one positive integer index:
 * `delete-client INDEX` uses the currently displayed client list.
 * `edit-client INDEX ...` uses the currently displayed client list, including its active filter and sort order.
 * `delete-pet INDEX` uses the currently displayed pet list.
+* `edit-pet INDEX ...` uses the currently displayed pet list, including its active owner filter and sort order.
 * `delete-appointment INDEX` uses the currently displayed appointment list, whether it is the ongoing/future view or a
   date-filtered view.
 * `edit-appointment INDEX ...` uses the currently displayed appointment list.
@@ -279,23 +280,28 @@ Successful edits preserve the active client filter and return `DisplayType.CLIEN
 records and restores the previous records if saving fails. An edited client can disappear from the displayed list
 if the updated details no longer match its active filter. Only the phone-selector form bypasses the client-panel guard.
 
-#### Identifier-based pet editing
+#### Pet editing by displayed index or name and owner phone number
 
-`edit-pet` is deliberately identifier-based rather than index-based. A displayed index is transient: it depends on the
-currently selected panel and any active pet filter. A pet's current name together with its owner's phone number is a
-stable, domain-level identifier because pet names only need to be unique within an owner.
+`edit-pet` accepts either a positive, one-based displayed `INDEX` or the pet's current `p/PET_NAME` together with
+`i/OWNER_IDENTIFIER`. An index depends on the displayed pet list, including its owner filter and sort order.
+Name-and-phone lookup searches all saved pets independently of the displayed panel. These identifiers are editable:
+after a pet rename or owner phone change, subsequent identifier-based commands must use the current values.
+Both forms accept the same optional updates: `[n/NEW_PET_NAME] [s/SPECIES] [b/BREED] [r/REQUIREMENTS]`.
 
 The execution flow is:
 
 1. `BuBuParser` routes `edit-pet` to `EditPetCommandParser`.
-2. The parser tokenizes the target prefixes (`p/` and `i/`) and the optional update prefixes (`n/`, `s/`, `b/`, and
-   `r/`). It rejects a preamble, unknown prefix, duplicate prefix, missing target selector, invalid value, or a command
-   with no updates. It constructs an `EditPetDescriptor` containing only the requested changes.
-3. `EditPetCommand` searches `Model.getBubuBook().getPetList()` for the normalized current pet name and exact
-   owner-phone pair. Both target lookup and the later duplicate check use `PetName.getNormalizedName()`, which ignores
-   letter case and leading, trailing, or repeated whitespace.
-   It intentionally does not use `getFilteredPetList()`, so the command works regardless of the currently displayed
-   record panel or a pet filter.
+2. The parser reads an index from the preamble or both target prefixes (`p/` and `i/`), followed by any optional update
+   prefixes (`n/`, `s/`, `b/`, and `r/`). It rejects mixed targeting forms, invalid indices, duplicate prefixes,
+   missing selectors, invalid values, and commands with no updates. It constructs an `EditPetDescriptor` containing
+   only the requested changes. Requirements accept nonblank text of 5–240 characters, including `/` and shorthand
+   such as `w/o`. Unsupported prefix-like text inside requirements is treated as text until another supported prefix
+   begins; an unsupported prefix outside requirements is rejected.
+3. For index selection, `LogicManager` requires the pet panel to be displayed, and `EditPetCommand` selects from
+   `Model.getFilteredPetList()`. An index beyond the displayed list is rejected. For name-and-phone selection, the
+   command searches `Model.getBubuBook().getPetList()` for the normalized name and exact owner phone, even if the pet
+   is hidden by a filter or a different panel is displayed. Name lookup and the duplicate check use
+   `PetName.getNormalizedName()`, which ignores letter case and leading, trailing, or repeated whitespace.
 4. The command creates a new immutable `Pet`, retaining the existing owner and every field omitted from the descriptor.
    Before replacement, it checks that the new name does not collide with another pet belonging to that owner.
 5. `Model.setPet` delegates to `BubuBook.setPet`, which replaces the record through `UniquePetList` and calls
@@ -303,12 +309,16 @@ The execution flow is:
    the edited pet details. Completed appointments, including those ending exactly at the edit time, retain their
    recorded pet details except for a changed pet name. The recorded owner, appointment date, times and service are
    preserved. The command preserves the active pet filter and returns a success `CommandResult`.
-6. `LogicManager` saves the updated `BubuBook`. It keeps a pre-command snapshot and restores it if saving fails, so a
-   failed write does not leave an in-memory edit that was not persisted.
+6. `LogicManager` saves the `BubuBook` when records have changed. It keeps a pre-command snapshot and restores it if
+   saving fails, so a failed write does not leave an in-memory edit that was not persisted. Supplying values identical
+   to the saved profile still returns success, but does not rewrite the data file.
 
 The descriptor uses an explicit `isBreedEdited` flag. This distinguishes an omitted `b/` prefix (keep the existing
 breed) from an empty `b/` value (set the optional breed to `null`, thereby clearing it). The owner has no descriptor
 field, which makes transferring a pet impossible through this command by design.
+
+Neither targeting form changes the selected panel or resets the active pet filter. An edited pet can move within the
+sorted display after a rename, so subsequent index-based commands must use its newly displayed index.
 
 ### Model component
 
@@ -922,26 +932,31 @@ Use case ends.
 
 **MSS**
 
-1. Groomer enters `edit-pet` with a pet's current name, the owner's phone number, and one or more updated fields.
+1. Groomer enters `edit-pet` with either a displayed pet index or the pet's current name and owner's phone number,
+   together with one or more updated fields.
 2. BuBu validates the selectors and requested field values.
-3. BuBu finds the pet matching both the current name and owner phone number in the saved BubuBook.
+3. BuBu selects the pet from the displayed pet list for an index, or searches the saved BubuBook by normalized current
+   name and exact owner phone number.
 4. BuBu creates a replacement pet profile, preserving the owner and any fields that were not supplied.
 5. BuBu verifies that the replacement name does not duplicate another pet belonging to the same owner.
-6. BuBu replaces the saved pet profile and saves the BubuBook.
+6. BuBu replaces the saved pet profile, updates linked appointment snapshots according to their completion status,
+   and saves any changed records. The owner, active pet filter, and selected panel are preserved.
 
 Use case ends.
 
 **Extensions**
 
-* 2a. A required selector is missing, a prefix is repeated or unsupported, no updated field is supplied, or a value is invalid.
+* 2a. A required selector is missing, targeting forms are mixed, an index or field value is invalid, a prefix is
+  repeated or unsupported outside requirements, or no updated field is supplied.
 
     * 2a1. BuBu reports the validation error and leaves the profile unchanged.
 
       Use case ends.
 
-* 3a. No pet matches the supplied current name and owner phone number.
+* 3a. The pet panel is not displayed for an index-based edit, the index exceeds the displayed list, or no pet matches
+  the supplied current name and owner phone number.
 
-    * 3a1. BuBu reports that no matching pet was found and leaves all records unchanged.
+    * 3a1. BuBu reports the display, index, or lookup error and leaves all records unchanged.
 
       Use case ends.
 
@@ -1123,7 +1138,7 @@ testers are expected to do more *exploratory* testing.
       Expected: No client is added. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
 
    4. Test case: Replace `e/test@example.com` with `e/testexample.com` or `e/test@example`.<br>
-      Expected: No client is added. The status message is `Email must contain one @, no spaces, and a domain with a full stop.`
+      Expected: No client is added. The status message is `Email must be at most 254 characters, contain one @, no spaces, and a domain with a full stop.`
 
    5. Test case: Replace `a/30 Bedok Road` with `a/1234` or `a/30 Bedok Road!`.<br>
       Expected: No client is added. The status message is `Addresses must be nonblank and contain 5-120 characters. Use English letters (A-Z, a-z), digits (0-9), spaces, commas, full stops, apostrophes ('), hyphens (-) or #.`
@@ -1391,6 +1406,10 @@ testers are expected to do more *exploratory* testing.
 
 ### Editing a pet
 
+Run these scenarios using an isolated test data set. Each top-level scenario has its own prerequisites; restore those
+records before moving to the next scenario, particularly after renaming a pet. Run separate commands within a test
+case one at a time. For rejected edits, verify that the pet, its owner, other pets, and linked appointments are unchanged.
+
 1. Editing multiple fields without relying on a displayed index
 
    1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh (phone number `87438807`), and the pet has a known breed.
@@ -1399,7 +1418,10 @@ testers are expected to do more *exploratory* testing.
       `edit-pet p/Mochi i/87438807 n/Mochi Bean s/Cat r/Prefers quiet drying`.<br>
       Expected: The command succeeds even though the client list is displayed. The status message is
       `Edited pet: Mochi Bean`. Running `list-pets i/87438807` shows `Mochi Bean`, species `Cat`, the original breed,
-      and the updated requirement. The pet remains owned by Alex Yeoh.
+      and the updated requirement. The client panel remains displayed until `list-pets` is run. The pet remains owned
+      by Alex Yeoh, whose client profile is unchanged. A later identifier-based edit must use `p/Mochi Bean`;
+      `edit-pet p/Mochi i/87438807 r/Needs calm handling` now reports
+      `No pet with the specified name and owner phone number was found.`
 
 2. Updating or clearing an optional breed
 
@@ -1413,18 +1435,72 @@ testers are expected to do more *exploratory* testing.
       longer displays a breed for that pet. After closing BuBu, inspect the pet in `data/bububook.json`: its `breed`
       property is present with value `null`, as it is for a pet added without a breed. Relaunching keeps the breed unset.
 
-3. Matching pets by both name and owner
+3. Accepting punctuation and slash shorthand in requirements
+
+   1. Prerequisites: Alex Yeoh (`87438807`) owns a pet named `Mochi`.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 r/Bad/care`<br>
+      Expected: The edit succeeds with `Edited pet: Mochi`. `list-pets i/87438807` shows the exact requirement
+      `Bad/care`; it is valid because `/` is allowed and the text is within the 5–240 character limit. The name,
+      owner, species, and breed are unchanged.
+
+   3. Test case: `edit-pet p/Mochi i/87438807 r/Wash w/o scented conditioner s/Cat`<br>
+      Expected: The edit succeeds with `Edited pet: Mochi`. The requirement becomes `Wash w/o scented conditioner`
+      and the species becomes `Cat`. The supported `s/` prefix starts a separate field; `w/o` remains requirement text.
+
+4. Matching pets by both name and owner, independently of the active filter
 
    1. Prerequisites: Alex Yeoh (`87438807`) and Bernice Yu (`99272758`) each have a pet named `Milo`.
 
    2. Test case: `edit-pet p/mIlO i/87438807 r/Needs calm handling`<br>
       Expected: Only Alex Yeoh's Milo is updated. Bernice Yu's Milo is unchanged.
 
-   3. Test case: `edit-pet p/Milo i/91234567 r/Needs calm handling` when no pet has that owner phone number<br>
+   3. Test case: Run `list-pets i/99272758`, then
+      `edit-pet p/  mIlO  i/87438807 r/Prefers a quiet dryer`.<br>
+      Expected: Alex Yeoh's Milo is updated even though hidden by the active owner filter. Bernice Yu's pet remains
+      displayed and unchanged. Run `list-pets i/87438807` to verify the saved requirement.
+
+   4. Test case: `edit-pet p/Milo i/91234567 r/Needs calm handling` when no pet has that owner phone number<br>
       Expected: No pet is changed. The status message is
       `No pet with the specified name and owner phone number was found.`
 
-4. Rejecting a duplicate name under one owner
+5. Editing by displayed index and preserving the owner filter
+
+   1. Prerequisites: Alex Yeoh (`87438807`) owns `BuBu` and `Mochi`, and Bernice Yu (`99272758`) owns another pet.
+      Run `list-pets i/87438807`; `BuBu` is displayed before `Mochi`. Note their profiles and Alex Yeoh's client details.
+
+   2. Test case: `edit-pet 1 r/Needs calm handling`<br>
+      Expected: Only Alex Yeoh's `BuBu` receives the new requirement. Feedback is `Edited pet: BuBu`. The pet panel
+      stays filtered to Alex Yeoh's two pets; `Mochi`, Bernice Yu's pet, and both client profiles remain unchanged.
+
+   3. Test case: `edit-pet 2 n/Aster`<br>
+      Expected: `Mochi` becomes `Aster` with all other fields unchanged. Feedback is `Edited pet: Aster`. The owner
+      filter remains active and the list reorders to `Aster`, then `BuBu`; use the new indices for later commands.
+
+6. Rejecting invalid indices, wrong panels, and mixed selectors
+
+   1. Prerequisites: Run `list-pets i/87438807` with exactly two pets displayed, and ensure Bernice Yu (`99272758`)
+      exists with no pets in this scenario.
+
+   2. Test case: `edit-pet 0 r/Needs calm handling`<br>
+      Expected: The command is rejected with `Index must be a positive integer.`
+
+   3. Test case: `edit-pet 3 r/Needs calm handling`<br>
+      Expected: The command is rejected with `The pet index provided is invalid.`, even if another owner's pets exist
+      outside the filter.
+
+   4. Test case: Run `list-pets i/99272758`, then `edit-pet 1 r/Needs calm handling`.<br>
+      Expected: The empty displayed list has no valid index; the message is `The pet index provided is invalid.`
+
+   5. Test case: Run `list-clients`, then `edit-pet 1 r/Needs calm handling`. Repeat after `list-appointments`.<br>
+      Expected: Each edit is rejected with
+      `The current displayed list does not match the record type selected by the index.` The selected panel is unchanged.
+
+   6. Test case: `edit-pet 1 p/Mochi r/Needs calm handling` or `edit-pet 1 i/87438807 r/Needs calm handling`<br>
+      Expected: The command is rejected with
+      `A pet index cannot be combined with pet-name or owner-phone identifiers.`
+
+7. Rejecting a duplicate name under one owner
 
    1. Prerequisites: Alex Yeoh owns pets named `Mochi` and `BuBu`.
 
@@ -1432,30 +1508,73 @@ testers are expected to do more *exploratory* testing.
       Expected: No pet is changed. The status message is `This client already has a pet named BuBu.` The comparison
       ignores letter case and surrounding whitespace.
 
-5. Rejecting incomplete or malformed edits
+   3. Test case: Run `list-pets i/87438807`, note `Mochi`'s displayed index, and use
+      `edit-pet INDEX n/bUbU`, replacing `INDEX` with that value.<br>
+      Expected: The index form rejects the same duplicate with `This client already has a pet named BuBu.`
+
+8. Rejecting incomplete or malformed edits
 
    1. Prerequisites: A pet named `Mochi` belongs to Alex Yeoh.
 
-   2. Test case: `edit-pet p/Mochi i/87438807`<br>
+   2. Test case: `edit-pet p/Mochi i/87438807` or `edit-pet 1`<br>
       Expected: No pet is changed. The status message is `At least one field to edit must be provided.`
 
    3. Test case: `edit-pet i/87438807 n/Mochi Bean` or `edit-pet p/Mochi n/Mochi Bean`<br>
-      Expected: No pet is changed. The status message identifies the missing required selector.
+      Expected: No pet is changed. The respective messages are `Missing required field: PET_NAME.` and
+      `Missing required field: OWNER_IDENTIFIER.`
 
-   4. Test case: `edit-pet p/Mochi i/87438807 s/Horse`, `edit-pet p/Mochi i/71234567 n/Mochi Bean`, or
-      `edit-pet p/Mochi i/87438807 r/Bad/care`<br>
-      Expected: No pet is changed. The status message identifies the invalid species, phone number, or requirement.
+   4. Test case: `edit-pet p/Mochi i/87438807 s/Horse` or `edit-pet p/Mochi i/71234567 n/Mochi Bean`<br>
+      Expected: No pet is changed. The respective messages are `Species must be Dog, Cat, Rabbit, Guinea Pig, or Other.`
+      and `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
 
-   5. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean n/Mochi Junior` or
-      `edit-pet p/Mochi i/87438807 x/value n/Mochi Bean`<br>
-      Expected: No pet is changed. The status message reports a repeated field or invalid command format.
+   5. Test case: `edit-pet p/Mochi i/87438807 r/Bad`, `edit-pet p/Mochi i/87438807 r/`, or the same command with
+      241 consecutive `a` characters after `r/`.<br>
+      Expected: Each edit is rejected with `Requirements must be 5-240 characters.` The values are respectively too
+      short, blank, and too long. In contrast, `r/Quiet` (five characters) and 240 consecutive `a` characters are accepted.
 
-6. Saving the edited profile
+   6. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean n/Mochi Junior`<br>
+      Expected: No pet is changed. The message is `Each pet field may be specified only once.`
 
-   1. Prerequisites: A successful `edit-pet` command has changed a pet profile.
+   7. Test case: `edit-pet p/Mochi i/87438807 x/value n/Mochi Bean`<br>
+      Expected: No pet is changed. The message is `Invalid command format. Check the command syntax and try again.`
+      Here `x/` is outside the requirements value; this does not prohibit slash text inside `r/`.
 
-   2. Test case: Exit and relaunch BuBu, then run `list-pets i/OWNER_IDENTIFIER` for that pet.<br>
-      Expected: The edited values persist after restart.
+   8. Test case: `edit-pet p/Mochi i/87438807 b/X`<br>
+      Expected: No pet is changed. The message is `Breed must be 2-50 characters and use valid text characters.`
+
+9. Updating linked appointment snapshots
+
+   1. Prerequisites: In an isolated test data set, Alex Yeoh (`87438807`) owns `Mochi` with a known breed and has
+      one completed and one future appointment for that pet. Use bookings safely before and after the current
+      Singapore date/time. Have an unrelated appointment for another pet. Note all profiles, dates, times, services,
+      and recorded owner details before editing. Inspect completed bookings using `list-appointments d/DD-MM-YYYY`.
+      Appointment cards display pet names and care notes, but not species or breed. To check those fields and the full
+      owner snapshot, close BuBu and inspect each appointment's nested `pet` and `owner` in `data/bububook.json`, then
+      relaunch before continuing. Do not edit the file during these checks.
+
+   2. Test case: `edit-pet p/Mochi i/87438807 s/Cat b/British Shorthair r/Prefers quiet drying`<br>
+      Expected: The registered pet and its future appointment snapshot contain the new species, breed, and requirements;
+      the future appointment card shows the updated care notes.
+      The completed appointment retains its original pet details. All appointment owner details, dates, times and
+      services, the unrelated appointment, and the saved client profiles remain unchanged.
+
+   3. Test case: `edit-pet p/Mochi i/87438807 n/Mochi Bean`<br>
+      Expected: Both linked appointments use `Mochi Bean`, including the completed booking. Each otherwise retains
+      its details from the previous step: the completed booking still has its historical species, breed and requirements.
+
+   4. Test case: `edit-pet p/Mochi Bean i/87438807 b/`<br>
+      Expected: The registered pet and future appointment have no breed; the completed appointment retains its
+      historical breed. Repeat these edits with each pet's current displayed index in a fresh copy of this scenario;
+      both selector forms apply the same appointment update rules. Ongoing appointments follow the future-booking rule;
+      appointments ending at or before the edit time follow the completed-booking rule.
+
+10. Saving the edited profile and linked appointments
+
+    1. Prerequisites: The pet and appointment edits in the preceding scenario succeeded.
+
+    2. Test case: Exit and relaunch BuBu, then run `list-pets i/87438807` and list each appointment's date.<br>
+       Expected: The edited profile, changed name in both bookings, cleared breed in the future booking, and retained
+       historical pet details in the completed booking persist after restart.
 
 ### Deleting a pet
 
