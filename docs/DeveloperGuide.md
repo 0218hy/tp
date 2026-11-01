@@ -283,6 +283,7 @@ is why the appointment adapter is associated with the participant adapters in th
 adapter is not associated with the client adapter.
 
 #### Loading data
+{:.no_toc}
 
 Storage reconstructs the saved data in the following order:
 
@@ -295,15 +296,17 @@ appointments overlap. If the data file is missing, BuBu starts with sample data.
 is described in [Reliable Persistence and Recovery](#reliable-persistence-and-recovery).
 
 #### Saving and rollback
+{:.no_toc}
 
 The save and rollback mechanism, including temporary-file replacement, file locking, stale-write detection, and
 restoration of the in-memory book after failure, is described in [Reliable Persistence and Recovery](#reliable-persistence-and-recovery).
 
 #### Pet-profile persistence
+{:.no_toc}
 
-Pet edits are persisted through the same shared-book path as other record-changing commands:
-`EditPetCommand` → `ModelManager.setPet()` → `BubuBook.setPet()` → `UniquePetList.setPet()` →
-`StorageManager` → `data/bububook.json`.
+Pet edits update the model through `EditPetCommand` → `ModelManager.setPet()` → `BubuBook.setPet()` →
+`UniquePetList.setPet()`. After the command returns, `LogicManager` saves the changed book through
+`StorageManager` to `data/bububook.json`, as it does for other record-changing commands.
 
 `Pet` is immutable, so an edit replaces one complete profile rather than mutating individual fields. The optional
 breed is serialized as a nullable property: adding a pet without `b/BREED` writes `"breed": null`, and clearing an
@@ -313,6 +316,7 @@ applies to pet snapshots stored within appointments; completed snapshots retain 
 participant-update rules below.
 
 #### Appointment persistence
+{:.no_toc}
 
 Appointments belong to the shared `BubuBook` and are saved in the same file as clients and pets.
 `JsonAdaptedAppointment` stores nested owner and pet snapshots alongside the date, times, and service.
@@ -411,26 +415,31 @@ Therefore, BuBu propagates phone-number changes even for completed appointments,
 
 ### Reliable persistence and recovery
 
-When a command changes a record, BuBu saves the updated `BubuBook` through the Storage component settings are stored separately in preferences.json.
+BuBu saves changed records through Storage. Window preferences are stored separately in `preferences.json`.
 
-When a command changes a record, BuBu saves the change as follows:
-1. LogicManager makes a copy of the current `BubuBook`.
-2. The command updates the copy held by the running application.
-3. The updated book is written to a temporary file.
-4. BuBu obtains a lock so that only one application instance writes at a time.
-5. BuBu checks that data/bububook.json is still the same file version that it previously read.
-6. If the file is unchanged, the temporary file replaces it.
-   The file-version check prevents one application instance from overwriting another instance's changes. For example,
-   if two instances both read version 1, and the first instance saves version 2, the second instance will reject its
-   save because it is still based on version 1.
+Saving follows this sequence.
+
+1. `LogicManager` keeps a backup copy of the current `BubuBook`.
+2. The command updates the live model. Read-only commands and commands that leave records unchanged skip saving.
+3. Storage acquires the operating-system lock on `data/bububook.json.lock`.
+4. While holding the lock, Storage compares the record file's contents with the last successfully read or saved contents.
+5. If they match, Storage writes the updated book to a temporary file beside the record file.
+6. Storage replaces `data/bububook.json` with the temporary file and records the newly saved contents.
+   It requests an atomic replacement, with a regular replacement as a fallback if the filesystem does not support atomic moves.
+7. Storage releases the lock when the save attempt finishes.
+
+For example, if two instances read the same records and the first saves a change, the second rejects its save
+when it detects that the file contents have changed.
 
 If writing fails, BuBu restores the previous in-memory records and reports an error. If the file was changed or deleted
 by another process, BuBu rejects the save with a RecordSaveConflictException and asks the user to reopen the application.
 
-If BuBu cannot read the record file at startup, it creates an empty in-memory book but blocks record-changing commands.
+If BuBu cannot read the record file at startup, it creates an empty in-memory book and rejects commands other than
+`help`. The window controls remain available to close the app.
 This prevents the empty book from overwriting the unreadable file.
 
-![Safely saving a changed BubuBook](images/SafePersistence.png)
+The [architecture sequence diagram](#architecture) shows the command, save, and in-memory rollback interactions
+between components. The steps above describe the additional file-handling details within Storage.
 
 **Design consideration:**
 
@@ -827,34 +836,57 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1,000 total records (clients, pets, and appointments combined) and display schedules without noticeable sluggishness in performance.
-3.  A user with above-average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-4.  Should respond to any user command and refresh the interface display within 1 second during typical usage.
-5.  Should not consume excessive memory, maintaining an active runtime memory footprint below 500 MB under normal operation.
-6.  Should persist all data immediately to the local storage file upon the completion of each mutating command so that data is preserved in the event of an abrupt application exit or crash.
-7.  Should be distributed as a single standalone executable JAR file and run without requiring an external installer, setup wizard, or administrative privileges.
-8.  Should store all application data locally in a human-readable plain-text file without requiring an external database management system. Record changes are made through BuBu commands; manual file editing and external JSON import are unsupported.
-9.  Should operate completely offline without requiring an active internet connection, cloud services, or external server components.
-10. Should be designed for a single user per instance, relying on the host operating system's user account security without managing separate in-app user accounts or access levels.
-11. Should maintain atomic state updates such that any command that encounters a parsing or execution error leaves stored data completely unmodified.
-12. Should start safely and inform the user if the local data file is missing, empty, or corrupted, rather than terminating unexpectedly.
-13. Should remain fully functional and legible on standard laptop screen resolutions (1920x1080, 1440x900, 1366x768) across 13- to 16-inch displays without text truncation or horizontal scrolling.
-14. Will not perform any background automated tasks (such as sending scheduled reminder messages or running background daemons) when the application is idle or closed.
+The requirements below are acceptance targets. The performance and display targets require measurements on the
+release build before they can be reported as met.
+
+1. BuBu should launch and support its documented commands on Windows, macOS and Ubuntu with Java 25 and a compatible
+   JavaFX runtime. Record the OS version, processor architecture and Java distribution used for release testing.
+2. BuBu should save and reload 1,000 valid records, comprising 100 clients, 300 pets and 600 non-overlapping
+   appointments, without losing records or their relationships.
+3. After launch, users should be able to enter, submit and recall documented commands using the keyboard, without
+   requiring a mouse for those actions.
+4. For the dataset in requirement 2, each list command, client search, and single-record add, edit or delete should
+   display feedback and refresh the active list within one second. Measure from pressing Enter until both are updated,
+   after one warm-up run, across ten valid runs per operation. Use local storage on an SSD and a machine with at least
+   four CPU cores and 8 GB RAM, and record its exact configuration.
+5. On the same machine and dataset, the operating system's reported resident memory for the Java process should remain
+   below 500 MB during ten minutes of listing, searching and single-record updates. Record the monitoring tool and
+   sample once per second, including the JavaFX process memory.
+6. Changed records should be saved before a command reports success, and should remain available after restarting
+   the application from the same folder. If saving fails, the application should restore the previous in-memory records
+   and report the failure. Persistence after a successful save must be verified by restarting the application.
+7. With Java installed, BuBu should run from a single executable JAR in a user-writable folder without an application
+   installer or administrative privileges.
+8. BuBu should store records and preferences locally in human-readable JSON files without an external database.
+   Supported data maintenance consists of app commands and restoring unchanged BuBu backups.
+9. After installation, record management and bundled command help should work offline.
+10. Each instance should serve one user and rely on the operating system's account and file permissions for access
+    control.
+11. Invalid commands should leave records unchanged. Concurrent instances should reject stale or competing saves
+    and preserve the other instance's saved records.
+12. A missing record file should allow startup with sample records in memory. An empty, malformed or unreadable file
+    should allow the window to open while protecting the file from record commands. Commands other than `help`
+    should report the startup-data problem when submitted.
+13. At 100% OS display scaling and a maximised window on 1366×768, 1440×900 and 1920×1080 screens, the command input,
+    feedback and all three record views should be readable. Check records with maximum accepted field lengths,
+    using wrapping and vertical scrolling to access long content. Verify this on each tested OS from requirement 1.
+
+For performance and display testing, record the release version, test dataset, environment and results.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
 * **JSON (JavaScript Object Notation)**: The lightweight, human-readable plain-text format used by BuBu for local persistent file storage.
 * **CLI (Command Line Interface)**: A text-based user interface where the groomer issues discrete text commands to execute operations.
 * **GUI (Graphical User Interface)**: The visual layout built with JavaFX that displays formatted client lists, pet profiles and schedule information.
 * **Appointment**: A scheduled mobile grooming engagement linking a specific client and pet to a date, time, and care requirements.
 * **Care Requirements**: Special notes, medical conditions, temperamental traits, behavioral warnings, or styling preferences associated with a pet.
-* **Behavioral Quirks**: Custom tags attached to a pet profile indicating temperamental traits or handling considerations (e.g., `cage-anxious`, `nipper`, `hyperactive`) to help the groomer prepare appropriate equipment.
-* **Client**: A pet owner profile containing  contact information, including name, phone number, email and home address.
+* **Behavioral Quirks**: Temperamental traits or handling considerations, such as anxiety around dryers, recorded as text in a pet's care requirements.
+* **Client**: A pet owner profile containing contact information, including name, phone number, email and home address.
 * **Groomer**: The primary user and actor of BuBu; an independent mobile pet groomer managing appointments, client contacts, and pet profiles on-the-go.
 * **Pet Profile**: A distinct record belonging to a specific client that tracks the pet's name, species, optional breed, and care requirements.
-* **Service**: A supported grooming option (e.g., full groom, basic bath, nail trim) assigned to an appointment.
+* **Participant Snapshot**: Client or pet details saved with an appointment. Completed appointments retain historical details subject to the linked phone-number and pet-name update rules.
+* **Rollback**: Restoring the previous in-memory records after a save fails.
+* **Service**: A grooming option assigned to an appointment. Supported values are `Bath and brush`, `Full groom`, `Nail trim`, and `Other`.
 * **Time Slot**: A continuous duration on a given date during which a grooming appointment takes place, constrained to 30-minute intervals within working hours.
 * **Working Hours**: The allowable operating time frame within which appointments can be booked, defined in BuBu as 08:00 to 20:00.
 
@@ -1165,6 +1197,10 @@ testers are expected to do more *exploratory* testing.
 
 ### Adding a pet
 
+Use a separate test folder containing the release JAR. A first launch without a record file supplies Alex Yeoh
+(`87438807`) and Bernice Yu (`99272758`). Keep the original data folder for normal use.
+Run groups 1–3 in order. Groups 4–5 each require a fresh test folder.
+
 1. Adding pets with and without a breed
 
    1. Prerequisites: A client named `Alex Yeoh` with phone number `87438807` exists and has no pets named `Mochi` or `BuBu`.
@@ -1182,6 +1218,10 @@ testers are expected to do more *exploratory* testing.
    2. Test case: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`<br>
       Expected: The pet is not added; the status message is `This client already has a pet named Mochi.`
 
+   3. Test case: `add-pet p/  mOcHi   i/87438807 s/Dog r/Calm with baths`<br>
+      Expected: The same duplicate message is displayed. Run `list-pets i/87438807` to confirm that only
+      `BuBu` and `Mochi` remain under Alex.
+
 3. Invalid pet details and owner identifiers
 
    1. Prerequisites: Alex Yeoh (phone number `87438807`) exists.
@@ -1198,7 +1238,39 @@ testers are expected to do more *exploratory* testing.
    5. Test case: `add-pet p/Mochi p/BuBu i/87438807 s/Dog r/Calm with baths`<br>
       Expected: No pet is added. The status message is `Each pet field may be specified only once.`
 
+   6. Test case: `add-pet p/Luna i/87438807 s/Cat b/ r/Calm with baths`<br>
+      Expected: No pet is added. Feedback is `Breed must be 2-50 characters and use valid text characters.`
+
+   7. Test case: `add-pet i/1111`<br>
+      Expected: Feedback is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
+      The supplied invalid phone is reported before missing required fields.
+
+4. Preserving the selected view and owner filter
+
+   1. Prerequisites: In a fresh test folder, Alex and Bernice exist and have no pets.
+      Run `list-pets i/99272758`.
+
+   2. Test case: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`<br>
+      Expected: `Pet added: Mochi (Dog) under Alex Yeoh.` The pet panel stays empty because Bernice's filter is active.
+      Run `list-pets i/87438807` to see Mochi.
+
+   3. Test case: Run `list-clients q/99272758`, then
+      `add-pet p/BuBu i/87438807 s/Cat r/Use shampoo/conditioner`.<br>
+      Expected: `Pet added: BuBu (Cat) under Alex Yeoh.` Bernice remains the only displayed client.
+      Run `list-pets i/87438807` to confirm that BuBu's requirements contain `Use shampoo/conditioner`.
+
+5. Saving profiles across restart
+
+   1. Prerequisites: In a fresh test folder, complete the two successful additions in group 1.
+
+   2. Test case: Run `exit`, relaunch from the same folder, then run `list-pets i/87438807`.<br>
+      Expected: `Found 2 pet(s) under Alex Yeoh.` BuBu appears before Mochi. Mochi shows
+      `Golden retriever`, BuBu shows `Not recorded`, and both retain their original care requirements.
+
 ### Listing pets
+
+Use the records from adding-pet group 1 or group 5, with exactly two pets under Alex and none under Bernice.
+Run the following groups in order. All rejected list commands should preserve the previous view and records.
 
 1. Listing all saved pets
 
@@ -1209,7 +1281,8 @@ testers are expected to do more *exploratory* testing.
 
 2. Listing one client's pets
 
-   1. Prerequisites: `Mochi` and `BuBu` exist under Alex Yeoh (phone number `87438807`), and Bernice Yu (phone number `99272758`) has no pets.
+   1. Prerequisites: Alex Yeoh (phone number `87438807`) has exactly two pets, `Mochi` and `BuBu`,
+      and Bernice Yu (phone number `99272758`) has no pets.
 
    2. Test case: `list-pets i/87438807`<br>
       Expected: Feedback is `Found 2 pet(s) under Alex Yeoh.` The list panel shows `BuBu` and `Mochi` with their species, optional breed, and requirements.
@@ -1230,6 +1303,18 @@ testers are expected to do more *exploratory* testing.
 
    3. Test case: `list-pets x/extra`<br>
       Expected: Feedback starts with `Invalid command format!` and then shows the `list-pets` usage and example.
+
+4. Switching views while preserving the client search
+
+   1. Test case: Run `list-clients q/87438807`, then `list-pets i/87438807`.<br>
+      Expected: The pet panel opens with BuBu and Mochi and feedback `Found 2 pet(s) under Alex Yeoh.`
+
+   2. Test case: `edit-client 1 a/24 Lily Road`<br>
+      Expected: `The current displayed list does not match the record type selected by the index.`
+
+   3. Test case: `edit-client i/87438807 a/24 Lily Road`<br>
+      Expected: The client panel opens with Alex as its only result, demonstrating that the previous client search
+      was preserved. Alex's address is now `24 Lily Road`.
 
 ### Editing a pet
 
@@ -1580,8 +1665,45 @@ case one at a time. For rejected edits, verify that the pet, its owner, other pe
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a separate folder containing only the release JAR for each test. Launch from a terminal in that folder.
+Close the application before modifying its test data file. Deliberately corrupting this isolated file is a
+negative test, while restoring an unchanged backup is the supported recovery workflow.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Missing record file
 
-2. _{ more test cases …​ }_
+   1. Test case: Launch with no `data/bububook.json`, run `list-clients`, then `exit`.<br>
+      Expected: Sample clients are displayed. Listing and exiting do not create the records file.
+
+   2. Test case: Relaunch, run `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`, then exit.<br>
+      Expected: The addition succeeds and creates `data/bububook.json`. Relaunching and running
+      `list-pets i/87438807` shows the saved pet.
+
+2. Invalid startup data and recovery
+
+   1. Prerequisites: Create valid records using test 1, close BuBu, and copy `data/bububook.json` to a backup
+      outside the `data` folder.
+
+   2. Test case: In the isolated test file, replace the contents with `{` and launch BuBu.
+      Submit `list-pets` and a valid `add-pet` command.<br>
+      Expected: The window opens without loaded records. Both commands report
+      `Unable to verify existing records. Please contact support.` The malformed file remains unchanged.
+      `help` works. Close the application using its window controls.
+
+   3. Test case: Repeat step 2 with a zero-byte record file.<br>
+      Expected: The same protected startup behaviour occurs, and the file remains empty.
+
+   4. Test case: Close BuBu, restore the unchanged backup as `data/bububook.json`, and relaunch.<br>
+      Expected: `list-pets i/87438807` displays Mochi again and commands work normally.
+
+3. Rejecting a stale save
+
+   1. Prerequisites: In a fresh test folder, launch two BuBu windows, A and B, before changing any records.
+
+   2. Test case: In A, run `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`.
+      In B, run `add-pet p/BuBu i/87438807 s/Cat r/Calm with baths`.<br>
+      Expected: A succeeds. B reports
+      `Records changed outside this BuBu window. Close and reopen BuBu, then retry your command.`
+      Running `list-pets` in B confirms its attempted addition was rolled back.
+
+   3. Test case: Close B, reopen it from the same folder, and run `list-pets i/87438807`.<br>
+      Expected: Mochi from A is present, and BuBu from the rejected save is absent.
