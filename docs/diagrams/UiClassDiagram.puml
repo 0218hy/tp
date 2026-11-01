@@ -1,7 +1,13 @@
 @startuml
 !include style.puml
 !pragma layout smetana
-skinparam arrowThickness 1.1
+skinparam nodesep 50
+skinparam ranksep 85
+skinparam padding 8
+skinparam arrowThickness 1.5
+skinparam ArrowFontSize 12
+skinparam ArrowFontStyle plain
+skinparam classBorderColor UI_COLOR_T4
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
 
@@ -19,7 +25,7 @@ class ClientCard
 class PetCard
 class AppointmentCard
 
-UiManager .left.|> Ui
+UiManager .left.|> Ui : implements
 UiManager -down-> "0..1" MainWindow
 MainWindow *-down-> "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
@@ -27,10 +33,11 @@ MainWindow *-down-> "1" StatusBarFooter
 MainWindow *-down-> "1" ClientListPanel
 MainWindow *-down-> "1" PetListPanel
 MainWindow *-down-> "1" AppointmentListPanel
-ClientListPanel .down.> ClientCard : creates via cells
-PetListPanel .down.> PetCard : creates via cells
-AppointmentListPanel .down.> AppointmentCard : creates via cells
+ClientListPanel .down.> ClientCard : creates\nvia cells
+PetListPanel .down.> PetCard : creates\nvia cells
+AppointmentListPanel .down.> AppointmentCard : creates\nvia cells
 
+' Invisible constraints only arrange the boxes; all semantic relationships above are visible.
 CommandBox -[hidden]right-> ResultDisplay
 ResultDisplay -[hidden]right-> StatusBarFooter
 StatusBarFooter -[hidden]right-> ClientListPanel
@@ -38,9 +45,4 @@ ClientListPanel -[hidden]right-> PetListPanel
 PetListPanel -[hidden]right-> AppointmentListPanel
 }
 
-legend bottom
-  MainWindow, its UI parts, and all cards extend UiPart<T>.
-  UiManager and MainWindow use the Logic API.
-  Each list panel and card uses its corresponding Model record.
-endlegend
 @enduml
