@@ -9,7 +9,7 @@ import java.util.Locale;
 
 /**
  * Represents a Client's email in the BuBu.
- * Preserves the entered spelling; equality ignores domain case but preserves local-part case.
+ * Preserves the entered spelling; equality ignores case throughout the address.
  * Guarantees: immutable; is valid as declared in {@link #isValidEmail(String)}
  */
 public class Email {
@@ -40,8 +40,7 @@ public class Email {
         checkArgument(isValidEmail(email), MESSAGE_CONSTRAINTS);
         value = email;
         //@@author anderschow
-        int domainStart = email.indexOf('@') + 1;
-        comparisonKey = email.substring(0, domainStart) + email.substring(domainStart).toLowerCase(Locale.ROOT);
+        comparisonKey = email.toLowerCase(Locale.ROOT);
         //@@author
     }
 

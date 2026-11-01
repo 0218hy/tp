@@ -214,7 +214,7 @@ add-client n/NAME i/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]...
 
 * `n/NAME`, `i/PHONE_NUMBER`, `e/EMAIL` and `a/ADDRESS` are required. Their shared formats are in [Accepted formats](#accepted-formats).
 * `t/TAG` is optional. Repeat it for multiple tags, or omit it for no tags. Duplicate tags are stored once.
-* Phone numbers and emails must be unique across clients. Email domains are compared case-insensitively, while the local part (before `@`) remains case-sensitive: `alice@example.com` conflicts with `alice@EXAMPLE.COM`, but `Alice@example.com` is distinct. The entered spelling is preserved for display and storage. Names and addresses need not be unique.
+* Phone numbers and emails must be unique across clients. Email addresses are compared case-insensitively: `alice@example.com`, `alice@EXAMPLE.COM`, and `Alice@example.com` all conflict. The entered spelling is preserved for display and storage. Names and addresses need not be unique.
 * A phone number recorded for another owner in a past booking cannot be assigned to a new or existing client. This prevents client edits or deletions from changing another person's historical appointment.
 
 If you see `Email (e/) cannot be blank.`, type the email address immediately after `e/`. If no email field was supplied, add the whole field.
@@ -292,9 +292,8 @@ edit-client i/CURRENT_PHONE [n/NAME] [p/NEW_PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]
 * `n/NAME`, `p/NEW_PHONE`, `e/EMAIL`, `a/ADDRESS` — optional updates using the same value constraints as `add-client`. Omitted fields keep their values.
 * `t/TAG` — optional alphanumeric tags replacing all existing tags. Repeat it to supply multiple tags; use `t/` alone to clear tags. Omit it to keep tags.
 * Supply at least one update. Each of `i/`, `n/`, `p/`, `e/` and `a/` may appear only once.
-* A changed phone or email must not belong to another saved client, including clients hidden by a search. Email domains are compared case-insensitively; the local part (before `@`) remains case-sensitive, as for `add-client`.
+* A changed phone or email must not belong to another saved client, including clients hidden by a search. Email addresses are compared case-insensitively, as for `add-client`.
 * The new number must also be different from a number recorded for another owner in a past booking.
-* The old `edit` command is unsupported.
 
 If BuBu reports a missing client, check which phone field you used. For example, `edit-client i/91234567 p/89998888` looks up `91234567` and replaces it with `89998888`.
 
