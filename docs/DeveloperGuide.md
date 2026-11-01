@@ -91,24 +91,9 @@ The bulk of the app's work is done by the following four components:
 **How the architecture components interact with each other**
 
 The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues
-the command `delete-client 1`. It focuses on how a command is executed, saved, and rolled back if saving fails. The
-client panel is assumed to be selected and index 1 is assumed to be valid. Lower-level parsing and deletion details
-are omitted from the diagram.
+the command `delete-client 1`.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="100%" alt="Command execution with save success and in-memory rollback after a save failure" />
-
-How the command is executed and saved:
-
-1. `Logic` parses and validates the command.
-2. `Logic` retrieves the current data from `Model` and creates a backup copy.
-3. `Logic` applies the validated command to `Model`.
-4. `Logic` asks `Storage` to save the updated data.
-5. If saving succeeds, the UI displays the command's success message.
-6. If saving fails, `Logic` restores the backup copy in `Model` and the UI displays a storage error.
-
-The rollback restores client, pet, and appointment records in memory, but does not restore UI selection or filters.
-Parse and command validation failures occur before saving. `help`, `exit`, `list-clients`, `list-pets` and
-`list-appointments` do not trigger a record save. Other commands also skip saving if the book is unchanged.
 
 Each of the four main components (also shown in the diagram above),
 
