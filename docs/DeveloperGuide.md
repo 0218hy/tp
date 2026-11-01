@@ -393,7 +393,7 @@ The update rules are:
 
 | Appointment status at the edit time | After Client edit                                                                | After Pet edit                                                      |
 |-------------------------------------|----------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| Ongoing or future                   | Refresh the complete client snapshot                                             | Refresh the complete pet snapshot                                   | 
+| Ongoing or future                   | Refresh the complete client snapshot                                             | Refresh the complete pet snapshot                                   |
 | Completed                           | Preserve the recorded client details, but propagate a changed owner phone number | Preserve the recorded pet details, but propagate a changed pet name |
 
 An appointment is considered completed when its end date and time is at or before the edit time in Singapore time.
@@ -1126,7 +1126,7 @@ testers are expected to do more *exploratory* testing.
 
    4. Test case: `delete-client 0`<br>
       Expected: No client is deleted. BuBu reports an invalid command format and shows the command usage.
-   
+
    5. Test case: `delete-client 999` when fewer than 999 clients are displayed.<br>
       Expected: No client is deleted. The status message is `The person index provided is invalid.`
 
