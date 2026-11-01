@@ -137,7 +137,7 @@ The **API** of this component is specified in [`Ui.java`](../src/main/java/seedu
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-`UiManager` implements `Ui` and creates the `MainWindow` when the application starts. Both hold a reference to the `Logic` API. The diagram omits JavaFX controls and internal list-cell classes for clarity.
+`UiManager` implements `Ui` and creates the `MainWindow` when the application starts. Both hold a reference to the `Logic` API. The diagram focuses on UI ownership and card creation. Shared `UiPart<T>` inheritance and dependencies on `Logic` and model records are summarized in its legend; JavaFX controls, internal list-cell classes, and the command callback are omitted for clarity.
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `ClientListPanel`,
 `PetListPanel`, `AppointmentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from
@@ -155,18 +155,18 @@ The `UI` component,
 
 `CommandBox` invokes a `CommandExecutor` callback supplied by `MainWindow`. This callback calls `Logic.execute`, updates `ResultDisplay` with success or error feedback, and handles display changes, help, and exit requests. `MainWindow` also restores and saves window settings through `Logic`; `StatusBarFooter` displays the data file path supplied at startup.
 
-Each list panel uses custom JavaFX cells to create its corresponding card. Pet cards show an owner heading at the start of each owner group, and appointment cards show a date heading at the start of each date group. Their panels refresh these headings when the lists change. Sorting is provided by the model.
-
 `MainWindow` creates all three list panels once and keeps them bound to the model's observable lists. It shows exactly
 one panel at a time, initially clients, using the `DisplayType` carried by `CommandResult`: `CLIENTS`, `PETS`, or `APPOINTMENTS`.
+
+Each list panel uses custom JavaFX cells to create its corresponding card. Pet cards show an owner heading at the start of each owner group, and appointment cards show a date heading at the start of each date group. Their panels refresh these headings when the lists change. Sorting is provided by the model.
+
 Successful list commands set this value, and commands that do not change the selected record type use
 `UNCHANGED`. Hidden panels are also unmanaged so that they do not occupy layout space. The record heading and count track the visible list.
 
-The `help` command returns the command reference stored in
-`src/main/resources/help/CommandReference.md`. `MainWindow` displays this result in
-`ResultDisplay`, which renders command names and command formats with distinct styles in a scrollable inline view.
-The **Help** menu item and <kbd>F1</kbd> invoke the same command. When adding or changing a command, keep this
-reference in sync with the User Guide.
+`ResultDisplay` presents command output and error messages supplied by `MainWindow`. Successful command
+feedback and parsing or execution errors appear in a text area with distinct success and error styles.
+It also supports a scrollable, formatted command-reference view. Switching views hides and unmanages the
+inactive view, and each new result replaces the previous content in the selected view.
 
 `CommandBox` maintains session-only command history independently of the `Logic` and `Model` components. It records
 each non-empty submission before invoking its `CommandExecutor`, so commands that fail parsing or execution can also

@@ -7,57 +7,40 @@ skinparam classBackgroundColor UI_COLOR
 
 package UI {
 interface Ui
-abstract class "UiPart<T>" as UiPart
 class UiManager
 class MainWindow
 class CommandBox
-interface "CommandBox.CommandExecutor" as CommandExecutor
 class ResultDisplay
 class StatusBarFooter
 class ClientListPanel
-class ClientCard
 class PetListPanel
-class PetCard
 class AppointmentListPanel
+class ClientCard
+class PetCard
 class AppointmentCard
+
+UiManager .left.|> Ui
+UiManager -down-> "0..1" MainWindow
+MainWindow *-down-> "1" CommandBox
+MainWindow *-down-> "1" ResultDisplay
+MainWindow *-down-> "1" StatusBarFooter
+MainWindow *-down-> "1" ClientListPanel
+MainWindow *-down-> "1" PetListPanel
+MainWindow *-down-> "1" AppointmentListPanel
+ClientListPanel .down.> ClientCard : creates via cells
+PetListPanel .down.> PetCard : creates via cells
+AppointmentListPanel .down.> AppointmentCard : creates via cells
+
+CommandBox -[hidden]right-> ResultDisplay
+ResultDisplay -[hidden]right-> StatusBarFooter
+StatusBarFooter -[hidden]right-> ClientListPanel
+ClientListPanel -[hidden]right-> PetListPanel
+PetListPanel -[hidden]right-> AppointmentListPanel
 }
-package Logic {
-interface "Logic" as LogicApi LOGIC_COLOR
-}
-package Model {
-class Client MODEL_COLOR
-class Pet MODEL_COLOR
-class Appointment MODEL_COLOR
-}
-UiManager ..|> Ui
-UiManager --> "0..1" MainWindow
-UiManager --> "1" LogicApi
-MainWindow --> "1" LogicApi
-CommandBox --> "1" CommandExecutor
-MainWindow ..> CommandExecutor : supplies callback
-MainWindow *--> "1" CommandBox
-MainWindow *--> "1" ResultDisplay
-MainWindow *--> "1" StatusBarFooter
-MainWindow *--> "1" ClientListPanel
-MainWindow *--> "1" PetListPanel
-MainWindow *--> "1" AppointmentListPanel
-MainWindow --|> UiPart
-CommandBox --|> UiPart
-ResultDisplay --|> UiPart
-StatusBarFooter --|> UiPart
-ClientListPanel --|> UiPart
-PetListPanel --|> UiPart
-AppointmentListPanel --|> UiPart
-ClientCard --|> UiPart
-PetCard --|> UiPart
-AppointmentCard --|> UiPart
-ClientListPanel ..> ClientCard : creates via cells
-ClientListPanel ..> Client : displays observable list
-ClientCard --> "1" Client
-PetListPanel ..> PetCard : creates via cells
-PetListPanel ..> Pet : displays observable list
-PetCard --> "1" Pet
-AppointmentListPanel ..> AppointmentCard : creates via cells
-AppointmentListPanel ..> Appointment : displays observable list
-AppointmentCard --> "1" Appointment
+
+legend bottom
+  MainWindow, its UI parts, and all cards extend UiPart<T>.
+  UiManager and MainWindow use the Logic API.
+  Each list panel and card uses its corresponding Model record.
+endlegend
 @enduml
