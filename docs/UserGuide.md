@@ -476,11 +476,21 @@ Jamie asks you to keep the dryer on low for Mochi.
 - `edit-pet p/Mochi i/81112222 r/Keep dryer on low`<br>
   **Feedback** — `Edited pet: Mochi`
 
+Alternatively, run `list-pets i/81112222`. If Mochi is Jamie's only pet, Mochi appears at index 1:
+
+- `edit-pet 1 r/Keep dryer on low`<br>
+  **Feedback** — `Edited pet: Mochi`
+
 #### Success and other behavior
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
 * The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
-* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements. Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time. Appointment dates, times, services and recorded owner details remain unchanged.
+* Renaming a pet can change its position in the sorted list. Use the updated displayed index for subsequent index-based
+  commands, and use the new name for subsequent name-and-phone commands.
+* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements.
+* Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings.
+  An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time.
+* Appointment dates, times, services and recorded owner details remain unchanged.
 
 #### Common issues
 
@@ -501,9 +511,11 @@ delete-pet p/PET_NAME i/OWNER_IDENTIFIER
 
 #### Notes
 
-* `INDEX` — a positive integer referring to the pet's one-based position in the current pet list, including any owner filter.
+* `INDEX` — a positive integer referring to the pet's one-based position in the current pet list, including any owner
+  filter. The pet panel must be displayed; index-based deletion is rejected when another record panel is selected.
 * `p/PET_NAME` — alternatively, the saved pet name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. The name is matched case-insensitively; leading and trailing whitespace is ignored, and repeated internal whitespace is treated as a single space, consistent with edit lookup.
-* `i/OWNER_IDENTIFIER` — required with `p/`; the owner's eight-digit phone number starting with `8` or `9`.
+* `i/OWNER_IDENTIFIER` — required with `p/`; the owner's eight-digit phone number starting with `8` or `9`. Together,
+  the name and phone identify a saved pet even when it is hidden by the active filter or another panel is displayed.
 * Provide an index or both identifiers, not both formats.
 
 #### Examples
@@ -513,10 +525,17 @@ Use Mochi’s name and Jamie’s phone number to remove the pet and any linked b
 - `delete-pet p/Mochi i/81112222`<br>
   **Feedback** — `Deleted pet: Mochi`
 
+Alternatively, while Mochi is still saved, run `list-pets i/81112222`. If Mochi is Jamie's only pet, Mochi appears at
+index 1. Use this command instead of the name-and-phone example above:
+
+- `delete-pet 1`<br>
+  **Feedback** — `Deleted pet: Mochi`
+
 #### Success and other behavior
 
 * On success, BuBu displays `Deleted pet: PET_NAME`.
-* Appointments linked to that pet are also deleted. The client and other pets are preserved.
+* All appointments linked to that pet are also deleted, including completed appointments. The client and other pets
+  are preserved.
 * The selected panel does not change. There is no confirmation prompt.
 
 #### Common issues
