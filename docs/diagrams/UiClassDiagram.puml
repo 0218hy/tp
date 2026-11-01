@@ -1,55 +1,46 @@
 @startuml
 !include style.puml
+!pragma layout smetana
 skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
 
-package UI <<Rectangle>>{
-Class "<<interface>>\nUi" as Ui
-Class "{abstract}\nUiPart" as UiPart
-Class UiManager
-Class MainWindow
-Class ResultDisplay
-Class PersonListPanel
-Class PersonCard
-Class StatusBarFooter
-Class CommandBox
-}
-
-package Model <<Rectangle>> {
-Class HiddenModel #FFFFFF
-}
-
-package Logic <<Rectangle>> {
-Class HiddenLogic #FFFFFF
-}
-
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Ui
+package UI {
+interface Ui
+class UiManager
+class MainWindow
+class CommandBox
+class ResultDisplay
+class StatusBarFooter
+class ClientListPanel
+class PetListPanel
+class AppointmentListPanel
+class ClientCard
+class PetCard
+class AppointmentCard
 
 UiManager .left.|> Ui
-UiManager -down-> "1" MainWindow
-MainWindow *-down->  "1" CommandBox
+UiManager -down-> "0..1" MainWindow
+MainWindow *-down-> "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
-MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" StatusBarFooter
+MainWindow *-down-> "1" ClientListPanel
+MainWindow *-down-> "1" PetListPanel
+MainWindow *-down-> "1" AppointmentListPanel
+ClientListPanel .down.> ClientCard : creates via cells
+PetListPanel .down.> PetCard : creates via cells
+AppointmentListPanel .down.> AppointmentCard : creates via cells
 
-PersonListPanel -down-> "*" PersonCard
+CommandBox -[hidden]right-> ResultDisplay
+ResultDisplay -[hidden]right-> StatusBarFooter
+StatusBarFooter -[hidden]right-> ClientListPanel
+ClientListPanel -[hidden]right-> PetListPanel
+PetListPanel -[hidden]right-> AppointmentListPanel
+}
 
-MainWindow -left-|> UiPart
-
-ResultDisplay --|> UiPart
-CommandBox --|> UiPart
-PersonListPanel --|> UiPart
-PersonCard --|> UiPart
-StatusBarFooter --|> UiPart
-
-PersonCard ..> Model
-UiManager -right-> Logic
-MainWindow -left-> Logic
-
-CommandBox -[hidden]left- ResultDisplay
-ResultDisplay -[hidden]left- StatusBarFooter
-
-MainWindow -[hidden]-|> UiPart
+legend bottom
+  MainWindow, its UI parts, and all cards extend UiPart<T>.
+  UiManager and MainWindow use the Logic API.
+  Each list panel and card uses its corresponding Model record.
+endlegend
 @enduml

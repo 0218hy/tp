@@ -19,7 +19,7 @@ skinparam class {
 skinparam noteFontSize 14
 skinparam DefaultTextAlignment center
 skinparam Shadowing false
-skinparam nodesep 45
+skinparam nodesep 80
 skinparam ranksep 65
 hide circle
 hide empty members
@@ -33,7 +33,7 @@ class Client {
     - phone: Phone
     - email: Email
     - address: Address
-    - tags: Tag [0..*] {unique}
+    - tags: Tag [0..*]
 }
 
 class Pet {
@@ -51,9 +51,9 @@ class Appointment {
 }
 
 ' Participant references are shown only as associations, not duplicated as attributes.
-Appointment "0..*" -right-> "1" Pet : pet >
-Pet "0..*" -right-> "1" Client : owner >
-Appointment "0..*" --> "1" Client : owner >
+Appointment "0..*" -right-> "1\npet" Pet
+Pet "0..*" -right-> "1\nowner" Client
+Appointment "0..*" --> "1\nowner" Client
 
 note bottom of Client
   Client, Pet, and Appointment are immutable.

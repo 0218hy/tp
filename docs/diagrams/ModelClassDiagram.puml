@@ -21,7 +21,7 @@ skinparam interfaceFontStyle plain
 skinparam classStereotypeFontStyle plain
 skinparam DefaultTextAlignment center
 skinparam Shadowing false
-skinparam nodesep 35
+skinparam nodesep 100
 skinparam ranksep 45
 hide circle
 hide empty members
@@ -59,12 +59,12 @@ BubuBook .up.|> ReadOnlyBubuBook
 UserPrefs .up.|> ReadOnlyUserPrefs
 Model .right.> ReadOnlyBubuBook : returns
 Model .left.> ReadOnlyUserPrefs : returns
-ModelManager *-right-> "1" BubuBook : bubuBook >
-ModelManager *-left-> "1" UserPrefs : userPrefs >
+ModelManager *-right-> "1\nbubuBook" BubuBook
+ModelManager *-left-> "1\nuserPrefs" UserPrefs
 
-BubuBook *-down-> "1" UniqueClientList : clients
-BubuBook *-down-> "1" UniquePetList : pets
-BubuBook *-down-> "1" AppointmentList : appointments
+BubuBook *-down-> "1\nclients" UniqueClientList
+BubuBook *-down-> "1\npets" UniquePetList
+BubuBook *-down-> "1\nappointments" AppointmentList
 
 ' Records can be shared with snapshots and other lists; membership is not composition.
 UniqueClientList "0..*" --> "0..*" Client : stores >

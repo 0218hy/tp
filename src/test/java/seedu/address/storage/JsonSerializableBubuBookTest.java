@@ -39,11 +39,11 @@ public class JsonSerializableBubuBookTest {
     public Path testFolder;
 
     @Test
-    public void read_domainCaseConflict_rejectsWithoutChangingFile() throws Exception {
+    public void read_emailCaseConflict_rejectsWithoutChangingFile() throws Exception {
         JsonAdaptedClient first = new JsonAdaptedClient(new ClientBuilder()
                 .withPhone("81112222").withEmail("alice@example.com").build());
         JsonAdaptedClient second = new JsonAdaptedClient(new ClientBuilder()
-                .withPhone("82223333").withEmail("alice@EXAMPLE.COM").build());
+                .withPhone("82223333").withEmail("ALICE@EXAMPLE.COM").build());
         JsonSerializableBubuBook data = new JsonSerializableBubuBook(List.of(first, second), List.of(), List.of());
         assertThrows(IllegalValueException.class, JsonSerializableBubuBook.MESSAGE_DUPLICATE_CLIENT,
                 data::toModelType);
@@ -55,15 +55,15 @@ public class JsonSerializableBubuBookTest {
     }
 
     @Test
-    public void readAndSave_localPartCaseDistinct_preservesEmailSpelling() throws Exception {
+    public void readAndSave_distinctEmails_preservesEmailSpelling() throws Exception {
         BubuBook book = new BubuBook();
         book.addClient(new ClientBuilder().withPhone("81112222").withEmail("alice@Example.COM").build());
-        book.addClient(new ClientBuilder().withPhone("82223333").withEmail("Alice@EXAMPLE.com").build());
+        book.addClient(new ClientBuilder().withPhone("82223333").withEmail("Bob@EXAMPLE.com").build());
         JsonBubuBookStorage storage = new JsonBubuBookStorage(testFolder.resolve("emails.json"));
         storage.saveBubuBook(book);
         var restored = storage.readBubuBook().orElseThrow();
         assertEquals("alice@Example.COM", restored.getClientList().get(0).getEmail().value);
-        assertEquals("Alice@EXAMPLE.com", restored.getClientList().get(1).getEmail().value);
+        assertEquals("Bob@EXAMPLE.com", restored.getClientList().get(1).getEmail().value);
     }
     //@@author
 

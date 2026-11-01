@@ -17,7 +17,7 @@ import seedu.address.testutil.EditClientDescriptorBuilder;
 /** Exercises conflict reporting for both commands, including conflicts hidden by filters. */
 public class ClientConflictCommandTest {
     @Test
-    public void execute_domainCaseConflict_rejectedEvenWhenHidden() {
+    public void execute_emailCaseConflict_rejectedEvenWhenHidden() {
         Client existing = new ClientBuilder().withPhone("81112222").withEmail("alice@example.com").build();
         Client target = new ClientBuilder().withPhone("82223333").withEmail("bob@example.com").build();
         for (boolean filtered : new boolean[]{false, true}) {
@@ -28,21 +28,21 @@ public class ClientConflictCommandTest {
                 model.updateFilteredClientList(client -> client.equals(target));
             }
             assertCommandFailure(new AddClientCommand(new ClientBuilder().withPhone("83334444")
-                    .withEmail("alice@EXAMPLE.COM").build()), model, AddClientCommand.MESSAGE_DUPLICATE_EMAIL);
+                    .withEmail("ALICE@EXAMPLE.COM").build()), model, AddClientCommand.MESSAGE_DUPLICATE_EMAIL);
             assertCommandFailure(new EditClientCommand(target.getPhone(),
-                    new EditClientDescriptorBuilder().withEmail("alice@Example.Com").build()),
+                    new EditClientDescriptorBuilder().withEmail("Alice@example.com").build()),
                     model, AddClientCommand.MESSAGE_DUPLICATE_EMAIL);
         }
     }
 
     @Test
-    public void execute_editOwnDomainCase_preservesEnteredSpelling() throws Exception {
+    public void execute_editOwnEmailCase_preservesEnteredSpelling() throws Exception {
         ModelManager model = new ModelManager();
         Client target = new ClientBuilder().withEmail("alice@example.com").build();
         model.addClient(target);
         new EditClientCommand(target.getPhone(),
-                new EditClientDescriptorBuilder().withEmail("alice@Example.COM").build()).execute(model);
-        assertEquals("alice@Example.COM", model.getBubuBook().getClientList().getFirst().getEmail().value);
+                new EditClientDescriptorBuilder().withEmail("Alice@Example.COM").build()).execute(model);
+        assertEquals("Alice@Example.COM", model.getBubuBook().getClientList().getFirst().getEmail().value);
     }
 
     @Test
@@ -75,18 +75,18 @@ public class ClientConflictCommandTest {
     }
 
     @Test
-    public void execute_editOwnValuesAndCaseDistinctEmail_success() throws Exception {
+    public void execute_editOwnValuesAndDistinctEmail_success() throws Exception {
         ModelManager model = new ModelManager();
         Client target = new ClientBuilder().withPhone("81111111").withEmail("first@example.com").build();
         model.addClient(target);
         BubuBook before = new BubuBook(model.getBubuBook());
         new EditClientCommand(target.getPhone(), new EditClientDescriptorBuilder(target).build()).execute(model);
         assertEquals(before, model.getBubuBook());
-        Client other = new ClientBuilder().withPhone("82222222").withEmail("FIRST@example.com").build();
+        Client other = new ClientBuilder().withPhone("82222222").withEmail("SECOND@example.com").build();
         new AddClientCommand(other).execute(model);
         new EditClientCommand(other.getPhone(),
-                new EditClientDescriptorBuilder().withEmail("First@example.com").build()).execute(model);
-        assertEquals("First@example.com", model.getBubuBook().getClientList().get(1).getEmail().value);
+                new EditClientDescriptorBuilder().withEmail("Second@example.com").build()).execute(model);
+        assertEquals("Second@example.com", model.getBubuBook().getClientList().get(1).getEmail().value);
     }
 }
 //@@author
