@@ -51,6 +51,7 @@ BuBu helps **freelance pet groomers** keep track of clients, their pets and groo
 
 *Searching for 87438807 returns one matching client, Alex Yeoh.*
 
+Type `help`, choose **Help → Help**, or press <kbd>F1</kbd> to view the built-in command formats and field restrictions.
 Use the [command summary](#command-summary) to look up a command, or read the examples below to see what BuBu displays.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -141,8 +142,11 @@ displayed, the deletion is rejected rather than applying the index to another li
 If BuBu rejects a command, your saved records stay as they were. Read the feedback below the command box, correct the input and press <kbd>Enter</kbd> to try again.
 
 If the data file is invalid at startup, commands other than `help` are blocked with
-`Unable to verify existing records. Please contact support.` Restore an unchanged, valid BuBu backup and restart,
-or contact support before continuing.
+`Unable to verify existing records. Please contact support.` You can still type `help`, choose **Help → Help**, or
+press <kbd>F1</kbd> to read the command reference. Other commands, including the list commands and `exit`, remain
+blocked; close BuBu using the window's close button. Preserve the affected file and restore an unchanged, valid BuBu
+backup while the app is closed, then restart, or contact support before continuing. Viewing help does not repair the
+file or enable other commands.
 
 BuBu checks client phone and email uniqueness when it loads saved records. For example, client emails that differ only in domain capitalisation make the data file invalid. BuBu does not merge or delete these records automatically; preserve the file and restore a valid backup before restarting.
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
@@ -154,7 +158,9 @@ The examples below use Jamie Tan and her dog Mochi. Each example describes the r
 
 ### Viewing help: `help`
 
-Displays the command reference in the feedback box. It does not change records or depend on the currently displayed list.
+Displays the built-in command reference in the feedback box below the command entry. It includes the available commands,
+their formats, field restrictions and important behavior notes. It does not change records or depend on the currently
+displayed list.
 
 #### Format
 
@@ -165,6 +171,8 @@ help
 #### Notes
 
 * This command takes no parameters. Extra text after `help` is ignored.
+* Choose **Help → Help** or press <kbd>F1</kbd> for the same reference, including when the command box is focused.
+* The reference is included in the application, so viewing it does not require an internet connection.
 
 #### Examples
 
@@ -174,13 +182,21 @@ help
 #### Success and other behavior
 
 * On success, BuBu displays a scrollable command reference, with emphasised command names and monospace formats.
-* The feedback box expands for help and returns to its usual size after the next command. The selected record panel stays unchanged.
-* You can also open the reference using the **Help** menu or <kbd>F1</kbd>.
+* The feedback box expands for help. The next non-help command replaces the reference with its normal feedback or
+  error message and returns the box to its usual size. Opening help again keeps the expanded view and scrolls to the top.
+* Help appears inside the main window. The selected record panel, its filters, and saved records remain unchanged.
+* Typed `help`, **Help → Help**, and <kbd>F1</kbd> remain available if the records file could not be loaded at startup.
+  All other commands stay blocked until you restore a valid backup and restart; help does not make records writable.
 
 #### Common issues
 
-* `help` does not save records and does not require write access to the data file.
-* `help` remains available even when an invalid data file prevents record commands from running.
+* `help` does not create or rewrite `data/bububook.json` and does not require write access to it. A record-saving error
+  or an invalid records file does not by itself prevent you from viewing help.
+* If the application cannot load its bundled reference, the feedback is
+  `Unable to load the command reference. Check that you are using a complete BuBu release JAR.`
+  Obtain a complete release JAR from the [BuBu releases page](https://github.com/AY2627S1-CS2103T-W08-2/tp/releases)
+  and relaunch it from your usual folder. Keep your existing data file; this reference-loading error does not mean
+  that your records need to be deleted.
 
 ## Managing clients
 
@@ -460,11 +476,21 @@ Jamie asks you to keep the dryer on low for Mochi.
 - `edit-pet p/Mochi i/81112222 r/Keep dryer on low`<br>
   **Feedback** — `Edited pet: Mochi`
 
+Alternatively, run `list-pets i/81112222`. If Mochi is Jamie's only pet, Mochi appears at index 1:
+
+- `edit-pet 1 r/Keep dryer on low`<br>
+  **Feedback** — `Edited pet: Mochi`
+
 #### Success and other behavior
 
 * On success, BuBu displays `Edited pet: PET_NAME`.
 * The active pet filter is preserved and matching pets show their updated details. Pets outside the filter remain hidden; the selected panel does not change.
-* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements. Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings. An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time. Appointment dates, times, services and recorded owner details remain unchanged.
+* Renaming a pet can change its position in the sorted list. Use the updated displayed index for subsequent index-based
+  commands, and use the new name for subsequent name-and-phone commands.
+* Linked ongoing and future appointments receive the updated pet name, species, breed and care requirements.
+* Completed appointments keep their recorded pet details, except that a changed pet name still updates linked bookings.
+  An appointment is completed when its end date and time are at or before the time of the edit, using Singapore time.
+* Appointment dates, times, services and recorded owner details remain unchanged.
 
 #### Common issues
 
@@ -485,9 +511,11 @@ delete-pet p/PET_NAME i/OWNER_IDENTIFIER
 
 #### Notes
 
-* `INDEX` — a positive integer referring to the pet's one-based position in the current pet list, including any owner filter.
+* `INDEX` — a positive integer referring to the pet's one-based position in the current pet list, including any owner
+  filter. The pet panel must be displayed; index-based deletion is rejected when another record panel is selected.
 * `p/PET_NAME` — alternatively, the saved pet name; 1–40 letters, digits, spaces, apostrophes, hyphens or full stops. The name is matched case-insensitively; leading and trailing whitespace is ignored, and repeated internal whitespace is treated as a single space, consistent with edit lookup.
-* `i/OWNER_IDENTIFIER` — required with `p/`; the owner's eight-digit phone number starting with `8` or `9`.
+* `i/OWNER_IDENTIFIER` — required with `p/`; the owner's eight-digit phone number starting with `8` or `9`. Together,
+  the name and phone identify a saved pet even when it is hidden by the active filter or another panel is displayed.
 * Provide an index or both identifiers, not both formats.
 
 #### Examples
@@ -497,10 +525,17 @@ Use Mochi’s name and Jamie’s phone number to remove the pet and any linked b
 - `delete-pet p/Mochi i/81112222`<br>
   **Feedback** — `Deleted pet: Mochi`
 
+Alternatively, while Mochi is still saved, run `list-pets i/81112222`. If Mochi is Jamie's only pet, Mochi appears at
+index 1. Use this command instead of the name-and-phone example above:
+
+- `delete-pet 1`<br>
+  **Feedback** — `Deleted pet: Mochi`
+
 #### Success and other behavior
 
 * On success, BuBu displays `Deleted pet: PET_NAME`.
-* Appointments linked to that pet are also deleted. The client and other pets are preserved.
+* All appointments linked to that pet are also deleted, including completed appointments. The client and other pets
+  are preserved.
 * The selected panel does not change. There is no confirmation prompt.
 
 #### Common issues
@@ -705,7 +740,8 @@ clear
 #### Common issues
 
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
-* `Unable to verify existing records. Please contact support.` — commands are blocked because the data file was invalid at startup.
+* `Unable to verify existing records. Please contact support.` — `clear` and other commands except `help` are blocked
+  because the data file was invalid at startup. Viewing help does not enable clearing the records.
 
 ### Exiting the program: `exit`
 
@@ -733,7 +769,9 @@ exit
 
 #### Common issues
 
-* `Unable to verify existing records. Please contact support.` — commands, including `exit`, are blocked by the startup data-file error; close the window instead.
+* `Unable to verify existing records. Please contact support.` — all commands except `help`, including `exit`, are
+  blocked by the startup data-file error; close the window instead. Typed `help`, **Help → Help**, and <kbd>F1</kbd>
+  remain available.
 
 ### Saving the data
 
@@ -784,8 +822,10 @@ records to be updated or deleted together; file validation does not detect every
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 Keep a backup of the data file. If BuBu detects that the file is invalid, it opens without displaying your records and blocks
-commands with `Unable to verify existing records. Please contact support.` to avoid overwriting your records.
-Preserve the affected file and restore an unchanged, valid BuBu backup before restarting, or contact support.
+all commands except `help` with `Unable to verify existing records. Please contact support.` to avoid overwriting your records.
+Typed `help`, **Help → Help**, and <kbd>F1</kbd> still display the command reference without saving records. List commands
+and `exit` remain blocked. Close the window, preserve the affected file, and restore an unchanged, valid BuBu backup
+while the app is closed before restarting, or contact support. Viewing help does not repair the file or remove the block.
 </div>
 
 --------------------------------------------------------------------------------------------------------------------
