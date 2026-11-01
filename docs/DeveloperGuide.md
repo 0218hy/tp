@@ -319,34 +319,54 @@ field, which makes transferring a pet impossible through this command by design.
 
 The `Model` component,
 
-* defines its API in `Model`. `ModelManager` implements that API and owns a copy of the supplied `BubuBook` and
-  `UserPrefs`; callers access the book through `ReadOnlyBubuBook` and preferences through `ReadOnlyUserPrefs`.
+* defines its API in `Model`. `ModelManager` implements that API and owns separate `BubuBook` and `UserPrefs`
+  containers initialized from the supplied data; immutable record objects can be shared with the source book.
+  Callers access the book through `ReadOnlyBubuBook` and preferences through `ReadOnlyUserPrefs`.
   `BubuBook` is the aggregate that stores clients, pets, and appointments in `UniqueClientList`, `UniquePetList`, and
   `AppointmentList` respectively.
 * represents clients as immutable `Client` records with a name, phone, email, address, and tags. A client is considered
-  a duplicate when another client has the same phone number or email address.
+  a duplicate when another client has the same phone number or email address. Email identity ignores domain case but
+  preserves local-part case. Full `Client.equals` equality compares every field, including the exact email spelling,
+  so a spelling-only email edit is still detected as a record change. `ReadOnlyBubuBook` also exposes
+  `hasAppointmentOwnerConflict`; client add/edit commands use it to reject a newly introduced phone number already
+  used by a different appointment owner snapshot (see [Client editing](#client-editing-by-displayed-index-or-phone-number)).
 * represents pets as immutable `Pet` records with a name, owner, species, optional breed, and grooming requirements.
   Each pet refers to its owning `Client`; when the book adds or replaces a pet, it resolves that owner to the matching
   client stored in the book. Pet identity is the owner's phone number and normalized pet name, so names are unique per
-  owner and letter case or leading, trailing, and repeated whitespace do not affect matching.
+  owner and letter case or leading, trailing, and repeated whitespace do not affect matching. Normalization is used
+  for identity comparisons; `PetName` retains the supplied spelling, and full pet equality compares all profile fields.
 * represents appointments as immutable records containing owner and pet snapshots, date, start and end times, and
-  service. An appointment must use a pet belonging to its owner and last at least 30 minutes. `AppointmentList`
-  rejects overlapping time slots regardless of owner or pet, while permitting adjacent appointments. Past appointments
-  can remain in the schedule as historical records; scheduling commands enforce that new appointments start in the
-  future.
+  service. The date and start time identify a booking slot; full appointment equality includes all fields.
+  The `Appointment` constructor requires its owner to equal its pet's owner and a duration of at least 30 minutes.
+  `AppointmentList` rejects overlapping time slots regardless of owner or pet, while permitting adjacent appointments.
+  The add/edit appointment commands resolve participants from the registered clients and pets and require the resulting
+  start to be strictly in the future in Singapore time. These checks are separate from model construction, allowing
+  historical appointments and their original participant snapshots to be loaded and retained.
+* uses immutable value objects for field validation, with `Species` and `Service` represented as enums. For example,
+  `AppointmentDate` validates a real calendar date, `StartTime` permits 08:00–19:30, and `EndTime` permits 08:30–20:00,
+  with both time types restricted to 30-minute intervals. Cross-field duration validation belongs to `Appointment`,
+  and schedule-wide overlap validation belongs to `AppointmentList`.
 * keeps linked records consistent when they are edited or removed. Replacing a client updates its pets' owner
-  references and the owner snapshots in linked ongoing and future appointments. Pet edits refresh the pet snapshots
-  in linked ongoing and future appointments. Appointments ending at or before the edit time in Singapore time retain
-  historical details, except for linked owner-phone and pet-name changes. Profile edits preserve appointment dates,
-  times and services. Removing a client also removes that client's pets and appointments; removing a pet removes its
-  appointments. Clearing the book removes all three record types.
-* validates replacement data before applying it to the live book. This applies when loading or replacing the book and
-  when replacing its client, pet, or appointment lists. The observable list instances remain connected to the model so
-  existing UI views continue to receive changes.
+  references and the owner snapshots (including each snapshot pet's owner) in linked ongoing and future appointments.
+  Changes to a pet's name, species, breed, or requirements refresh the pet snapshots in linked ongoing and future
+  appointments while preserving each appointment's owner snapshot. An appointment is ongoing or future when its end
+  is strictly after the edit time in Singapore time. Appointments ending at or before that time retain historical
+  details, except for linked owner-phone and pet-name changes. Appointment ownership is matched by phone number;
+  pet linkage uses owner phone and normalized pet name. Profile edits preserve appointment dates, times and services.
+  Removing a client also removes that client's pets and appointments; removing a pet removes its appointments,
+  including historical bookings. Clearing the book removes all three record types.
+* stages and validates the complete replacement book in `resetData` before changing its live lists. The bulk setters
+  have narrower responsibilities: `setClients` checks client uniqueness and resolves registered pet owners before
+  updating the client and pet lists; `setPets` resolves owners to saved clients and checks pet uniqueness before
+  replacing pets; `setAppointments` checks the complete replacement schedule for nulls and overlaps before applying it.
+  These bulk operations do not invoke the individual edit operations' appointment cascades; appointment replacement
+  retains the supplied participant snapshots. The observable list instances remain connected to the model so existing
+  UI views continue to receive changes (see [Loading data](#loading-data) for reconstruction from storage).
 * maintains observable display views for clients, pets, and appointments by filtering and sorting the book's lists.
   Pets are ordered by owner name (case-insensitive), owner phone, and normalized pet name; appointments are ordered by
-  date and start time. Clients can be sorted by name on request. Display ordering does not reorder the saved lists in
-  `BubuBook`.
+  date and start time. Clients initially retain stored order and can be sorted by name, ignoring case, on request;
+  that sort remains active for subsequent list changes. Changing a filter updates the existing display view rather
+  than replacing its backing list. Display ordering does not reorder the saved lists in `BubuBook`.
 * stores GUI preferences in `UserPrefs`, which is exposed through the read-only preferences interface.
 * has no dependency on the `Logic`, `UI`, or `Storage` components. Those components use the model API to interact with
   the domain data.
