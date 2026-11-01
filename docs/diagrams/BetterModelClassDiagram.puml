@@ -1,56 +1,78 @@
 @startuml
-' Use the model colors and class styling from style.puml without sequence-only settings.
+' Domain detail; ModelClassDiagram shows the API and record containers.
 !define MODEL_COLOR #9D0012
+skinparam style strictuml
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam class {
     FontColor #FFFFFF
-    FontSize 15
+    FontSize 16
     BorderThickness 1
     BorderColor #FFFFFF
     StereotypeFontColor #FFFFFF
     FontName Arial
+    AttributeFontColor #FFFFFF
+    AttributeFontSize 15
+    AttributeFontName Arial
 }
-skinparam package {
-    BackgroundColor #FFFFFF
-    BorderThickness 1
-    FontSize 16
-}
+skinparam noteFontSize 14
 skinparam DefaultTextAlignment center
-skinparam packageStyle Rectangle
 skinparam Shadowing false
+skinparam nodesep 80
+skinparam ranksep 65
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
 left to right direction
 
-title Core model records and ownership
+title Model records: fields, ownership, and appointment snapshots
 
-package "BubuBook and collections" {
-    class BubuBook
-    class UniqueClientList
-    class UniquePetList
-    class AppointmentList
+class Client {
+    - name: ClientName
+    - phone: Phone
+    - email: Email
+    - address: Address
+    - tags: Tag [0..*]
 }
 
-package "Domain records" {
-    class Client
-    class Pet
-    class Appointment
+class Pet {
+    - name: PetName
+    - species: Species
+    - breed: Breed [0..1]
+    - requirement: Requirement
 }
 
-BubuBook *--> "1" UniqueClientList
-BubuBook *--> "1" UniquePetList
-BubuBook *--> "1" AppointmentList
-UniqueClientList *--> "*" Client
-UniquePetList *--> "*" Pet
-AppointmentList *--> "*" Appointment
+class Appointment {
+    - date: AppointmentDate
+    - startTime: StartTime
+    - endTime: EndTime
+    - service: Service
+}
 
-Pet --> "1 owner" Client
-Appointment --> "1 owner snapshot" Client
-Appointment --> "1 pet snapshot" Pet
+' Participant references are shown only as associations, not duplicated as attributes.
+Appointment "0..*" -right-> "1\npet" Pet
+Pet "0..*" -right-> "1\nowner" Client
+Appointment "0..*" --> "1\nowner" Client
 
-note bottom of BubuBook
-  Clients are unique by phone or email; pets are unique by owner phone and normalized name.
-  Overlapping appointments are rejected, but adjacent slots are allowed.
-  Client or pet removal cascades to related records; a pet rename updates appointment names.
+note bottom of Client
+  Client, Pet, and Appointment are immutable.
+  Edits replace complete record objects.
+  Clients are unique by phone OR email.
 end note
+
+note bottom of Pet
+  Pet identity: owner phone + normalized name.
+  Names ignore case and surrounding/repeated spaces.
+  Each registered pet references its saved client.
+  Species and Service are enumeration types.
+end note
+
+note top of Appointment
+  The owner must match the pet's owner.
+  Duration is at least 30 minutes.
+  Participants are immutable snapshots and may share
+  objects with the registered client and pet lists.
+end note
+
 @enduml
