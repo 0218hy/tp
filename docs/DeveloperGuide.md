@@ -28,10 +28,8 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Current code organization
 
-`ModelManager` owns one `BubuBook`, which contains clients, pets, and the appointment schedule.
-Consumers read it through `ReadOnlyBubuBook` and `Model.getBubuBook()`.
-`Client` replaces the inherited `Person` type. `UniqueClientList`, `UniquePetList`, and
-`AppointmentList` enforce the rules for each collection inside the shared book.
+The source tree is organized by component and feature. Related commands, parsers, model records,
+storage adapters, and UI panels are grouped into their respective packages.
 
 | Responsibility | Package under `seedu.address` |
 | --- | --- |
@@ -45,22 +43,6 @@ Consumers read it through `ReadOnlyBubuBook` and `Model.getBubuBook()`.
 
 Tests mirror these feature packages. Shared parsing utilities stay in `logic.parser.ParserUtil`;
 client and pet field parsing lives in `ClientParserUtil` and `PetParserUtil` respectively.
-`AddAppointmentCommand` and `AddAppointmentCommandParser` handle the `add-appointment` command.
-`ListPetsCommand` and `ListAppointmentsCommand` prepare the corresponding filtered views.
-`DeletePetCommand` and `DeleteAppointmentCommand` accept either a one-based displayed index or an identifier form;
-appointment deletion also accepts a date/time pair.
-`EditAppointmentCommand` and `EditAppointmentCommandParser` accept either a date/start-time identifier or a displayed
-appointment index, with `nd/` and `nst/` prefixes reserved for replacement date and start time values.
-`EditPetCommand` and `EditPetCommandParser` implement identifier-based pet updates without changing the existing
-phone-identified client-edit flow.
-
-All clients, pets, and appointments are saved together in `data/bububook.json` through
-`JsonBubuBookStorage`. The JSON contains `clients`, `pets`, and `appointments` lists.
-`preferences.json` remains separate for window settings. The former `addressbook.json` and
-`appointments.json` files are no longer read or written; there is no automatic migration.
-
-When upgrading from a version using `data/groombook.json`, close the app and copy that file to
-`data/bububook.json` before starting the new version. Keep the original file as a backup.
 
 ### Architecture
 
