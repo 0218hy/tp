@@ -123,40 +123,44 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](../src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
+`UiManager` implements `Ui` and creates the `MainWindow` when the application starts. Both hold a reference to the `Logic` API. The diagram focuses on UI ownership and card creation. Shared `UiPart<T>` inheritance and dependencies on `Logic` and model records are summarized in its legend; JavaFX controls, internal list-cell classes, and the command callback are omitted for clarity.
+
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `ClientListPanel`,
 `PetListPanel`, `AppointmentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from
-the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+the abstract `UiPart<T>` class (as do `ClientCard`, `PetCard`, and `AppointmentCard`), which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](../src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](../src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
 * executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
+* displays observable lists obtained through `Logic`, so changes to model data update the lists automatically.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on `Client`, `Pet`, and `Appointment` classes from the `Model` component because its three list panels
   display those records.
 
-`MainWindow` creates all three list panels once and keeps them bound to the model's observable lists. It shows exactly
-one panel at a time using the `DisplayType` carried by `CommandResult`: `CLIENTS`, `PETS`, or `APPOINTMENTS`.
-Successful list commands set this value, and commands that do not change the selected record type use
-`UNCHANGED`. Hidden panels are also unmanaged so that they do not occupy layout space.
+`CommandBox` invokes a `CommandExecutor` callback supplied by `MainWindow`. This callback calls `Logic.execute`, updates `ResultDisplay` with success or error feedback, and handles display changes, help, and exit requests. `MainWindow` also restores and saves window settings through `Logic`; `StatusBarFooter` displays the data file path supplied at startup.
 
-The `help` command returns the command reference stored in
-`src/main/resources/help/CommandReference.md`. `MainWindow` displays this result in
-`ResultDisplay`, which renders command names and command formats with distinct styles in a scrollable inline view.
-The **Help** menu item and <kbd>F1</kbd> invoke the same command. When adding or changing a command, keep this
-reference in sync with the User Guide.
+`MainWindow` creates all three list panels once and keeps them bound to the model's observable lists. It shows exactly
+one panel at a time, initially clients, using the `DisplayType` carried by `CommandResult`: `CLIENTS`, `PETS`, or `APPOINTMENTS`.
+
+Each list panel uses custom JavaFX cells to create its corresponding card. Pet cards show an owner heading at the start of each owner group, and appointment cards show a date heading at the start of each date group. Their panels refresh these headings when the lists change. Sorting is provided by the model.
+
+Successful list commands set this value, and commands that do not change the selected record type use
+`UNCHANGED`. Hidden panels are also unmanaged so that they do not occupy layout space. The record heading and count track the visible list.
+
+`ResultDisplay` presents command output and error messages supplied by `MainWindow`. Successful command
+feedback and parsing or execution errors appear in a text area with distinct success and error styles.
+It also supports a scrollable, formatted command-reference view. Switching views hides and unmanages the
+inactive view, and each new result replaces the previous content in the selected view.
 
 `CommandBox` maintains session-only command history independently of the `Logic` and `Model` components. It records
 each non-empty submission before invoking its `CommandExecutor`, so commands that fail parsing or execution can also
-be recalled and corrected. Before moving backwards through non-empty history, it also records any non-empty draft in
-the command field. The `commandHistory` list keeps entries in submission order, while `historyIndex` points to the
-currently recalled entry. An index equal to the list size represents the blank position after the newest command.
+be recalled and corrected. Edited or unfinished text is saved separately in `commandDraft` before navigating history, rather than appended to the submitted-command history. The `commandHistory` list keeps submissions in order, while `historyIndex` points to the currently recalled entry. An index equal to the list size represents the position after the newest submission.
 
 The command text field handles <kbd>↑</kbd> and <kbd>↓</kbd> key presses through a JavaFX event filter. <kbd>↑</kbd>
 moves the index towards the oldest entry and <kbd>↓</kbd> moves it towards the blank position. Navigation stops at
