@@ -373,7 +373,7 @@ The `Model` component,
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** These are complementary class diagrams. The overview above shows the model API, owned containers, and display views. Collection membership uses ordinary associations because immutable records can be shared with snapshots. The diagram below expands the record fields and participant relationships; an appointment's owner and pet are snapshots and may differ from the currently registered profiles. Association labels identify participant references, which are not repeated as attributes.<br>
 
-<img src="images/BetterModelClassDiagram.png" width="100%" alt="Client, Pet, and Appointment fields, participant multiplicities, and snapshot update rules" />
+<img src="images/BetterModelClassDiagram.png" width="100%" alt="Client, Pet, and Appointment fields, participant multiplicities, and snapshot relationships" />
 
 </div>
 

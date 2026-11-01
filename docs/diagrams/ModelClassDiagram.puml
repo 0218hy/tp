@@ -59,16 +59,16 @@ BubuBook .up.|> ReadOnlyBubuBook
 UserPrefs .up.|> ReadOnlyUserPrefs
 Model .right.> ReadOnlyBubuBook : returns
 Model .left.> ReadOnlyUserPrefs : returns
-ModelManager *-right-> "1" BubuBook : bubuBook
-ModelManager *-left-> "1" UserPrefs : userPrefs
+ModelManager *-right-> "1" BubuBook : bubuBook >
+ModelManager *-left-> "1" UserPrefs : userPrefs >
 
-BubuBook *-down-> "1" UniqueClientList : clients
-BubuBook *-down-> "1" UniquePetList : pets
-BubuBook *-down-> "1" AppointmentList : appointments
+BubuBook *-down-> "1" UniqueClientList : clients >
+BubuBook *-down-> "1" UniquePetList : pets >
+BubuBook *-down-> "1" AppointmentList : appointments >
 
 ' Records can be shared with snapshots and other lists; membership is not composition.
-UniqueClientList "0..*" --> "0..*" Client : stores
-UniquePetList "0..*" --> "0..*" Pet : stores
-AppointmentList "0..*" --> "0..*" Appointment : stores
+UniqueClientList "0..*" --> "0..*" Client : stores >
+UniquePetList "0..*" --> "0..*" Pet : stores >
+AppointmentList "0..*" --> "0..*" Appointment : stores >
 
 @enduml

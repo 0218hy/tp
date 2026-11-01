@@ -51,9 +51,9 @@ class Appointment {
 }
 
 ' Participant references are shown only as associations, not duplicated as attributes.
-Appointment "0..*" -right-> "1" Pet : pet
-Pet "0..*" -right-> "1" Client : owner
-Appointment "0..*" --> "1" Client : owner
+Appointment "0..*" -right-> "1" Pet : pet >
+Pet "0..*" -right-> "1" Client : owner >
+Appointment "0..*" --> "1" Client : owner >
 
 note bottom of Client
   Client, Pet, and Appointment are immutable.
@@ -71,22 +71,8 @@ end note
 note top of Appointment
   The owner must match the pet's owner.
   Duration is at least 30 minutes.
-  AppointmentList rejects overlaps; adjacent slots are allowed.
   Participants are immutable snapshots and may share
   objects with the registered client and pet lists.
 end note
 
-note as UpdatePolicy
-  BubuBook coordinates profile edits (Singapore time).
-  For bookings ending after the edit date/time:
-  * Client edits refresh owner details (including pet.owner).
-  * Pet edits refresh pet details, preserving the owner snapshot.
-  Bookings ending at or before the edit preserve history,
-  except changed owner phones and pet names.
-  Appointment dates, times, and services are preserved.
-  Client edits also refresh owners of registered pets.
-  Deleting a client removes its pets and appointments;
-  deleting a pet removes its appointments; clear removes all records.
-end note
-Appointment .. UpdatePolicy
 @enduml
