@@ -1145,30 +1145,30 @@ testers are expected to do more *exploratory* testing.
 
    2. Test case: `delete-client 1`<br>
       Expected: The first displayed client and all of that client's linked pets and appointments are deleted. The
-      status message begins with `Deleted person:` and the selected panel remains unchanged.
+      status message begins with `Deleted client:` and the selected panel remains unchanged.
 
    3. Test case: Run `list-pets`, then enter `delete-client 1`.<br>
       Expected: No client is deleted. BuBu reports that the current displayed list does not match the record type
       selected by the index.
 
    4. Test case: `delete-client 0`<br>
-      Expected: No client is deleted. BuBu reports an invalid command format and shows the command usage.
+      Expected: No client is deleted. BuBu reports `Client index must be a positive whole number.`
 
    5. Test case: `delete-client 999` when fewer than 999 clients are displayed.<br>
       Expected: No client is deleted. The status message is `The person index provided is invalid.`
 
 2. Deleting by phone number
 
-   1. Prerequisites: A client with phone number `91234567` exists.
+   1. Prerequisites: A client with phone number `91234567` exists. No client uses the valid phone number `89999999`.
 
    2. Test case: `delete-client i/91234567`<br>
       Expected: The matching client is deleted. The status message reports the number of linked pets and appointments removed.
 
-   3. Test case: `delete-client i/00000000`<br>
+   3. Test case: `delete-client i/89999999`<br>
       Expected: No client is deleted. The status message is `No client with the given phone number exists.`.
 
    4. Test case: `delete-client i/12`<br>
-      Expected: No client is deleted. The status message explains that the phone must be an 8-digit Singapore mobile number beginning with 8 or 9.
+      Expected: No client is deleted. The status message is `The phone must be an 8-digit Singapore mobile number beginning with 8 or 9.`
 
 3. Cascade deletion feedback
 
