@@ -147,72 +147,165 @@ starts a new history and avoids storing commands that may contain client informa
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
+**API:** [`Logic.java`](https://github.com/AY2627S1-CS2103T-W08-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+The Logic component turns command text from the UI into changes to the model and feedback for the user.
+The UI calls the `Logic` interface. `LogicManager` implements that interface and coordinates parsing,
+execution, and saving.
 
-<img src="images/LogicClassDiagram.png" width="900" alt="Logic overview with grouped parser classes, representative command, and Model and Storage interfaces" />
+#### Main classes
 
-`LogicManager` implements `Logic` and holds one `BuBuParser`, `Model`, and `Storage` reference.
-The diagram follows AB3's representative-command convention: `XYZCommand` and `XYZCommandParser` stand for a matching
-command/parser pair, such as `AddClientCommand` / `AddClientCommandParser`, `EditPetCommand` / `EditPetCommandParser`,
-or `ListAppointmentsCommand` / `ListAppointmentsCommandParser`. They are placeholders, not classes in the codebase.
-Add, edit, delete, and list commands share this structure; their validation and model interactions differ.
-The boxes group components and parser classes for explanation; feature subpackages are omitted.
-The `Model` and `Storage` boxes expose only the interfaces used by `LogicManager`.
+| Class | Responsibility |
+| --- | --- |
+| `Logic` | Defines the operations available to the UI, including `execute(String)`. |
+| `LogicManager` | Coordinates the parser, model, and storage. Checks the displayed record type before index-based commands. |
+| `BuBuParser` | Selects a parser for the command word and returns a `Command`. |
+| `Command` | Defines `execute(Model)`. Each concrete command implements one operation. |
+| `CommandResult` | Carries user feedback, UI action flags, and a `DisplayType`. |
 
-`Command.execute(Model)` returns a `CommandResult`, whose `DisplayType` identifies the list to show or requests that
-the current selection remain unchanged. List commands change the view without saving records; successful record-changing
-commands are saved by `LogicManager` when the book has changed. The overview omits the direct construction of
-`HelpCommand`, `ExitCommand`, and `ClearCommand`, which have no separate command parsers.
+`Command.execute(Model)` creates the result. After any required save succeeds, `LogicManager.execute(String)`
+returns that same result to the UI. The return type declared in `Logic` is the contract for this call.
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete-client 1")` API call as an example.
+<a href="images/LogicClassDiagram.png"><img src="images/LogicClassDiagram.png" width="760" style="max-width: 100%; height: auto;" alt="Logic interface and the classes that parse, execute, and return command results" /></a>
 
-![Interactions Inside the Logic Component for the `delete-client 1` Command](images/DeleteSequenceDiagram.png)
+*Figure: Main Logic classes. `XYZCommand` and `XYZCommandParser` represent a matching command/parser pair.*
 
-The appointment command flows are shown separately because both commands support two target forms:
+`XYZCommand` and `XYZCommandParser` are placeholders, not classes in the codebase. For example, they can
+represent `EditPetCommand` and `EditPetCommandParser`. Add, edit, delete, and list commands share this structure,
+but their validation and model interactions differ. The boxes group components and parser classes. Feature
+subpackages are omitted, and the Model and Storage boxes show only the interfaces used by `LogicManager`.
 
-![Interactions Inside the Logic Component for the `edit-appointment` Command](images/EditAppointmentSequenceDiagram.png)
+All diagrams in this section can be opened at full size by clicking them.
 
-![Interactions Inside the Logic Component for the `delete-appointment` Command](images/DeleteAppointmentSequenceDiagram.png)
+#### Command execution
 
-How the `Logic` component works:
+A command passes through five stages:
 
-1. `LogicManager` passes the input to `BuBuParser.parseCommand`. For feature commands, `BuBuParser` creates the
-   matching parser (e.g., `DeleteClientCommandParser`) and calls `parse(arguments)`. It creates `ClearCommand`,
-   `HelpCommand`, and `ExitCommand` directly.
-2. Before executing the returned `Command`, `LogicManager` rejects commands other than `HelpCommand` if the saved
-   book was unreadable at startup and checks any display requirement declared by `Command.getRequiredDisplayType()`.
-3. `LogicManager` takes a book snapshot, then the command executes against `Model` and returns a `CommandResult`.
-   `HelpCommand`, `ExitCommand`, `ListClientsCommand`, `ListPetsCommand` and `ListAppointmentsCommand` skip record
-   saving. Other commands save only if the resulting book differs from the snapshot. If saving fails, the snapshot
-   is restored and a `CommandException` is thrown instead of returning success.
-4. After successful execution and any required save, `LogicManager` updates its current display type from the
-   result and returns it to the UI. `UNCHANGED` preserves the previously selected list.
+1. **Parse the input.** `LogicManager` calls `BuBuParser.parseCommand(commandText)`. For feature commands,
+   `BuBuParser` calls the matching parser's `parse(arguments)` method. It creates `ClearCommand`, `HelpCommand`,
+   and `ExitCommand` directly.
+2. **Check whether execution is allowed.** If the saved book was unreadable at startup, only `HelpCommand` is
+   allowed. For an index-based command, the manager also checks `Command.getRequiredDisplayType()` against
+   the currently displayed list.
+3. **Execute the command.** The manager takes a snapshot of the book, then calls `Command.execute(model)`.
+   The command operates on the model and returns a `CommandResult`.
+4. **Save changed records.** Help, exit, and list commands skip saving. Other commands save only when the book
+   differs from the snapshot. If saving fails, the manager restores the snapshot and throws a `CommandException`.
+5. **Return feedback.** After execution and any required save succeed, the manager updates its current display
+   type and returns the result to the UI.
 
-The following partial diagram expands the parser group using the same `XYZ` convention. It shows how a feature parser
-creates its matching command and uses the shared tokenization classes. The optional `ParserUtil` dependency applies
-to parsers that accept indices. Feature-specific syntax constants, field-validation helpers, and model value objects
-are omitted from the diagram and described below.
+The following example uses `delete-client 1`, with the client list displayed and index 1 valid.
+The alternative branch shows how `delete-client i/91234567` finds a client by phone number instead.
+The model also removes the selected client's pets and appointments.
 
-<img src="images/ParserClasses.png" width="800" alt="Representative XYZCommandParser implementing Parser and creating XYZCommand, with shared tokenization helpers" />
+<a href="images/DeleteSequenceDiagram.png"><img src="images/DeleteSequenceDiagram.png" width="760" style="max-width: 100%; height: auto;" alt="delete-client: parse the command, select a client by index or phone, and delete linked records" /></a>
 
-How the parsing works:
-* `BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
-  Each feature parser implements `Parser<T>` for its command type: for example, `EditPetCommandParser`
-  implements `Parser<EditPetCommand>`. Its `parse` method validates the arguments and constructs the command,
-  which `BuBuParser` returns as a `Command`.
-* Prefix constants belong to `ClientCliSyntax`, `PetCliSyntax`, or `AppointmentCliSyntax` in the corresponding
-  feature package. `ArgumentTokenizer` uses the supplied `Prefix` objects to produce an `ArgumentMultimap`,
-  which stores argument values by prefix.
-* `ParserUtil` parses positive indices; it does not define or depend on prefixes. `ClientParserUtil` parses
-  client fields, including owner phone numbers used by pet and appointment commands. `PetParserUtil` parses
-  pet names. For example, `EditAppointmentCommandParser` uses all three utilities because it supports an index,
-  an owner phone number, and a pet name.
+*Figure: `delete-client 1`, with phone-based selection shown as an alternative. Storage calls are summarized in the note.*
 
-Commands that use displayed indexes declare their required DisplayType; LogicManager rejects them when the corresponding
-list is not currently displayed. The detailed index and identifier selection behavior is described in
+#### Parsing command arguments
+
+`BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
+Each feature parser implements `Parser<T>` for its command type. For example, `EditPetCommandParser`
+implements `Parser<EditPetCommand>`. Its `parse` method validates the arguments and constructs the command.
+
+The parsers share these helpers:
+
+| Helper | Purpose |
+| --- | --- |
+| `ClientCliSyntax`, `PetCliSyntax`, `AppointmentCliSyntax` | Define the prefixes accepted by each feature. |
+| `ArgumentTokenizer` | Splits arguments using the supplied `Prefix` objects. |
+| `ArgumentMultimap` | Stores the resulting values by prefix. |
+| `ParserUtil` | Parses positive indices. It does not define or depend on prefixes. |
+| `ClientParserUtil` | Parses client fields, including owner phone numbers used by pet and appointment commands. |
+| `PetParserUtil` | Parses pet names. |
+
+<a href="images/ParserClasses.png"><img src="images/ParserClasses.png" width="760" style="max-width: 100%; height: auto;" alt="Feature command parsers and shared parsing helpers" /></a>
+
+*Figure: A representative `XYZCommandParser` creates its matching command and uses shared tokenization helpers.*
+
+The diagram uses the same `XYZ` convention as the overview. The `ParserUtil` dependency applies to parsers
+that accept indices. Feature-specific syntax constants, field-validation helpers, and model value objects are
+omitted. For example, `EditAppointmentCommandParser` uses all three parsing utilities in the table because it
+accepts an index, an owner phone number, and a pet name.
+
+#### Selecting records and displaying results
+
+Commands select records in one of two ways:
+
+* **Displayed index:** searches the corresponding displayed list, including its active filter and sort order.
+  Supported by `delete-client`, `edit-client`, `delete-pet`, `edit-pet`, `delete-appointment`, and `edit-appointment`.
+  For example, `edit-client 1 n/Zoe Tan` edits the first displayed client.
+* **Identifier:** searches all saved records in `BubuBook`, independently of the displayed list.
+  Client commands use a phone number, such as `delete-client i/91234567` or `edit-client i/91234567 n/Zoe Tan`.
+  Pet commands use a pet name and owner phone, such as `delete-pet p/Milo i/91234567` or
+  `edit-pet p/Milo i/91234567 n/Milo Jr`.
+
+An index must be one positive integer. Appointment indices apply to the current appointment view, including an
+ongoing/future view or a date-filtered view. Appointment commands also support date/time selection, described below.
+
+`CommandResult.DisplayType` tells the UI which list to show:
+
+| Value | UI response |
+| --- | --- |
+| `CLIENTS` | Show the client list. |
+| `PETS` | Show the pet list. |
+| `APPOINTMENTS` | Show the appointment list. |
+| `UNCHANGED` | Keep the current list visible. |
+
+`LogicManager` tracks the selected record type to validate index-based commands without depending on UI classes.
+For example, it rejects `delete-client 1` while the pet list is displayed. This prevents the visible pet index from
+being interpreted as a client index. After a successful command, both the manager and the UI use the result's
+`DisplayType`. `UNCHANGED` preserves their previous selection. For detailed selector rules, see
 [Stable Record Selection and Displayed Indexes](#stable-record-selection-and-displayed-indexes).
+
+#### Editing a client: `edit-client`
+
+The example `edit-client i/91234567 p/89998888` changes a client's phone number. The command finds the
+client by their current phone number and updates linked records according to the historical snapshot rules.
+The active client filter is preserved, and the result selects the client list.
+
+<a href="images/EditClientSequenceDiagram.png"><img src="images/EditClientSequenceDiagram.png" width="760" style="max-width: 100%; height: auto;" alt="edit-client i/91234567 p/89998888: select a client by current phone and replace their phone number" /></a>
+
+*Figure: `edit-client i/91234567 p/89998888`. After success, subsequent identifier-based commands use `i/89998888`.*
+
+#### Editing an appointment: `edit-appointment`
+
+The diagram below illustrates two forms of the same command:
+
+* `edit-appointment 1 et/12:00` selects the first displayed appointment.
+* `edit-appointment d/18-09-2027 st/10:00 et/12:00` selects the appointment starting at 10:00 on 18 September 2027.
+
+Both examples change the end time to 12:00. The index form requires the appointment list to be displayed.
+The date/start-time form searches all saved appointments for an exact match. Assume the selected appointment
+exists, the edit takes place before its start, and the new time slot does not overlap another appointment.
+
+<a href="images/EditAppointmentSequenceDiagram.png"><img src="images/EditAppointmentSequenceDiagram.png" width="760" style="max-width: 100%; height: auto;" alt="edit-appointment 1 et/12:00, with date/start-time selection as an alternative" /></a>
+
+*Figure: `edit-appointment` selects an appointment, validates the replacement, and updates the schedule.*
+
+The parser separates the target from the replacement fields. `d/` and `st/` identify the existing appointment,
+while `nd/` and `nst/` supply a new date and start time. The command resolves the owner and pet, checks the
+replacement values and future start time, and rejects an edit that changes nothing. `Model.setAppointments`
+validates the replacement schedule, including overlaps, before applying it. The result leaves the displayed
+record type unchanged.
+
+#### Deleting an appointment: `delete-appointment`
+
+The diagram below illustrates these two command forms:
+
+* `delete-appointment 1` selects the first displayed appointment.
+* `delete-appointment d/18-09-2027 st/10:30` selects the appointment starting at 10:30 on 18 September 2027.
+
+The index form requires the appointment list to be displayed. The date/time form searches all saved appointments.
+The date and start time must match exactly. For example, 10:30 does not match an appointment starting at 10:00.
+Assume a matching appointment exists.
+
+<a href="images/DeleteAppointmentSequenceDiagram.png"><img src="images/DeleteAppointmentSequenceDiagram.png" width="760" style="max-width: 100%; height: auto;" alt="delete-appointment 1, with date/time selection as an alternative" /></a>
+
+*Figure: `delete-appointment` selects and removes one appointment. The displayed record type remains unchanged.*
+
+Both appointment diagrams focus on successful execution. `LogicManager` handles saving and rollback as described
+in [Command execution](#command-execution).
 
 ### Model component
 
