@@ -141,8 +141,9 @@ displayed, the deletion is rejected rather than applying the index to another li
 
 If BuBu rejects a command, your saved records stay as they were. Read the feedback below the command box, correct the input and press <kbd>Enter</kbd> to try again.
 
-If the data file is invalid at startup, commands other than `help` are blocked with
-`Unable to verify existing records. Please contact support.` You can still type `help`, choose **Help → Help**, or
+If the data file is invalid at startup, valid commands other than `help` cannot execute and report
+`Unable to verify existing records. Please contact support.` Malformed or unrecognised commands report their usual
+parsing errors first. You can still type `help`, choose **Help → Help**, or
 press <kbd>F1</kbd> to read the command reference. Other commands, including the list commands and `exit`, remain
 blocked; close BuBu using the window's close button. Preserve the affected file and restore an unchanged, valid BuBu
 backup while the app is closed, then restart, or contact support before continuing. Viewing help does not repair the
@@ -739,8 +740,9 @@ clear
 #### Common issues
 
 * Storage error — the data file cannot be written, for example because of file or folder permissions.
-* `Unable to verify existing records. Please contact support.` — `clear` and other commands except `help` are blocked
-  because the data file was invalid at startup. Viewing help does not enable clearing the records.
+* `Unable to verify existing records. Please contact support.` — `clear` and other valid commands except `help` are
+  blocked because the data file was invalid at startup. Malformed or unrecognised commands report parsing errors first.
+  Viewing help does not enable clearing the records.
 
 ### Exiting the program: `exit`
 
@@ -768,9 +770,9 @@ exit
 
 #### Common issues
 
-* `Unable to verify existing records. Please contact support.` — all commands except `help`, including `exit`, are
-  blocked by the startup data-file error; close the window instead. Typed `help`, **Help → Help**, and <kbd>F1</kbd>
-  remain available.
+* `Unable to verify existing records. Please contact support.` — valid commands except `help`, including `exit`, are
+  blocked by the startup data-file error; close the window instead. Malformed or unrecognised commands report parsing
+  errors first. Typed `help`, **Help → Help**, and <kbd>F1</kbd> remain available.
 
 ### Saving the data
 
@@ -820,8 +822,10 @@ Manually constructing records that give different people the same phone number i
 records to be updated or deleted together; file validation does not detect every such inconsistency.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-Keep a backup of the data file. If BuBu detects that the file is invalid, it opens without displaying your records and blocks
-all commands except `help` with `Unable to verify existing records. Please contact support.` to avoid overwriting your records.
+Keep a backup of the data file. If BuBu detects that the file is invalid, it opens without displaying your records.
+Valid commands except `help` cannot execute and report `Unable to verify existing records. Please contact support.`
+to avoid overwriting your records. Malformed or unrecognised commands report their usual parsing errors first;
+these errors do not enable commands or make records writable.
 Typed `help`, **Help → Help**, and <kbd>F1</kbd> still display the command reference without saving records. List commands
 and `exit` remain blocked. Close the window, preserve the affected file, and restore an unchanged, valid BuBu backup
 while the app is closed before restarting, or contact support. Viewing help does not repair the file or remove the block.
