@@ -26,6 +26,7 @@ LogicManager -> BuBuParser : parseCommand(commandText)
 activate BuBuParser
 BuBuParser -> DeleteClientCommandParser : parse("1")
 activate DeleteClientCommandParser
+create DeleteClientCommand
 DeleteClientCommandParser -> DeleteClientCommand : create(Index)
 activate DeleteClientCommand
 DeleteClientCommand --> DeleteClientCommandParser
