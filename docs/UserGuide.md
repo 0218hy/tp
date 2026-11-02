@@ -34,6 +34,7 @@ BuBu helps **freelance pet groomers** keep track of clients, their pets and groo
     * [Clear all entries](#clearing-all-entries-clear)
     * [Exit BuBu](#exiting-the-program-exit)
     * [Saving the data](#saving-the-data)
+    * [Data files and backups](#data-files-and-supported-backups)
 * [FAQ](#faq)
 * [Known issues](#known-issues)
 * [Command summary](#command-summary)
@@ -51,18 +52,15 @@ BuBu helps **freelance pet groomers** keep track of clients, their pets and groo
 
    *Searching for 87438807 returns one matching client, Alex Yeoh.*
 
-5. Try a simple pet-management workflow using Alex Yeoh from the fresh-launch sample records. Enter each command
-   separately in the command box and press <kbd>Enter</kbd>. Feedback appears in the box below it.
+5. Enter a command in the command box and press <kbd>Enter</kbd>. BuBu shows feedback in the box below it.
+   Try these commands to explore the app:
 
-   ```text
-   add-pet p/Mochi i/87438807 s/Dog b/Toy Poodle r/Use low heat
-   list-pets i/87438807
-   help
-   ```
+   * `list-clients` — view all saved clients.
+   * `list-pets` — view all saved pet profiles.
+   * `list-appointments` — view ongoing and future appointments.
+   * `help` — view command formats and field restrictions. You can also use **Help → Help** or <kbd>F1</kbd>.
 
-   The first command adds Mochi under Alex and saves the change automatically. The second displays Alex's pets.
-   The third displays the built-in command formats and field restrictions; **Help → Help** and <kbd>F1</kbd>
-   also open this reference. If you have already added Mochi under Alex, skip the first command.
+   On a fresh launch, the pet and appointment lists are empty until you add records.
 
 6. Explore [adding your own clients](#adding-a-client-add-client) and
    [scheduling appointments](#scheduling-an-appointment-add-appointment). Use the
@@ -132,10 +130,14 @@ entered during the current application session. This is useful for repeating a c
 without typing it again.
 
 * <kbd>↑</kbd> starts with the most recently entered command and moves towards older commands.
-* <kbd>↓</kbd> moves towards newer commands. After the newest command, it restores a blank command box.
-* At either end of the history, further presses of the corresponding arrow key leave the displayed text unchanged.
+* <kbd>↓</kbd> moves towards newer commands. After the newest command, it restores your saved unfinished command
+  (draft), if one exists. Press <kbd>↓</kbd> again to clear the command box. If there is no saved draft, moving past
+  the newest command shows a blank box immediately.
+* At the oldest command, further presses of <kbd>↑</kbd> leave the text unchanged. Once <kbd>↓</kbd> has reached
+  the blank box, further presses of <kbd>↓</kbd> leave it blank.
 * Every non-empty submitted command is remembered, including commands that produced an error. If you begin typing a
-  command and press <kbd>↑</kbd>, that unfinished command is remembered too; press <kbd>↓</kbd> to restore it.
+  command and press <kbd>↑</kbd>, that unfinished command is saved as a draft; navigate past the newest command
+  with <kbd>↓</kbd> to restore it.
   Recalling an unchanged command does not duplicate it in the history.
 * Command history is kept only while BuBu is running and is cleared when the application closes.
 
@@ -155,19 +157,14 @@ displayed, the deletion is rejected rather than applying the index to another li
 
 If BuBu rejects a command, your saved records stay as they were. Read the feedback below the command box, correct the input and press <kbd>Enter</kbd> to try again.
 
-If the data file is invalid at startup, valid commands other than `help` cannot execute and report
-`Unable to verify existing records. Please contact support.` Malformed or unrecognised commands report their usual
-parsing errors first. You can still type `help`, choose **Help → Help**, or
-press <kbd>F1</kbd> to read the command reference. Other commands, including the list commands and `exit`, remain
-blocked; close BuBu using the window's close button. Preserve the affected file and restore an unchanged, valid BuBu
-backup while the app is closed, then restart, or contact support before continuing. Viewing help does not repair the
-file or enable other commands.
+If BuBu cannot load your saved records, follow the recovery instructions under
+[Data files and supported backups](#data-files-and-supported-backups). Help remains available while other valid commands are blocked.
 
 BuBu checks client phone and email uniqueness when it loads saved records. For example, client emails that differ only in domain capitalisation make the data file invalid. BuBu does not merge or delete these records automatically; preserve the file and restore a valid backup before restarting.
 An unrecognised command word reports an unknown-command error. Use the exact lowercase command words below.
 When a save fails, previous records are restored in memory, but list filters or the visible selection may have changed.
 
-Read-only commands (`help`, `list-clients`, `list-pets`, `list-appointments`, and `exit`) do not create or rewrite the records data file. Commands that change records save automatically; commands that leave the records unchanged skip saving. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`.
+See [Saving the data](#saving-the-data) for automatic saving and save failures.
 
 The examples below use Jamie Tan and her dog Mochi. Each example describes the records it needs. Use a separate practice folder if you want to try deleting records. For a booking, choose a free slot that starts after the current Singapore time.
 
@@ -822,37 +819,13 @@ exit
 
 ### Saving the data
 
-Clients, pets, and appointments are saved together in `data/bububook.json` automatically after successful changes.
-If saving fails, BuBu restores the previous records in the open window and displays an error. Read-only commands (`help`, `exit`,
-`list-clients`, `list-pets` and `list-appointments`) do not create or rewrite this file. Other commands also skip
-saving when the records are unchanged. Window preferences are saved separately in `preferences.json` during shutdown.
+BuBu automatically saves clients, pets and appointments together in `data/bububook.json` after successful changes.
+You do not need to save manually. Commands that leave records unchanged, including listing records and exiting,
+do not create or rewrite this file. Window preferences are saved separately in `preferences.json` during shutdown.
 
-If another BuBu window changes the same data file, your next change is rejected with
-`Records changed outside this BuBu window. Close and reopen BuBu, then retry your command.`
-The other window's saved records are preserved, and your attempted change is undone in memory.
-Reopen the affected window to load the latest records before entering the command again.
-If another window is still saving, BuBu instead asks you to retry your command.
-
-BuBu keeps a small `data/bububook.json.lock` file beside the records to coordinate saves between windows.
-Leave it in place while BuBu is open. It is normal for this file to remain after closing the app;
-the operating system releases the lock when the save finishes or the process exits.
-
-If upgrading from a version that used `data/groombook.json`, close BuBu and copy that file to
-`data/bububook.json` before launching the new version. Keep the original file as a backup.
-The app loads this file at startup; you do not need to save manually. Window preferences are stored separately.
-Bookings use the same data file as their registered clients and pets. Client edits refresh owner details in linked
-ongoing and future bookings; pet edits refresh their pet details. A booking is ongoing or future if its end date
-and time are strictly after the time of the edit in Singapore time. Bookings ending before or exactly at that time
-are completed and retain their historical details, except that linked owner-phone and pet-name changes still apply.
-Profile edits do not change appointment dates, times or services. Pet edits keep the recorded owner details;
-client edits keep the recorded pet details other than the pet's owner information.
-The owner's phone number links clients, pets, and appointments. Changing a client's email does not break these links;
-completed appointments keep their recorded email. Changing the phone number updates the linked pets and appointments.
-Deleting a client or pet also deletes their linked bookings. The recorded pet name is displayed with its capitalization.
-
-Older bookings that saved only an owner phone and pet name can be loaded while both participants remain
-registered. If either is missing, restore the missing participant from a backup before upgrading; those older
-bookings do not contain a full participant profile.
+If saving fails, BuBu restores the previous records in the open window and displays an error.
+If another window has changed the file, close and reopen BuBu before retrying; if another window is still saving,
+wait and retry as instructed. See [Data files and supported backups](#data-files-and-supported-backups) for file locations and recovery.
 
 ### Data files and supported backups
 
@@ -860,6 +833,9 @@ By default, grooming records are saved in `data/bububook.json` relative to the t
 BuBu is launched, with `clients`, `pets`, and `appointments` lists. Following the Quick start instructions makes
 this the folder containing the JAR. Always launch from the same folder to load the same records; launching from
 another folder can make BuBu use a different data file.
+
+Leave `data/bububook.json.lock` in place while BuBu is open. This file coordinates saves between windows;
+it may remain after the app closes, even though the lock is no longer held.
 
 Manage records using BuBu commands. BuBu does not support importing external JSON, merging data files, or manually
 editing saved records. You may copy or restore an unchanged backup of a file saved by BuBu while the app is closed.
@@ -892,6 +868,11 @@ while the app is closed before restarting, or contact support. Viewing help does
 A fresh launch without a data file loads sample records into memory; it does not create `data/bububook.json`.
 You do not need to add a dummy record before copying your backup. Keep the destination app closed while copying:
 an already-open window retains its in-memory records and may reject later changes because the data file changed externally.
+
+**Q**: How do I reuse records from an older version?<br>
+**A**: If the old file is named `data/groombook.json`, close BuBu, keep a backup and copy it to
+`data/bububook.json` before launching the new version. Older bookings that stored only an owner phone and pet name
+require both participants to remain registered. If either is missing, restore a backup containing them before upgrading.
 
 --------------------------------------------------------------------------------------------------------------------
 
