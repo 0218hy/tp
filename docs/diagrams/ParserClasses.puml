@@ -4,58 +4,39 @@
 skinparam dpi 150
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
+skinparam ArrowFontStyle plain
 skinparam classBackgroundColor LOGIC_COLOR
 
-class BuBuParser
-class "<<interface>>\nParser" as Parser
+abstract class Command
+class XYZCommand
 
-together {
-    class EditClientCommandParser
-    class EditPetCommandParser
-    class EditAppointmentCommandParser
+package "Parser classes" as ParserClasses {
+    class "<<interface>>\nParser" as Parser
+    class BuBuParser
+    class XYZCommandParser
+    class ArgumentTokenizer
+    class ArgumentMultimap
+    class Prefix
+    class ParserUtil
 }
 
-together {
-    class ClientCliSyntax
-    class PetCliSyntax
-    class AppointmentCliSyntax
-}
-
-class ClientParserUtil
-class PetParserUtil
-class ParserUtil
-class ArgumentTokenizer
-class ArgumentMultimap
-class Prefix
-
-BuBuParser ..> EditClientCommandParser : <<create>>
-BuBuParser ..> EditPetCommandParser : <<create>>
-BuBuParser ..> EditAppointmentCommandParser : <<create>>
-EditClientCommandParser .up.|> Parser
-EditPetCommandParser .up.|> Parser
-EditAppointmentCommandParser .up.|> Parser
-
-EditClientCommandParser ..> ClientCliSyntax
-EditPetCommandParser ..> PetCliSyntax
-EditAppointmentCommandParser ..> AppointmentCliSyntax
-ClientCliSyntax ..> Prefix
-PetCliSyntax ..> Prefix
-AppointmentCliSyntax ..> Prefix
-
-' Helper dependencies are expanded only for the appointment-edit example.
-EditAppointmentCommandParser ..> ClientParserUtil
-EditAppointmentCommandParser ..> PetParserUtil
-EditAppointmentCommandParser ..> ParserUtil
-EditAppointmentCommandParser ..> ArgumentTokenizer
-EditAppointmentCommandParser ..> ArgumentMultimap
+BuBuParser ..> XYZCommandParser : <<create>>
+BuBuParser ..> Command : returns
+XYZCommandParser .up.|> Parser
+XYZCommandParser ..> XYZCommand : <<create>>
+XYZCommand -up-|> Command
+XYZCommandParser ..> ArgumentTokenizer : tokenize
+XYZCommandParser ..> ArgumentMultimap : read arguments
+XYZCommandParser ..> ParserUtil : parse index\n(when supported)
 ArgumentTokenizer ..> ArgumentMultimap : <<create>>
 ArgumentTokenizer ..> Prefix
 ArgumentMultimap --> "*" Prefix : keys
 
 legend bottom
-  Partial diagram: one example parser per feature.
-  Each implements Parser for its matching command type.
-  Command classes and other feature parsers are omitted.
-  Helper dependencies are expanded only for EditAppointmentCommandParser.
+  XYZ is the same command name in both placeholders, e.g. EditPet.
+  Each concrete parser implements Parser<T>, with T = its concrete command type.
+  Syntax constants and field-validation helpers vary by feature and are omitted.
+  ParserUtil only parses indices; it does not depend on Prefix.
+  HelpCommand, ExitCommand and ClearCommand have no separate command parser.
 endlegend
 @enduml

@@ -142,12 +142,20 @@ starts a new history and avoids storing commands that may contain client informa
 
 Here's a (partial) class diagram of the `Logic` component:
 
-<img src="images/LogicClassDiagram.png" width="900" alt="Logic interfaces, command execution, and display selection" />
+<img src="images/LogicClassDiagram.png" width="900" alt="Logic overview with grouped parser classes, representative command, and Model and Storage interfaces" />
 
 `LogicManager` implements `Logic` and holds one `BuBuParser`, `Model`, and `Storage` reference.
-The diagram shows `EditClientCommand`, `EditPetCommand`, and `EditAppointmentCommand` as examples of concrete
-`Command` subclasses; other commands are omitted. `Command.execute(Model)` returns a `CommandResult`, whose
-`DisplayType` identifies the list to show or requests that the current selection remain unchanged.
+The diagram follows AB3's representative-command convention: `XYZCommand` and `XYZCommandParser` stand for a matching
+command/parser pair, such as `AddClientCommand` / `AddClientCommandParser`, `EditPetCommand` / `EditPetCommandParser`,
+or `ListAppointmentsCommand` / `ListAppointmentsCommandParser`. They are placeholders, not classes in the codebase.
+Add, edit, delete, and list commands share this structure; their validation and model interactions differ.
+The boxes group components and parser classes for explanation; feature subpackages are omitted.
+The `Model` and `Storage` boxes expose only the interfaces used by `LogicManager`.
+
+`Command.execute(Model)` returns a `CommandResult`, whose `DisplayType` identifies the list to show or requests that
+the current selection remain unchanged. List commands change the view without saving records; successful record-changing
+commands are saved by `LogicManager` when the book has changed. The overview omits the direct construction of
+`HelpCommand`, `ExitCommand`, and `ClearCommand`, which have no separate command parsers.
 
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete-client 1")` API call as an example.
 
@@ -173,11 +181,12 @@ How the `Logic` component works:
 4. After successful execution and any required save, `LogicManager` updates its current display type from the
    result and returns it to the UI. `UNCHANGED` preserves the previously selected list.
 
-The following partial diagram expands the parser structure using one edit-command parser from each feature.
-Helper dependencies are expanded only for `EditAppointmentCommandParser` to keep the diagram readable;
-the other parsers also use shared helpers as required.
+The following partial diagram expands the parser group using the same `XYZ` convention. It shows how a feature parser
+creates its matching command and uses the shared tokenization classes. The optional `ParserUtil` dependency applies
+to parsers that accept indices. Feature-specific syntax constants, field-validation helpers, and model value objects
+are omitted from the diagram and described below.
 
-<img src="images/ParserClasses.png" width="800" alt="Feature command parsers, prefix definitions, and shared parsing helpers" />
+<img src="images/ParserClasses.png" width="800" alt="Representative XYZCommandParser implementing Parser and creating XYZCommand, with shared tokenization helpers" />
 
 How the parsing works:
 * `BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
