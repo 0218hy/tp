@@ -47,12 +47,26 @@ BuBu helps **freelance pet groomers** keep track of clients, their pets and groo
 3. Open a terminal in that folder and run `java -jar bubu.jar`. Use the same folder each time so BuBu can find your records.
 4. On a fresh launch, try `list-clients q/87438807` and press <kbd>Enter</kbd>. With the sample records, the feedback reads `Found 1 client(s).` and the list shows Alex Yeoh. Type `list-clients` to see everyone again.
 
-![Alex Yeoh’s client card beneath the feedback “Found 1 client(s).”](images/Ui.png)
+   ![Alex Yeoh’s client card beneath the feedback “Found 1 client(s).”](images/Ui.png)
 
-*Searching for 87438807 returns one matching client, Alex Yeoh.*
+   *Searching for 87438807 returns one matching client, Alex Yeoh.*
 
-Type `help`, choose **Help → Help**, or press <kbd>F1</kbd> to view the built-in command formats and field restrictions.
-Use the [command summary](#command-summary) to look up a command, or read the examples below to see what BuBu displays.
+5. Try a simple pet-management workflow using Alex Yeoh from the fresh-launch sample records. Enter each command
+   separately in the command box and press <kbd>Enter</kbd>. Feedback appears in the box below it.
+
+   ```text
+   add-pet p/Mochi i/87438807 s/Dog b/Toy Poodle r/Use low heat
+   list-pets i/87438807
+   help
+   ```
+
+   The first command adds Mochi under Alex and saves the change automatically. The second displays Alex's pets.
+   The third displays the built-in command formats and field restrictions; **Help → Help** and <kbd>F1</kbd>
+   also open this reference. If you have already added Mochi under Alex, skip the first command.
+
+6. Explore [adding your own clients](#adding-a-client-add-client) and
+   [scheduling appointments](#scheduling-an-appointment-add-appointment). Use the
+   [command summary](#command-summary) to look up other commands, or read the feature examples below.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -421,12 +435,17 @@ list-pets [i/OWNER_IDENTIFIER]
 
 #### Examples
 
-In this example Mochi is Jamie’s only pet.
+In this example, Jamie owns Mochi and Bubu, and Daniel owns Luna.
 
 - `list-pets i/81112222`<br>
-  **Feedback** — `Found 1 pet(s) under Jamie Tan.`
+  **Feedback** — `Found 2 pet(s) under Jamie Tan.`
 - `list-pets`<br>
   **Feedback** — `Listed all pets.`
+
+![Pet list showing Daniel's Luna and Jamie's Bubu under separate owner headings, with breed and care requirements.](images/PetProfiles.png)
+
+*The list groups pets by owner and numbers them continuously. Bubu's unknown breed appears as `Not recorded`.
+Scroll down to see the remaining pet, Mochi.*
 
 #### Success and other behavior
 
@@ -480,6 +499,25 @@ Alternatively, run `list-pets i/81112222`. If Mochi is Jamie's only pet, Mochi a
 
 - `edit-pet 1 r/Keep dryer on low`<br>
   **Feedback** — `Edited pet: Mochi`
+
+To remove a recorded breed, supply `b/` without a value:
+
+- `edit-pet p/Mochi i/81112222 b/`<br>
+  **Feedback** — `Edited pet: Mochi`
+
+The following separate example starts with Mochi's breed recorded as `Toy Poodle` and care requirements
+set to `Use low heat and allow short breaks`.
+
+**Before removing the breed:**
+
+![Mochi's pet card before the edit, showing Breed: Toy Poodle.](images/EditPetBefore.png)
+
+**After removing the breed:**
+
+![Mochi's pet card after the edit, showing Breed: Not recorded, with the same name, species and care requirements.](images/EditPetAfter.png)
+
+*Removing the breed changes it to `Not recorded`; Mochi's name, species and care requirements remain unchanged.
+Omitting `b/` entirely would keep the existing breed.*
 
 #### Success and other behavior
 
@@ -573,10 +611,14 @@ Jamie wants a full groom for Mochi. These examples assume the date is in the fut
 - `add-appointment i/81112222 p/Mochi d/18-09-2027 st/10:00 et/11:00 s/Full groom`<br>
   **Feedback** — `Appointment scheduled: Mochi; Owner phone: 81112222; Date: 18-09-2027; Time: 10:00-11:00; Service: Full groom`
 
-If you try to book a second service at 10:30, BuBu identifies the booking that needs that time.
+If Jamie's other registered pet, Bubu, needs a booking at 10:30, BuBu identifies the existing booking that uses that time.
 
-- `add-appointment i/81112222 p/Mochi d/18-09-2027 st/10:30 et/11:30 s/Nail trim`<br>
+- `add-appointment i/81112222 p/Bubu d/18-09-2027 st/10:30 et/11:30 s/Bath and brush`<br>
   **Feedback** — `This appointment overlaps an existing booking for Mochi on 18-09-2027, 10:00–11:00.`
+
+![Rejected booking for Bubu from 10:30 to 11:30, with an error identifying Mochi's existing 10:00 to 11:00 appointment.](images/AppointmentConflict.png)
+
+*BuBu rejects Bubu's 10:30–11:30 booking because it overlaps Mochi's existing 10:00–11:00 appointment.*
 
 #### Success and other behavior
 
@@ -607,10 +649,14 @@ list-appointments [d/DD-MM-YYYY]
 
 #### Examples
 
-Mochi has the only booking on this date.
+In this example, Mochi has a full groom from 10:00 to 11:00 and Luna has a nail trim from 11:00 to 11:30 on this date.
 
 - `list-appointments d/18-09-2027`<br>
-  **Feedback** — `Appointments on 18-09-2027 found: 1.`
+  **Feedback** — `Appointments on 18-09-2027 found: 2.`
+
+![Two appointments on 18 September 2027: Mochi's full groom at 10:00 and Luna's nail trim at 11:00.](images/AppointmentsByDate.png)
+
+*The date-filtered list shows both appointments in start-time order, with the service and time at the top of each card.*
 
 If no bookings exist on that date, the same command returns `No appointments on 18-09-2027.`
 
