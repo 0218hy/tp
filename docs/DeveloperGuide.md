@@ -438,8 +438,7 @@ If BuBu cannot read the record file at startup, it creates an empty in-memory bo
 `help`. The window controls remain available to close the app.
 This prevents the empty book from overwriting the unreadable file.
 
-The [architecture sequence diagram](#architecture) shows the command, save, and in-memory rollback interactions
-between components. The steps above describe the additional file-handling details within Storage.
+![Safe Persistence](images/SafePersistence.png)
 
 **Design consideration:**
 
