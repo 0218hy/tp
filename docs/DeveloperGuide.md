@@ -475,26 +475,41 @@ and schedule upcoming appointments faster than with a typical mouse-driven GUI a
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
+The following stories are supported by the current commands described in the User Guide.
+
 | Priority | As a …​                                | I want to …​                                                    | So that I can…​                                                                |
 | -------- |----------------------------------------|-----------------------------------------------------------------|--------------------------------------------------------------------------------|
 | `* * *`  | new user                               | see usage instructions                                          | refer to instructions when I forget how to use the App                         |
 | `* * *`  | mobile pet groomer                     | add a new client and their pet’s basic information              | start building my digital roster                                               |
 | `* * *`  | mobile pet groomer                     | list all pets or one client's pets                              | review their care requirements before a visit                                  |
-| `* * *`  | user                                   | add a new client                                                |                                                                                |
+| `* * *`  | user                                   | add a new client                                                | save their contact details for future visits                                   |
+| `* * *`  | mobile pet groomer                     | edit a client's contact details                                 | keep phone numbers and service addresses up to date                            |
+| `* * *`  | mobile pet groomer                     | update a pet's profile and care requirements                     | prepare for the pet's current grooming needs                                   |
 | `* * *`  | user                                   | find a client by name                                           | locate details of clients without having to go through the entire list         |
 | `* * *`  | mobile pet groomer                     | book a single grooming appointment on a specific date           | get a new job on my calendar                                                   |
 | `* * *`  | mobile pet groomer                     | easily find the address for my next appointment                 | know exactly where to drive                                                    |
 | `* * *`  | user                                   | delete a client                                                 | remove entries that I no longer need                                           |
 | `* * *`  | user                                   | delete a pet using its name and owner's phone number            | remove pet records that I no longer need                                       |
-| `* *`    | mobile pet groomer                     | find timeslots that are empty                                   | fit in new jobs into my busy schedule easily                                   |
-| `* *`    | mobile pet groomer                     | make changes to my upcoming appointments easily                 |                                                                                |
-| `* *`    | mobile pet groomer                     | mark an appointment as completed                                | easily distinguish finished jobs from pending visits on my daily schedule      |
-| `* *`    | user                                   | hide private contact details                                    | minimize chance of someone else seeing them by accident                        |
-| `*`      | mobile pet groomer                     | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately                   |
-| `*`      | mobile pet groomer                     | add custom labels to clients (e.g., VIP, prefers-weekends)      | quickly filter and manage my customer base based on specific business criteria |
+| `* * *`  | mobile pet groomer                     | cancel a grooming appointment                                   | remove a booking that will no longer take place                                |
+| `* * *`  | mobile pet groomer                     | list upcoming appointments or appointments on a chosen date      | plan visits and review previous bookings                                       |
+| `* *`    | mobile pet groomer                     | make changes to my upcoming appointments easily                  | accommodate changes to a client's availability or requested service            |
+| `* *`    | user                                   | recall previously submitted commands                             | repeat or correct commands without retyping them                              |
+| `* *`    | user                                   | clear all clients, pets, and appointments                         | start again with an empty set of records                                      |
+| `*`      | mobile pet groomer                     | add custom labels to clients (e.g., VIP, prefers-weekends)        | see useful client context alongside their contact details                      |
 | `*`      | user with many clients in the BubuBook | sort clients by name                                            | locate a client easily                                                         |
 
-*{More to be added}*
+The following stories are future requirements, not features of the current release. Client tags can currently
+be saved and displayed, but searching by tag is not supported. Pet care notes can record behavioral quirks as
+free text; dedicated behavior tags are not supported. Completed appointments are determined by their end time,
+not by a manual completion action.
+
+| Priority | As a … | I want to … | So that I can … |
+| --- | --- | --- | --- |
+| `* *` | mobile pet groomer | find available timeslots automatically | fit new jobs into my schedule easily |
+| `* *` | mobile pet groomer | mark an appointment as completed | distinguish finished jobs from pending visits explicitly |
+| `* *` | user | hide private contact details | minimize the chance of someone seeing them by accident |
+| `*` | mobile pet groomer | tag behavioral quirks (e.g., cage-anxious, nipper, hyperactive) | prepare safety gear and allocate handling time appropriately |
+| `*` | mobile pet groomer | filter clients by custom labels | manage my customer base by specific business criteria |
 
 ### Use cases
 
