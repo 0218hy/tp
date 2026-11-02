@@ -12,7 +12,7 @@ package Logic as LogicPackage {
     class BuBuParser
     abstract class Command
     class CommandResult
-    enum "CommandResult.DisplayType" as DisplayType
+    enum "CommandResult.DisplayType" as DisplayType <<enumeration>>
 
     package "Example commands" {
         class EditClientCommand
