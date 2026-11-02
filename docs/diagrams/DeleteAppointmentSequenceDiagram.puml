@@ -35,8 +35,7 @@ else date/time target
     model --> command --: saved appointments
     command -> command : find appointment.matches(date, time)
     note right of command
-      The query time is inclusive of the start
-      and exclusive of the end time.
+      Date and start time must match exactly
     end note
 end
 
