@@ -93,7 +93,7 @@ public class LogicManager implements Logic {
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         //@@author anderschow
-        String commandType = CommandLog.commandType(commandText);
+        String commandType = CommandLog.getCommandType(commandText);
         Command command;
         try {
             command = buBuParser.parseCommand(commandText);
@@ -102,7 +102,7 @@ public class LogicManager implements Logic {
             }
             ensureRequiredDisplayTypeIsCurrent(command);
         } catch (ParseException | CommandException e) {
-            logger.fine(commandType + " rejected: " + CommandLog.rejectionReason(e));
+            logger.fine(commandType + " rejected: " + CommandLog.getRejectionReason(e));
             throw e;
             //@@author
         }
@@ -112,14 +112,15 @@ public class LogicManager implements Logic {
         try {
             commandResult = command.execute(model);
         } catch (CommandException e) {
-            logger.fine(commandType + " rejected: " + CommandLog.rejectionReason(e));
+            logger.fine(commandType + " rejected: " + CommandLog.getRejectionReason(e));
             throw e;
         }
         if (isReadOnly(command) || previousBubuBook.equals(model.getBubuBook())) {
             logger.fine(commandType + " completed");
         } else {
             saveCommandResult(command, previousBubuBook);
-            logger.info(commandType + " saved" + CommandLog.changedClientFields(previousBubuBook, model.getBubuBook()));
+            logger.info(commandType + " saved"
+                    + CommandLog.getChangedClientFields(previousBubuBook, model.getBubuBook()));
         }
         //@@author
         updateCurrentDisplayType(commandResult);

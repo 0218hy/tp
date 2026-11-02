@@ -18,22 +18,22 @@ final class ClientConflictCheck {
 
     /** Excludes the edit target; pass null when adding a new client. */
     static void validate(List<Client> savedClients, Client proposed, Client target) throws CommandException {
-        boolean phoneConflict = false;
-        boolean emailConflict = false;
+        boolean hasPhoneConflict = false;
+        boolean hasEmailConflict = false;
         for (Client saved : savedClients) {
             if (saved.equals(target)) {
                 continue;
             }
-            phoneConflict |= saved.getPhone().equals(proposed.getPhone());
-            emailConflict |= saved.getEmail().equals(proposed.getEmail());
+            hasPhoneConflict |= saved.getPhone().equals(proposed.getPhone());
+            hasEmailConflict |= saved.getEmail().equals(proposed.getEmail());
         }
-        if (phoneConflict && emailConflict) {
+        if (hasPhoneConflict && hasEmailConflict) {
             throw new CommandException(AddClientCommand.MESSAGE_DUPLICATE_CLIENT);
         }
-        if (phoneConflict) {
+        if (hasPhoneConflict) {
             throw new CommandException(AddClientCommand.MESSAGE_DUPLICATE_PHONE);
         }
-        if (emailConflict) {
+        if (hasEmailConflict) {
             throw new CommandException(AddClientCommand.MESSAGE_DUPLICATE_EMAIL);
         }
     }

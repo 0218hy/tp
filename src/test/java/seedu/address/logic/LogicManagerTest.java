@@ -187,40 +187,39 @@ public class LogicManagerTest {
         model.addPet(new PetBuilder(ALICE).build());
         model.addAppointment(createAppointment(ALICE, "Milo", new AppointmentDate("01-01-9999"),
                 new StartTime("10:00"), new EndTime("11:00"), Service.FULL_GROOM));
-        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
-        String[] commands = {
-            "add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive",
-            "edit-client i/" + ALICE.getPhone() + " p/89998888",
-            "edit-client 1 p/89998888"
-        };
-        for (IOException failure : new IOException[]{DUMMY_IO_EXCEPTION, DUMMY_AD_EXCEPTION}) {
-            JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("failure.json")) {
-                @Override
-                public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
-                    throw failure;
-                }
-            };
-            logic = new LogicManager(model, new StorageManager(failingStorage,
-                    new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
-            for (int i = 0; i < commands.length; i++) {
-                String command = commands[i];
-                CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(
-                        CommandException.class, () -> logic.execute(command));
-                String expectedMessage;
-                if (i == 0) {
-                    expectedMessage = failure instanceof AccessDeniedException
-                            ? LogicManager.MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE
-                            : LogicManager.MESSAGE_CLIENT_SAVE_FAILURE;
-                } else {
-                    expectedMessage = failure instanceof AccessDeniedException
-                            ? LogicManager.MESSAGE_CLIENT_EDIT_SAVE_PERMISSION_FAILURE
-                            : LogicManager.MESSAGE_CLIENT_EDIT_SAVE_FAILURE;
-                }
-                assertEquals(expectedMessage, exception.getMessage());
-                assertSame(failure, exception.getCause());
-                assertEquals(expectedModel, model);
+        assertClientSaveFailures(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_FAILURE,
+                LogicManager.MESSAGE_CLIENT_EDIT_SAVE_FAILURE);
+        assertClientSaveFailures(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_CLIENT_SAVE_PERMISSION_FAILURE,
+                LogicManager.MESSAGE_CLIENT_EDIT_SAVE_PERMISSION_FAILURE);
+    }
+
+    /** Checks add and both edit selectors against the supplied storage failure. */
+    private void assertClientSaveFailures(IOException failure, String addMessage, String editMessage) {
+        JsonBubuBookStorage failingStorage = new JsonBubuBookStorage(temporaryFolder.resolve("failure.json")) {
+            @Override
+            public void saveBubuBook(ReadOnlyBubuBook bubuBook) throws IOException {
+                throw failure;
             }
-        }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
+        Model expectedModel = new ModelManager(model.getBubuBook(), new UserPrefs());
+        assertSaveFailureRestoresRecords(
+                "add-client n/Amelia Tan i/91234567 e/amelia@example.com a/12 Punggol Drive",
+                failure, addMessage, expectedModel);
+        assertSaveFailureRestoresRecords("edit-client i/" + ALICE.getPhone() + " p/89998888",
+                failure, editMessage, expectedModel);
+        assertSaveFailureRestoresRecords("edit-client 1 p/89998888", failure, editMessage, expectedModel);
+    }
+
+    /** Checks the reported error, original cause, and full model rollback. */
+    private void assertSaveFailureRestoresRecords(String command, IOException failure,
+            String expectedMessage, Model expectedModel) {
+        CommandException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandException.class, () -> logic.execute(command));
+        assertEquals(expectedMessage, exception.getMessage());
+        assertSame(failure, exception.getCause());
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -336,11 +335,33 @@ public class LogicManagerTest {
         logic.execute("add-client n/Alice Tan i/81112222 a/123 Test Road e/" + maximumEmail);
         logic.execute("edit-client i/81112222 e/b" + maximumEmail.substring(1));
         Path savedFile = temporaryFolder.resolve("bububook.json");
+        assertEquals(model.getBubuBook(), new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow());
+        assertInvalidEmailsPreserveRecords(List.of("a" + maximumEmail, "a@" + "b.".repeat(6000) + "com"));
+    }
+
+    @Test
+    public void execute_unicodeWhitespaceEmail_rejectsAddAndEditWithoutChangingModelOrFile() throws Exception {
+        logic.execute("add-client n/Alice Tan i/81112222 e/alice@example.com a/123 Test Road");
+        List<String> invalidEmails = new ArrayList<>();
+        for (String space : new String[]{"\u00a0", "\u2003", "\u202f", "\u3000"}) {
+            invalidEmails.add("alice" + space + "tan@example.com");
+            invalidEmails.add("alice@exam" + space + "ple.com");
+            invalidEmails.add("alice@example.c" + space + "om");
+        }
+        assertInvalidEmailsPreserveRecords(invalidEmails);
+        logic.execute("edit-client i/81112222 e/alice.tan+work@example.com");
+        Path savedFile = temporaryFolder.resolve("bububook.json");
+        var reloaded = new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow();
+        assertEquals(model.getBubuBook(), reloaded);
+        assertEquals("alice.tan+work@example.com", reloaded.getClientList().getFirst().getEmail().value);
+    }
+
+    /** Checks invalid emails through add and edit against one unchanged model and file snapshot. */
+    private void assertInvalidEmailsPreserveRecords(List<String> emails) throws Exception {
+        Path savedFile = temporaryFolder.resolve("bububook.json");
         var before = new seedu.address.model.BubuBook(model.getBubuBook());
         String savedBefore = java.nio.file.Files.readString(savedFile);
-        assertEquals(before, new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow());
-
-        for (String email : List.of("a" + maximumEmail, "a@" + "b.".repeat(6000) + "com")) {
+        for (String email : emails) {
             for (String command : List.of(
                     "add-client n/Bob Tan i/82223333 a/456 Other Road e/" + email,
                     "edit-client i/81112222 e/" + email)) {
@@ -352,30 +373,6 @@ public class LogicManagerTest {
         }
     }
 
-    @Test
-    public void execute_unicodeWhitespaceEmail_rejectsAddAndEditWithoutChangingModelOrFile() throws Exception {
-        logic.execute("add-client n/Alice Tan i/81112222 e/alice@example.com a/123 Test Road");
-        var before = new seedu.address.model.BubuBook(model.getBubuBook());
-        Path savedFile = temporaryFolder.resolve("bububook.json");
-        String savedBefore = java.nio.file.Files.readString(savedFile);
-        for (String space : new String[]{"\u00a0", "\u2003", "\u202f", "\u3000"}) {
-            for (String email : new String[]{"alice" + space + "tan@example.com",
-                "alice@exam" + space + "ple.com", "alice@example.c" + space + "om"}) {
-                for (String command : List.of(
-                        "add-client n/Bob Tan i/82223333 a/456 Other Road e/" + email,
-                        "edit-client i/81112222 e/" + email)) {
-                    assertThrows(ParseException.class, seedu.address.model.client.Email.MESSAGE_CONSTRAINTS, () ->
-                            logic.execute(command));
-                    assertEquals(before, model.getBubuBook());
-                    assertEquals(savedBefore, java.nio.file.Files.readString(savedFile));
-                }
-            }
-        }
-        logic.execute("edit-client i/81112222 e/alice.tan+work@example.com");
-        var reloaded = new JsonBubuBookStorage(savedFile).readBubuBook().orElseThrow();
-        assertEquals(model.getBubuBook(), reloaded);
-        assertEquals("alice.tan+work@example.com", reloaded.getClientList().getFirst().getEmail().value);
-    }
     //@@author
 
     //@@author 0218hy

@@ -20,19 +20,19 @@ public class CommandLogTest {
     @Test
     public void rejectionReason_invalidContactFields_reportsCategoryWithoutInput() {
         assertEquals("invalid client name format",
-                CommandLog.rejectionReason(new ParseException(ClientName.MESSAGE_CONSTRAINTS)));
+                CommandLog.getRejectionReason(new ParseException(ClientName.MESSAGE_CONSTRAINTS)));
         assertEquals("invalid email format",
-                CommandLog.rejectionReason(new ParseException(Email.MESSAGE_CONSTRAINTS)));
+                CommandLog.getRejectionReason(new ParseException(Email.MESSAGE_CONSTRAINTS)));
         assertEquals("invalid address format",
-                CommandLog.rejectionReason(new ParseException(Address.MESSAGE_CONSTRAINTS)));
+                CommandLog.getRejectionReason(new ParseException(Address.MESSAGE_CONSTRAINTS)));
         assertEquals("invalid phone format",
-                CommandLog.rejectionReason(new ParseException(Phone.MESSAGE_CONSTRAINTS)));
+                CommandLog.getRejectionReason(new ParseException(Phone.MESSAGE_CONSTRAINTS)));
         assertEquals("phone and email already belong to saved clients",
-                CommandLog.rejectionReason(new CommandException(EditClientCommand.MESSAGE_DUPLICATE_CLIENT)));
+                CommandLog.getRejectionReason(new CommandException(EditClientCommand.MESSAGE_DUPLICATE_CLIENT)));
         assertEquals("invalid command syntax or field format",
-                CommandLog.rejectionReason(new ParseException("Private user input")));
+                CommandLog.getRejectionReason(new ParseException("Private user input")));
         assertEquals("record validation or lookup failed",
-                CommandLog.rejectionReason(new CommandException("Private contact details")));
+                CommandLog.getRejectionReason(new CommandException("Private contact details")));
     }
 
     @Test
@@ -45,8 +45,8 @@ public class CommandLogTest {
         BubuBook after = new BubuBook();
         after.addClient(new ClientBuilder(first).withName("Changed First").withTags("regular").build());
         after.addClient(new ClientBuilder(second).withName("Changed Second").withTags("regular").build());
-        assertEquals("; changedFields=[name, tags]", CommandLog.changedClientFields(before, after));
-        assertEquals("", CommandLog.changedClientFields(before, before));
+        assertEquals("; changedFields=[name, tags]", CommandLog.getChangedClientFields(before, after));
+        assertEquals("", CommandLog.getChangedClientFields(before, before));
     }
 }
 //@@author
