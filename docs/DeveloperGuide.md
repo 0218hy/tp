@@ -933,6 +933,56 @@ testers are expected to do more *exploratory* testing.
 
 3. _{ more test cases …​ }_
 
+### Command history
+
+Use a fresh application session and keep the command box focused. Arrow keys recall text without executing it;
+only <kbd>Enter</kbd> submits a command.
+
+1. Submit `list-clients`, then `list-pets`. Press <kbd>↑</kbd> twice.<br>
+   Expected: The box first shows `list-pets`, then `list-clients`. Another <kbd>↑</kbd> stays at `list-clients`.
+   The pet panel remains displayed because recalling text does not execute it.
+2. Press <kbd>↓</kbd> twice.<br>
+   Expected: The box shows `list-pets`, then becomes blank. Another <kbd>↓</kbd> leaves it blank.
+3. Type `add-pet p/Mochi` without submitting. Press <kbd>↑</kbd>, then <kbd>↓</kbd>, then <kbd>↓</kbd> again.<br>
+   Expected: The box shows `list-pets`, restores the unfinished `add-pet p/Mochi`, then becomes blank.
+   No pet is added, and the unfinished input is not a submitted history entry.
+4. Submit `not-a-command`, clear its retained text, then press <kbd>↑</kbd>.<br>
+   Expected: The failed command can be recalled as `not-a-command`; navigating history does not execute it again.
+5. Close and relaunch the application. Focus the blank command box and press <kbd>↑</kbd>.<br>
+   Expected: No command from the previous session is recalled.
+
+### Viewing help
+
+1. Prerequisites: Run `list-clients q/Alex` in a fresh test folder with the sample clients. Note the visible
+   client and count. Type `help` and press <kbd>Enter</kbd>.<br>
+   Expected: A scrollable command reference headed `AVAILABLE COMMANDS` appears in the expanded feedback area.
+   Command names and formats are formatted, and the filtered client panel and saved records stay unchanged.
+2. Scroll down in the reference, then choose **Help → Help**.<br>
+   Expected: The same reference is shown from the top inside the main window.
+3. Focus the command box and press <kbd>F1</kbd> (use <kbd>Fn</kbd> + <kbd>F1</kbd> if required by the keyboard).<br>
+   Expected: The reference appears even while the command box is focused. The selected list and filter are unchanged.
+4. Submit `list-clients`, then reopen help and submit `not-a-command`.<br>
+   Expected: Each non-help submission replaces the reference with its normal success or error feedback and restores
+   the usual feedback-area height. `list-clients` restores the full client list; the invalid command changes no records.
+5. Repeat the three help entry points without an internet connection.<br>
+   Expected: The bundled reference remains available. For unreadable startup data, repeat the help entry points in
+   [Invalid startup data and recovery](#saving-data); help works while other commands remain blocked.
+
+### Clearing all records
+
+Use a separate test folder. Complete the successful setup and first booking in [Adding an appointment](#adding-an-appointment)
+below, so the book contains clients, Mochi, and a saved appointment. Run these steps in order.
+
+1. Run `list-appointments d/02-01-9999` to hide the booking on `01-01-9999`, then submit `clear`.<br>
+   Expected: `Clients, pets, and appointments have been cleared!` The appointment panel remains selected and empty.
+   All clients, pets, and appointments are removed, including the booking hidden by the date filter. No confirmation
+   is requested.
+2. Run `list-clients`, `list-pets`, and `list-appointments d/01-01-9999` separately.<br>
+   Expected: Each list is empty; clearing has removed all three record types, not just the displayed records.
+3. Close and relaunch BuBu and repeat the three list commands.<br>
+   Expected: The saved book remains empty; sample clients are not restored. Submit `clear` again.<br>
+   Expected: The same success message appears and all lists remain empty.
+
 ### Switching the displayed record list
 
 1. Displaying each record type
@@ -1540,6 +1590,27 @@ case one at a time. For rejected edits, verify that the pet, its owner, other pe
       Expected: No pet is deleted. The command is rejected because an index cannot be combined with pet identifiers.
 
    2. _{ more test cases …​ }_
+
+### Adding an appointment
+
+Use a fresh test folder containing the release JAR, with no existing records file. The sample clients include
+Alex Yeoh (`87438807`). Run the following steps in order. The dates below must still be in the future in Singapore;
+if necessary, replace them consistently with two future dates.
+
+1. Set up the pet: `add-pet p/Mochi i/87438807 s/Dog r/Calm with baths`.<br>
+   Expected: `Pet added: Mochi (Dog) under Alex Yeoh.` Run `list-pets i/87438807` to verify the registered pet.
+2. Submit `add-appointment i/87438807 p/Mochi d/01-01-9999 st/10:00 et/11:00 s/Full groom`.<br>
+   Expected: `Appointment scheduled: Mochi; Owner phone: 87438807; Date: 01-01-9999; Time: 10:00-11:00; Service: Full groom`.
+   Run `list-appointments d/01-01-9999`; exactly one booking appears with those details. The client and pet profiles
+   remain unchanged.
+3. Submit `add-appointment i/87438807 p/Mochi d/01-01-9999 st/10:30 et/11:30 s/Nail trim`.<br>
+   Expected: `This appointment overlaps an existing booking for Mochi on 01-01-9999, 10:00–11:00.`
+   Only the original 10:00–11:00 booking remains; its service is still `Full groom`.
+4. Submit `add-appointment i/87438807 p/Mochi d/01-01-9999 st/11:00 et/11:30 s/Nail trim`.<br>
+   Expected: The booking succeeds with feedback beginning `Appointment scheduled:`. Exactly two bookings are shown
+   in start-time order. A booking may start exactly when the previous one ends.
+5. Close and relaunch BuBu, then run `list-appointments d/01-01-9999`.<br>
+   Expected: Both accepted bookings persist with their original details; the rejected overlapping booking is absent.
 
 ### Listing appointments
 
