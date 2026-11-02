@@ -1,17 +1,17 @@
 @startuml
 !include style.puml
-skinparam ArrowFontStyle plain
 
-title Updating appointment snapshots after editing a client
+title Updating linked appointment snapshots after a client edit
 
-actor Groomer as user
-Participant ":EditClientCommand" as command LOGIC_COLOR
-Participant ":ModelManager" as model MODEL_COLOR
-Participant ":BubuBook" as book MODEL_COLOR
-Participant ":AppointmentList" as appointments MODEL_COLOR
-Participant "appointment:Appointment" as appointment MODEL_COLOR
+participant ":LogicManager" as logic LOGIC_COLOR
+participant ":EditClientCommand" as command LOGIC_COLOR
+participant ":ModelManager" as model MODEL_COLOR
+participant ":BubuBook" as book MODEL_COLOR
+participant ":AppointmentList" as appointments MODEL_COLOR
+participant "appointment:Appointment" as appointment MODEL_COLOR
 
-user -> command : execute(model)
+activate logic
+logic -> command : execute(model)
 activate command
 
 command -> model : setClient(current, edited)
@@ -23,30 +23,35 @@ activate book
 book -> appointments : updateOwner(current, edited)
 activate appointments
 
-note over appointments
-For each linked appointment,
-compare its end time with the
-current Singapore time.
-end note
+loop for each appointment
+    opt owner phone matches current owner
+        alt appointment end is after current Singapore time
+            appointments -> appointment : withOwner(editedOwner)
+            appointment --> appointments : updated copy
 
-alt appointment is in the future or ongoing
-    appointments -> appointment : withOwner(editedOwner)
-    appointment --> appointments : updated appointment
-    note right of appointments
-        Update full client details within appointment
-    end note
-else appointment is completed
-    alt client phone number changed in edit
-        appointments -> appointment : withOwnerPhone(newPhone)
-        appointment --> appointments : updated appointment
-        note right of appointments
-            Update client phone only, within appointment
-        end note
-    else client phone unchanged in edit
-        note right of appointments
-            Preserve the historical
-            appointment snapshot (do nothing)
-        end note
+            note right of appointments
+                Ongoing or future appointment:
+                refresh the complete client snapshot
+                and the pet snapshot's owner reference.
+            end note
+
+        else appointment end is at or before current Singapore time
+            opt owner phone edited
+                appointments -> appointment : withOwnerPhone(editedOwner.getPhone())
+                appointment --> appointments : updated copy
+
+                note right of appointments
+                    Completed appointment:
+                    update only the owner phone in the
+                    client and pet snapshots.
+                end note
+            end
+
+            note right of appointments
+                If the phone is unchanged, preserve the
+                historical appointment snapshot.
+            end note
+        end
     end
 end
 
@@ -59,7 +64,8 @@ deactivate book
 model --> command : return
 deactivate model
 
-command --> user : CommandResult
+command --> logic : CommandResult
 deactivate command
+deactivate logic
 
 @enduml

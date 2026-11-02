@@ -75,6 +75,18 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + args.trim(), PREFIXES);
         arguments.verifyNoDuplicatePrefixesFor(PREFIXES);
 
+        validateTarget(arguments);
+        EditAppointmentDescriptor descriptor = parseDescriptor(arguments);
+        if (!arguments.getPreamble().isEmpty()) {
+            Index index = parseIndex(arguments.getPreamble());
+            return new EditAppointmentCommand(index, descriptor);
+        }
+        return new EditAppointmentCommand(
+                parseDate(arguments.getValue(PREFIX_DATE).orElseThrow()),
+                parseStartTime(arguments.getValue(PREFIX_START_TIME).orElseThrow()), descriptor);
+    }
+
+    private static void validateTarget(ArgumentMultimap arguments) throws ParseException {
         boolean hasIndex = !arguments.getPreamble().isEmpty();
         boolean hasTargetDate = arguments.getValue(PREFIX_DATE).isPresent();
         boolean hasTargetStartTime = arguments.getValue(PREFIX_START_TIME).isPresent();
@@ -95,7 +107,9 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
             throw new ParseException(Messages.getErrorMessageForMissingParameter(
                     missingParameter, EditAppointmentCommand.MESSAGE_USAGE));
         }
+    }
 
+    private static EditAppointmentDescriptor parseDescriptor(ArgumentMultimap arguments) throws ParseException {
         EditAppointmentDescriptor descriptor = new EditAppointmentDescriptor();
         if (arguments.getValue(PREFIX_OWNER_IDENTIFIER).isPresent()) {
             descriptor.setOwnerPhone(ClientParserUtil.parsePhone(
@@ -120,14 +134,7 @@ public class EditAppointmentCommandParser implements Parser<EditAppointmentComma
         if (!descriptor.isAnyFieldEdited()) {
             throw new ParseException(EditAppointmentCommand.MESSAGE_NOT_EDITED);
         }
-
-        if (hasIndex) {
-            Index index = parseIndex(arguments.getPreamble());
-            return new EditAppointmentCommand(index, descriptor);
-        }
-        return new EditAppointmentCommand(
-                parseDate(arguments.getValue(PREFIX_DATE).orElseThrow()),
-                parseStartTime(arguments.getValue(PREFIX_START_TIME).orElseThrow()), descriptor);
+        return descriptor;
     }
 
     /** Parses an appointment-list index with an appointment-specific error message. */
