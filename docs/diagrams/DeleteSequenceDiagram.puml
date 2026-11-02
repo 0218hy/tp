@@ -57,7 +57,7 @@ activate Model
 Model -> BubuBook : removeClient(clientToDelete)
 activate BubuBook
 BubuBook -> UniqueClientList : remove(clientToDelete)
-BubuBook -> AppointmentList : removeAppointmentsForOwner(phone)
+BubuBook -> AppointmentList : removeAppointmentsForOwner(clientToDelete)
 BubuBook -> UniquePetList : removeAllOwnedBy(clientToDelete)
 BubuBook --> Model
 deactivate BubuBook
