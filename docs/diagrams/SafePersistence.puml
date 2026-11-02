@@ -1,24 +1,23 @@
 @startuml
 !include style.puml
 
-title Safely saving a changed BubuBook
+title Safe persistence of a changed BubuBook
 
 start
 
-:Create a backup of the current BubuBook;
+:Back up the current BubuBook;
 :Apply the command to the model;
 
-if (Book changed?) then ([yes])
-    :Acquire the operating-system lock\non bububook.json.lock;
+if (Record data changed?) then ([yes])
+    :Acquire the lock on\nbububook.json.lock;
 
     if (Lock acquired?) then ([yes])
-        :Compare the current record file\nwith the last known version;
+        :Compare the record file\nwith the last known state;
 
-        if (Record file is unchanged?) then ([yes])
-            :Write the updated book to a temporary file;
+        if (File matches expected state?) then ([yes])
+            :Write the updated book to a\ntemporary file, then create or\nreplace data/bububook.json;
 
-            if (Temporary write succeeds?) then ([yes])
-                :Replace data/bububook.json;
+            if (Save succeeds?) then ([yes])
                 :Release the lock;
             else ([no])
                 :Release the lock;
@@ -37,5 +36,6 @@ if (Book changed?) then ([yes])
 else ([no])
     :Skip the record save;
 endif
+
 stop
 @enduml
