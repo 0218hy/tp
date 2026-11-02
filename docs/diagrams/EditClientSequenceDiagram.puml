@@ -1,17 +1,21 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-title Editing a client by current phone number
+skinparam ParticipantPadding 5
+skinparam SequenceMessageAlign left
+skinparam maxMessageSize 180
+title edit-client: change a phone number
+caption Example: edit-client i/91234567 p/89998888
 
 Participant ":LogicManager" as logic LOGIC_COLOR
 Participant ":BuBuParser" as abp LOGIC_COLOR
-Participant ":EditClientCommandParser" as ecp LOGIC_COLOR
-Participant "command:EditClientCommand" as ec LOGIC_COLOR
+Participant ":EditClientCommand\nParser" as ecp LOGIC_COLOR
+Participant "command:\nEditClientCommand" as ec LOGIC_COLOR
 Participant "model:Model" as model MODEL_COLOR
 
-[-> logic : execute("edit-client i/91234567 p/89998888")
+[-> logic : execute(text)
 activate logic
-logic -> abp ++: parseCommand(commandText)
+logic -> abp ++: parseCommand(text)
 create ecp
 abp -> ecp
 abp -> ecp ++: parse(arguments)
@@ -21,24 +25,28 @@ ec --> ecp --
 ecp --> abp --: command
 abp --> logic --: command
 
+note over logic, abp
+  Take a book snapshot before execution.
+end note
 logic -> ec ++: execute(model)
-ec -> model ++: getBubuBook().getClientList()
+ec -> model ++: getBubuBook()\n.getClientList()
 model --> ec --: saved clients
-note right of ec
+note over ec, model
   Find the client by current phone number.
   Reject an unknown identifier or duplicate phone/email.
 end note
 ec -> model ++: setClient(clientToEdit, editedClient)
-note right of model
-  Replace the client, refresh pet owners,
-  and update linked appointment phone numbers.
-  The active client filter remains applied.
+note over ec, model
+  Replace the client and refresh pet owners.
+  Update linked appointment snapshots
+  using the historical-record rules.
+  Preserve the active client filter.
 end note
 model --> ec --
 ec --> logic --: CommandResult (CLIENTS)
-note right of logic
-  Save records; restore previous records if saving fails.
-  Use i/89998888 for subsequent edits after success.
+note over logic, abp
+  Save changed records.
+  Restore the snapshot if saving fails.
 end note
 [<-- logic : commandResult
 deactivate logic

@@ -1,53 +1,50 @@
 @startuml
 !include style.puml
 skinparam ArrowFontStyle plain
-title Deleting an appointment by index or date/time
+skinparam ParticipantPadding 5
+skinparam SequenceMessageAlign left
+skinparam maxMessageSize 180
+title delete-appointment: select by index or date/time
+caption Index example: delete-appointment 1\nAlternative: delete-appointment d/18-09-2027 st/10:30
 
-Participant ":LogicManager" as logic LOGIC_COLOR
-Participant ":BuBuParser" as parser LOGIC_COLOR
-Participant ":DeleteAppointmentCommandParser" as dap LOGIC_COLOR
-Participant "command:DeleteAppointmentCommand" as command LOGIC_COLOR
-Participant "model:Model" as model MODEL_COLOR
-Participant "result:CommandResult" as result LOGIC_COLOR
+participant ":LogicManager" as logic LOGIC_COLOR
+participant ":BuBuParser" as parser LOGIC_COLOR
+participant ":DeleteAppointmentCommand\nParser" as feature LOGIC_COLOR
+participant "command:\nDeleteAppointmentCommand" as command LOGIC_COLOR
+participant "model:Model" as model MODEL_COLOR
 
-[-> logic : execute(commandText)
+[-> logic : execute(text)
 activate logic
-logic -> parser ++: parseCommand(commandText)
+logic -> parser ++: parseCommand(text)
 ' Parser construction is omitted; parsing is a call on the existing parser.
-parser -> dap ++: parse(arguments)
+parser -> feature ++: parse(arguments)
 create command
-dap -> command ++: create(target index or date/time)
-command --> dap --
-dap --> parser --: command
+feature -> command : create(target)
+feature --> parser --: command
 parser --> logic --: command
-
-logic -> command ++: execute(model)
-note right of logic
-  Index-based execution first requires
-  the appointment list to be the current display.
+note over logic, parser
+  For an index, require the appointment list.
+  Take a book snapshot before execution.
 end note
-alt index-based target
+logic -> command ++: execute(model)
+alt displayed index
     command -> model ++: getFilteredAppointmentList()
     model --> command --: displayed appointments
-    command -> command : select appointment at index
-else date/time target
-    command -> model ++: getBubuBook().getAppointmentList()
+    command -> command : select at index
+else date/time identifier
+    command -> model ++: getBubuBook()\n.getAppointmentList()
     model --> command --: saved appointments
-    command -> command : find appointment.matches(date, time)
-    note right of command
-      Date and start time must match exactly
+    command -> command : match exact date and start time
+    note over command, model
+      Date and start time must match exactly.
     end note
 end
-
-command -> model ++: deleteAppointment(appointmentToDelete)
+command -> model ++: deleteAppointment(appointment)
 model --> command --
-create result
-command -> result ++: create(success message)
-result --> command --
-command --> logic --: result
-note right of logic
-  LogicManager saves the updated BubuBook
-  after successful command execution.
+command --> logic --: CommandResult(success message)
+note over logic, parser
+  Save changed records.
+  Restore the snapshot if saving fails.
 end note
 [<-- logic : commandResult
 deactivate logic
