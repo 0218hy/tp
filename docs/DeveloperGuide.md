@@ -9,7 +9,14 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* This project is based on the [AddressBook-Level3 project](https://github.com/se-edu/addressbook-level3)
+  created by the [SE-EDU initiative](https://se-education.org). We adapted its project structure,
+  documentation template, and selected implementation patterns.
+* The graphical user interface uses [JavaFX](https://openjfx.io/).
+* JSON serialization and deserialization use [Jackson](https://github.com/FasterXML/jackson).
+* Automated tests use [JUnit 5](https://junit.org/junit5/).
+* Architecture diagrams were created using [PlantUML](https://plantuml.com/).
+* The project documentation is generated using [Jekyll](https://jekyllrb.com/).
 
 --------------------------------------------------------------------------------------------------------------------
 
