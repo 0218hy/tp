@@ -73,7 +73,9 @@ The bulk of the app's work is done by the following four components:
 **How the architecture components interact with each other**
 
 The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues
-the command `delete-client 1`.
+the command `delete-client 1`. It assumes readable startup data, the client list is displayed, and index 1 identifies
+a saved client. The diagram focuses on successful command execution followed by saving or rollback; rejected commands
+do not reach the save step.
 
 <img src="images/ArchitectureSequenceDiagram.png" width="100%" alt="Command execution with save success and in-memory rollback after a save failure" />
 
@@ -513,56 +515,394 @@ not by a manual completion action.
 
 ### Use cases
 
+These use cases describe distinct groomer workflows and their important alternative outcomes. Simple actions such as
+opening help are covered in the User Guide rather than repeated here. MSS means main success scenario.
+The booking use case describes a multi-command workflow. The other use cases describe individual record operations.
+Unless stated otherwise, BuBu has started with readable records. Each request is a separate command; correcting an
+error means submitting a new command. The groomer may stop at any point, and earlier successful changes remain saved.
+
+#### Client management
+{:.no_toc}
+
 **System:** BuBu
 
-**Use case:** UC1 - Add a client and their pet
+**Use case:** UC1 - Add a client
 
 **Actor:** Groomer
 
-**Preconditions:** -
+**Preconditions:** None beyond the shared startup condition above.
 
-**Guarantees:**
-- A client or pet is saved only if all of its details are valid.
-- The pet is linked to the client it was added under.
-- No two clients share the same phone number or email.
+**Guarantees:** Only valid client details are saved. The phone number and email do not conflict with another client.
+An unsuccessful addition leaves existing records unchanged.
 
 **MSS:**
 
-1. Groomer requests to add a client, providing the client's name, phone number, email and address.
-2. BuBu adds the client.
-3. Groomer requests to add a pet under the client, providing the pet's name, species, optional breed and grooming requirements.
-4. BuBu adds the pet under the client.
-5. Groomer requests to view the client's pets.
-6. BuBu shows the client's pets and their details.
+1. Groomer requests to add a client, supplying their name, phone number, email, address and any tags.
+2. BuBu adds the client and confirms the new client's details.
 
 Use case ends.
 
 **Extensions:**
 
-- 1a. BuBu detects a missing, repeated or invalid client detail.
-    - 1a1. BuBu informs Groomer of the problem.
-    - 1a2. Groomer enters the corrected details.
-    - Steps 1a1-1a2 are repeated until the details are valid.
-    - Use case resumes from step 2.
-- 1b. The phone number or email already belongs to another client.
-    - 1b1. BuBu informs Groomer that the client already exists.
-    - 1b2. Groomer enters a different phone number or email.
-    - Steps 1b1-1b2 are repeated until the phone number and email are unique.
-    - Use case resumes from step 2.
-- 3a. A pet detail is missing, repeated or invalid (e.g. an unsupported species or an invalid field length).
-    - 3b1. BuBu informs Groomer of the problem.
-    - 3b2. Groomer enters the corrected details.
-    - Steps 3b1-3b2 are repeated until the details are valid.
-    - Use case resumes from step 4.
-- 3b. The client already has a pet with the same name.
-    - 3c1. BuBu informs Groomer of the duplicate.
-    - Use case ends.
+- 1a. Required details are missing, supplied details are invalid, or the request has an invalid format.
+    - 1a1. BuBu explains the problem without adding a client.
+
+    Use case ends.
+
+- 1b. The phone number or email belongs to another saved client, or the phone number identifies a different
+  owner in a past appointment.
+    - 1b1. BuBu reports the conflicting identifier without adding a client.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the addition.
+    - 2a1. BuBu reports the saving problem and restores the previous records in the open application.
+
+    Use case ends.
 
 ---
 
 **System:** BuBu
 
-**Use case:** UC2 - Book a grooming appointment
+**Use case:** UC2 - List and search clients
+
+**Actor:** Groomer
+
+**Preconditions:** None beyond the shared startup condition above.
+
+**Guarantees:** Listing and searching do not change saved records. A search considers all saved clients, including those hidden by a previous search.
+
+**MSS:**
+
+1. Groomer requests to view all clients.
+2. BuBu shows the saved clients in alphabetical order by name.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. Groomer supplies a valid search keyword that matches saved clients.
+    - 1a1. BuBu shows clients whose name, phone number, email or address contains the keyword, ignoring case.
+
+    Use case ends.
+
+- 1b. The search keyword or request format is invalid.
+    - 1b1. BuBu explains the problem and preserves the previous view.
+
+    Use case ends.
+
+- 1c. Groomer supplies a valid search keyword that matches no clients.
+    - 1c1. BuBu displays an empty client list and reports that no clients match.
+
+    Use case ends.
+
+- 2a. No clients are saved.
+    - 2a1. BuBu displays an empty client list.
+
+    Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC3 - Update a client's contact details
+
+**Actor:** Groomer
+
+**Preconditions:** The client is registered.
+
+**Guarantees:** Unspecified client details are preserved. Phone-number changes keep the client's pets and
+appointments linked to them. A rejected edit leaves records unchanged.
+
+**MSS:**
+
+1. Groomer requests to update a client, identifying them by their displayed client index or current phone number
+   and supplying one or more replacement details.
+2. BuBu updates the client and confirms their updated details.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The identifier or replacement details are missing or invalid, or incompatible identifying details are combined.
+    - 1a1. BuBu explains the problem and leaves records unchanged.
+
+    Use case ends.
+
+- 1b. An index is used while the client list is not displayed, the index is outside that list, or no client matches
+  the supplied current phone number.
+    - 1b1. BuBu reports that the selected client cannot be found and leaves records unchanged.
+
+    Use case ends.
+
+- 1c. The new phone number or email belongs to another saved client, or the phone number identifies a different
+  owner in a past appointment.
+    - 1c1. BuBu reports the conflicting identifier and leaves records unchanged.
+
+    Use case ends.
+
+- 1d. Groomer requests to remove all tags from the client.
+    - 1d1. BuBu clears the client's tags and confirms the updated client details. Unspecified details remain unchanged.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the update, including a request to clear tags.
+    - 2a1. BuBu reports the saving problem and restores the previous records in the open application.
+
+    Use case ends.
+
+Successful edits update linked pet owner details and owner details in ongoing and future appointments.
+Completed appointments retain their recorded name, email, address and tags. Phone-number changes also apply to
+completed appointments so they remain linked to the same client. See the
+[participant update rules](#historical-appointment-snapshots-and-linked-record-consistency).
+
+---
+
+**System:** BuBu
+
+**Use case:** UC4 - Delete a client and their linked records
+
+**Actor:** Groomer
+
+**Preconditions:** The target client is saved in BuBu. The client may have saved pets and appointments.
+
+**Guarantees:**
+
+- On success, the target client, all pets owned by that client, and all of the client's appointments are deleted together.
+- Completed and future appointments linked to the client are deleted.
+- Unrelated clients, pets, and appointments remain unchanged.
+- If saving fails, the previous records are restored in the open application.
+
+**MSS:**
+
+1. Groomer requests to delete a client using a displayed client index or the client's phone number.
+2. BuBu deletes the client and all their pets and appointments, and confirms the deleted client details.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The target is missing, invalid, duplicated, or combines an index with a phone identifier.
+    - 1a1. BuBu reports the validation error and leaves all records unchanged.
+
+    Use case ends.
+
+- 1b. An index target is used while the client list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves all records unchanged.
+
+    Use case ends.
+
+- 1c. No saved client has the supplied phone number.
+    - 1c1. BuBu reports that no client matches the phone number and leaves all records unchanged.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the requested changes.
+    - 2a1. BuBu restores the pre-deletion records and reports the storage error.
+
+    Use case ends.
+
+---
+
+#### Pet management
+{:.no_toc}
+
+**System:** BuBu
+
+**Use case:** UC5 - Add a pet
+
+**Actor:** Groomer
+
+**Preconditions:** The intended owner is a registered client.
+
+**Guarantees:** On success, the added pet is linked to its registered owner. Pet names are unique under that owner after ignoring
+case and extra whitespace. An unsuccessful addition leaves the owner and all existing records unchanged.
+
+**MSS:**
+
+1. Groomer requests to add a pet, supplying its name, owner's phone number, species, optional breed and care requirements.
+2. BuBu adds the pet under the owner and confirms the new pet's details.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. Required details are missing, supplied details are invalid, or a field is repeated or unsupported.
+    - 1a1. BuBu explains the problem without adding a pet.
+
+    Use case ends.
+
+- 1b. No registered client matches the supplied phone number.
+    - 1b1. BuBu reports that the owner was not found without adding a pet.
+
+    Use case ends.
+
+- 1c. The owner already has a pet with the same name under the pet-name matching rules.
+    - 1c1. BuBu reports the duplicate without adding another pet.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the addition.
+    - 2a1. BuBu reports the saving problem and restores the previous records in the open application.
+
+    Use case ends.
+
+For a new owner, complete UC1 before adding the pet. These are separate requests: a successful client addition
+remains saved even if the subsequent pet addition fails. Viewing the owner's pets is covered in UC6.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC6 - List pet profiles
+
+**Actor:** Groomer
+
+**Preconditions:** None beyond the shared startup condition above.
+
+**Guarantees:** Listing pets does not change saved records or the client search. An owner filter considers all saved pets.
+
+**MSS:**
+
+1. Groomer requests to view all pets.
+2. BuBu shows the pets grouped by owner, ordered by owner name, owner phone number and pet name.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. Groomer supplies the phone number of a registered owner who has saved pets.
+    - 1a1. BuBu shows only that owner's pets and reports the number found.
+
+    Use case ends.
+
+- 1b. The phone number or request format is invalid.
+    - 1b1. BuBu explains the problem and preserves the previous view.
+
+    Use case ends.
+
+- 1c. No registered client matches the supplied phone number.
+    - 1c1. BuBu reports that the owner was not found and preserves the previous view.
+
+    Use case ends.
+
+- 1d. The supplied phone number identifies a registered client with no pets.
+    - 1d1. BuBu displays an empty pet list and reports that the client has no saved pet profiles.
+
+    Use case ends.
+
+- 2a. No pets are saved.
+    - 2a1. BuBu displays an empty pet list.
+
+    Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC7 - Edit a pet
+
+**Actor:** Groomer
+
+**Preconditions:** The pet and its owner are registered.
+
+**Guarantees:** Ownership and unspecified pet details are preserved. A rejected edit leaves all records unchanged.
+
+**MSS:**
+
+1. Groomer requests to edit a pet using its displayed index or current name and owner's phone number,
+   together with the updated details.
+2. BuBu updates the pet and confirms its details. The owner and unspecified pet details remain unchanged.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. A required selector is missing, targeting forms are mixed, an index or field value is invalid, a prefix is
+  repeated or unsupported outside requirements, or no updated field is supplied.
+
+    - 1a1. BuBu reports the validation error and leaves the profile unchanged.
+
+    Use case ends.
+
+- 1b. The pet panel is not displayed for an index-based edit, the index exceeds the displayed list, or no pet matches
+  the supplied current name and owner phone number.
+
+    - 1b1. BuBu reports the display, index, or lookup error and leaves all records unchanged.
+
+    Use case ends.
+
+- 1c. The requested new name duplicates another pet under the same owner.
+
+    - 1c1. BuBu reports the duplicate-name error and leaves the profile unchanged.
+
+    Use case ends.
+
+- 1d. Groomer requests to remove the pet's recorded breed.
+    - 1d1. BuBu removes the breed and confirms the updated pet. Its owner and unspecified details remain unchanged.
+
+    Use case ends.
+
+- 2a. The updated records cannot be saved, including a request to remove the breed.
+
+    - 2a1. BuBu restores the pre-edit records and reports the storage error.
+
+    Use case ends.
+
+Linked appointment changes follow the
+[participant update rules](#historical-appointment-snapshots-and-linked-record-consistency).
+
+---
+
+**System:** BuBu
+
+**Use case:** UC8 - Delete a pet
+
+**Actor:** Groomer
+
+**Preconditions:** The pet is registered.
+
+**Guarantees:** On success, the pet and all its appointments, including completed appointments, are removed together.
+Its owner and unrelated records remain saved. A save failure restores the records from before the deletion request.
+
+**MSS:**
+
+1. Groomer requests to delete a pet using its displayed index or its name and owner's phone number.
+2. BuBu deletes the pet and all its appointments, and confirms the deleted pet's name.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. The target is missing or invalid, or combines an index with name-and-phone identifiers.
+
+    - 1a1. BuBu reports the problem and leaves all records unchanged.
+
+    Use case ends.
+
+- 1b. The pet list is not displayed for an index target, the index is outside that list, or no pet matches the
+  supplied name and owner phone number.
+
+    - 1b1. BuBu reports the problem and leaves all records unchanged.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the deletion.
+    - 2a1. BuBu restores the previous records and reports the saving problem.
+
+    Use case ends.
+
+**Related interaction:** UC4 follows the same selection and error pattern for clients, but also removes every pet
+owned by the selected client. UC12 removes only the selected appointment and preserves its client and pet.
+
+---
+
+#### Appointment management
+{:.no_toc}
+
+**System:** BuBu
+
+**Use case:** UC9 - Book a grooming appointment
 
 **Actor:** Groomer
 
@@ -582,7 +922,7 @@ Use case ends.
 5. Groomer requests to view the appointments on the intended date.
 6. BuBu shows the appointments on that date.
 7. Groomer requests to schedule an appointment for the pet, specifying the date, start time, end time and service.
-8. BuBu adds the appointment and shows the updated appointment list.
+8. BuBu saves the appointment and confirms its details. The selected view and appointment filter are preserved.
 
 Use case ends.
 
@@ -591,32 +931,96 @@ Use case ends.
 - 2a. No client matches the search.
     - 2a1. BuBu informs Groomer that no clients match.
     - 2a2. Groomer enters a different search keyword.
-    - Steps 2a1-2a2 are repeated until a client is found.
-    - Use case resumes from step 3.
+
+    Steps 2a1-2a2 are repeated until a client is found.
+
+    Use case resumes from step 3.
+
 - 5a. The date is not a valid date.
     - 5a1. BuBu informs Groomer of the problem.
     - 5a2. Groomer enters a corrected date.
-    - Steps 5a1-5a2 are repeated until the date is valid.
-    - Use case resumes from step 6.
+
+    Steps 5a1-5a2 are repeated until the date is valid.
+
+    Use case resumes from step 6.
+
 - 6a. There are no appointments on that date.
     - 6a1. BuBu informs Groomer that nothing is scheduled.
-    - Use case resumes from step 7.
+
+    Use case resumes from step 7.
+
 - 7a. A scheduling detail is missing, repeated or invalid (e.g. past date, outside working hours, not on 30-minute intervals, end less than 30 minutes after start, unsupported service).
     - 7a1. BuBu informs Groomer of the problem.
     - 7a2. Groomer enters corrected details.
-    - Steps 7a1-7a2 are repeated until the details are valid.
-    - Use case resumes from step 8.
+
+    Steps 7a1-7a2 are repeated until the details are valid.
+
+    Use case resumes from step 8.
+
 - 7b. The time slot overlaps an existing appointment.
     - 7b1. BuBu identifies one conflicting saved appointment by pet name, date, and time range, even if it is hidden by the current list filter.
     - 7b2. Groomer enters a different time slot.
-    - Steps 7b1-7b2 are repeated until the slot is free.
-    - Use case resumes from step 8.
+
+    Steps 7b1-7b2 are repeated until the slot is free.
+
+    Use case resumes from step 8.
+
+- 7c. The supplied owner or their pet cannot be found.
+    - 7c1. BuBu reports the missing participant without adding an appointment.
+
+    Use case resumes from step 7 when Groomer supplies a registered owner and their pet.
+
+- 8a. BuBu cannot save the appointment.
+    - 8a1. BuBu reports the saving problem and restores the records from before the booking request.
+
+    Use case ends.
 
 ---
 
 **System:** BuBu
 
-**Use case:** UC3 - Edit an appointment
+**Use case:** UC10 - List appointments
+
+**Actor:** Groomer
+
+**Preconditions:** None beyond the shared startup condition above.
+
+**Guarantees:** Listing does not change saved records. Completed appointments remain saved even when excluded from the results.
+
+**MSS:**
+
+1. Groomer requests to view ongoing and future appointments.
+2. BuBu shows appointments that have not ended, ordered by date and start time, using the Singapore time when the request is made.
+
+Use case ends.
+
+**Extensions:**
+
+- 1a. Groomer supplies a valid date with saved appointments.
+    - 1a1. BuBu shows all saved appointments on that date in start-time order, including completed appointments.
+
+    Use case ends.
+
+- 1b. The date or request format is invalid.
+    - 1b1. BuBu explains the problem and preserves the previous view.
+
+    Use case ends.
+
+- 1c. Groomer supplies a valid date with no saved appointments.
+    - 1c1. BuBu displays an empty appointment list and reports that no appointments were found on that date.
+
+    Use case ends.
+
+- 2a. There are no ongoing or future appointments.
+    - 2a1. BuBu displays an empty appointment list and reports that no ongoing or future appointments were found.
+
+    Use case ends.
+
+---
+
+**System:** BuBu
+
+**Use case:** UC11 - Edit an appointment
 
 **Actor:** Groomer
 
@@ -625,7 +1029,7 @@ Use case ends.
 **Guarantees:**
 
 - The appointment is updated only when the complete replacement is valid.
-- The resulting appointment starts in the future and does not overlap any other appointment.
+- On success, the resulting appointment starts in the future and does not overlap any other appointment.
 - If saving fails, the previous appointment remains unchanged.
 
 The appointment can be identified by its current date and start time, or by its index in the displayed appointment list.
@@ -633,10 +1037,8 @@ Any field that is not supplied remains unchanged.
 
 **MSS:**
 
-1. Groomer enters `edit-appointment` with an appointment target and one or more replacement fields.
-2. BuBu resolves the target appointment and validates the replacement owner, pet, date, time, service, duration, and
-   schedule availability.
-3. BuBu replaces the appointment, saves the updated BubuBook, and shows the updated appointment details.
+1. Groomer requests to change an appointment, identifying it and supplying one or more replacement details.
+2. BuBu updates the appointment and confirms its new details.
 
 Use case ends.
 
@@ -644,26 +1046,40 @@ Use case ends.
 
 - 1a. The target is missing, incomplete, duplicated, or invalid, or no replacement field is supplied.
     - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
-      Use case ends.
+
+    Use case ends.
+
 - 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
     - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
-      Use case ends.
+
+    Use case ends.
+
 - 1c. No appointment matches the supplied date and start time.
     - 1c1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
-      Use case ends.
-- 2a. The replacement owner or pet is not registered, the resulting start is not in the future, the duration is too
+
+    Use case ends.
+
+- 1d. The replacement owner or pet is not registered, the resulting start is not in the future, the duration is too
   short, or the slot overlaps another appointment.
-    - 2a1. BuBu reports the validation error and leaves the schedule unchanged.
-      Use case ends.
-- 3a. The updated BubuBook cannot be saved.
-    - 3a1. BuBu restores the pre-edit records and reports the storage error.
-      Use case ends.
+    - 1d1. BuBu reports the validation error and leaves the schedule unchanged.
+
+    Use case ends.
+
+- 1e. The supplied details would leave the appointment unchanged.
+    - 1e1. BuBu reports that no changes were made.
+
+    Use case ends.
+
+- 2a. BuBu cannot save the requested changes.
+    - 2a1. BuBu restores the pre-edit records and reports the storage error.
+
+    Use case ends.
 
 ---
 
 **System:** BuBu
 
-**Use case: Delete an appointment**
+**Use case:** UC12 - Delete an appointment
 
 **Actor:** Groomer
 
@@ -673,13 +1089,12 @@ Use case ends.
 
 - Only the appointment selected by the supplied target is deleted.
 - The linked client, linked pet, and all other appointments remain unchanged.
-- If saving fails, the deleted appointment is restored in memory.
+- If saving fails, the deleted appointment is restored in the open application.
 
 **MSS:**
 
-1. Groomer enters `delete-appointment` with an appointment index or an exact date and start-time pair.
-2. BuBu resolves the selected appointment from the displayed list or complete saved list.
-3. BuBu deletes the appointment, saves the updated BubuBook, and shows the deleted appointment details.
+1. Groomer requests to delete an appointment using its displayed index or exact date and start time.
+2. BuBu deletes the appointment and confirms its details.
 
 Use case ends.
 
@@ -687,205 +1102,68 @@ Use case ends.
 
 - 1a. The target is missing, incomplete, duplicated, invalid, or combines an index with date/time identifiers.
     - 1a1. BuBu reports the validation error and leaves the schedule unchanged.
-      Use case ends.
-- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
-    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
-      Use case ends.
-- 2a. No appointment starts at the supplied date and start time.
-    - 2a1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
-      Use case ends.
-- 3a. The updated BubuBook cannot be saved.
-    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
-      Use case ends.
-
----
-
-**System:** BuBu
-
-**Use case:** UC4 - Remove a client who has pets and appointments
-
-**Actor:** Groomer
-
-**Preconditions:** The target client is saved in BuBu. The client may have saved pets and appointments.
-
-**Guarantees:**
-
-- The target client, all pets owned by that client, and all of the client's appointments are deleted together.
-- Completed and future appointments linked to the client are deleted.
-- Unrelated clients, pets, and appointments remain unchanged.
-- If saving fails, the previous records are restored in memory.
-
-**MSS:**
-
-1. Groomer enters `delete-client` with a displayed client index or a client's phone number.
-2. BuBu resolves the target client from the displayed client list or complete saved client list.
-3. BuBu deletes the client and all linked pets and appointments, saves the updated BubuBook, and shows the deleted
-   client details.
-
-Use case ends.
-
-**Extensions:**
-
-- 1a. The target is missing, invalid, duplicated, or combines an index with a phone identifier.
-    - 1a1. BuBu reports the validation error and leaves all records unchanged.
-      Use case ends.
-- 1b. An index target is used while the client list is not displayed, or the index is outside the displayed list.
-    - 1b1. BuBu reports the invalid displayed target and leaves all records unchanged.
-      Use case ends.
-- 2a. No saved client has the supplied phone number.
-    - 2a1. BuBu reports that no client matches the phone number and leaves all records unchanged.
-      Use case ends.
-- 3a. The updated BubuBook cannot be saved.
-    - 3a1. BuBu restores the pre-deletion records and reports the storage error.
-      Use case ends.
-
----
-
-**System:** BuBu
-
-**Use case:** UC5 - Prepare for a day's appointments
-
-**Actor:** Groomer
-
-**Preconditions:** At least one client with at least one pet profile is saved in BuBu.
-
-**MSS:**
-
-1. Groomer requests to view the appointments on a given date.
-2. BuBu shows the appointments in start-time order.
-3. Groomer searches for the client of an appointment.
-4. BuBu shows the client's phone number, email and address.
-5. Groomer requests to view the client's pets.
-6. BuBu shows the pets and their care requirements.
-
-Steps 3-6 are repeated for each appointment on the date.
-
-Use case ends.
-
-**Extensions:**
-
-- 1a. The date is not a valid date.
-    - 1a1. BuBu informs Groomer of the problem.
-    - 1a2. Groomer enters a corrected date.
-    - Steps 1a1-1a2 are repeated until the date is valid.
-    - Use case resumes from step 2.
-- 2a. There are no appointments on that date.
-    - 2a1. BuBu informs Groomer that nothing is scheduled.
-    - Use case ends.
-- 3a. No client matches the search.
-    - 3b1. BuBu informs Groomer that no clients match.
-    - 3b2. Groomer enters a different search keyword.
-    - Steps 3b1-3b2 are repeated until the intended client is found.
-    - Use case resumes from step 4.
-
-**Use case: Edit a pet**
-
-**MSS**
-
-1. Groomer enters `edit-pet` with either a displayed pet index or the pet's current name and owner's phone number,
-   together with one or more updated fields.
-2. BuBu validates the selectors and requested field values.
-3. BuBu selects the pet from the displayed pet list for an index, or searches the saved BubuBook by normalized current
-   name and exact owner phone number.
-4. BuBu creates a replacement pet profile, preserving the owner and any fields that were not supplied.
-5. BuBu verifies that the replacement name does not duplicate another pet belonging to the same owner.
-6. BuBu replaces the saved pet profile, updates linked appointment snapshots according to their completion status,
-   and saves any changed records. The owner, active pet filter, and selected panel are preserved.
-
-Use case ends.
-
-**Extensions**
-
-* 2a. A required selector is missing, targeting forms are mixed, an index or field value is invalid, a prefix is
-  repeated or unsupported outside requirements, or no updated field is supplied.
-
-    * 2a1. BuBu reports the validation error and leaves the profile unchanged.
-
-      Use case ends.
-
-* 3a. The pet panel is not displayed for an index-based edit, the index exceeds the displayed list, or no pet matches
-  the supplied current name and owner phone number.
-
-    * 3a1. BuBu reports the display, index, or lookup error and leaves all records unchanged.
-
-      Use case ends.
-
-* 5a. The requested new name duplicates another pet under the same owner.
-
-    * 5a1. BuBu reports the duplicate-name error and leaves the profile unchanged.
-
-      Use case ends.
-
-* 6a. The updated BubuBook cannot be saved.
-
-    * 6a1. BuBu restores the pre-edit records and reports the storage error.
-
-      Use case ends.
-
-**Use case: Delete a pet**
-
-**MSS**
-
-1.  User requests to delete a pet by providing the pet's name and its owner's phone number.
-2.  BubuBook finds the pet matching both values.
-3.  BubuBook deletes the pet.
 
     Use case ends.
 
-**Extensions**
+- 1b. An index target is used while the appointment list is not displayed, or the index is outside the displayed list.
+    - 1b1. BuBu reports the invalid displayed target and leaves the schedule unchanged.
 
-* 1a. The command format, pet name, or owner phone number is invalid.
+    Use case ends.
 
-    * 1a1. BubuBook shows an error message.
+- 1c. No appointment starts at the supplied date and start time.
+    - 1c1. BuBu reports that no matching appointment was found and leaves the schedule unchanged.
 
-      Use case ends.
+    Use case ends.
 
-* 2a. No pet matches the given name and owner phone number.
+- 2a. BuBu cannot save the requested changes.
+    - 2a1. BuBu restores the pre-deletion records and reports the storage error.
 
-    * 2a1. BubuBook shows an error message.
-
-      Use case ends.
-
-*{More to be added}*
+    Use case ends.
 
 ### Non-Functional Requirements
 
-The requirements below are acceptance targets. The performance and display targets require measurements on the
-release build before they can be reported as met.
+The requirements below are acceptance targets. Capacity, performance, memory and display targets remain unverified
+until tested on the release build; they are not claims of measured results.
 
 1. BuBu should launch and support its documented commands on Windows, macOS and Ubuntu with Java 25 and a compatible
-   JavaFX runtime. Record the OS version, processor architecture and Java distribution used for release testing.
+   JavaFX runtime.
 2. BuBu should save and reload 1,000 valid records, comprising 100 clients, 300 pets and 600 non-overlapping
    appointments, without losing records or their relationships.
 3. After launch, users should be able to enter, submit and recall documented commands using the keyboard, without
    requiring a mouse for those actions.
 4. For the dataset in requirement 2, each list command, client search, and single-record add, edit or delete should
-   display feedback and refresh the active list within one second. Measure from pressing Enter until both are updated,
-   after one warm-up run, across ten valid runs per operation. Use local storage on an SSD and a machine with at least
-   four CPU cores and 8 GB RAM, and record its exact configuration.
+   display feedback and refresh the active list within one second on a computer with at least four CPU cores,
+   8 GB RAM and local SSD storage.
 5. On the same machine and dataset, the operating system's reported resident memory for the Java process should remain
-   below 500 MB during ten minutes of listing, searching and single-record updates. Record the monitoring tool and
-   sample once per second, including the JavaFX process memory.
+   below 500 MB during ten minutes of listing, searching and single-record updates.
 6. Changed records should be saved before a command reports success, and should remain available after restarting
    the application from the same folder. If saving fails, the application should restore the previous in-memory records
-   and report the failure. Persistence after a successful save must be verified by restarting the application.
+   and report the failure.
 7. With Java installed, BuBu should run from a single executable JAR in a user-writable folder without an application
    installer or administrative privileges.
 8. BuBu should store records and preferences locally in human-readable JSON files without an external database.
-   Supported data maintenance consists of app commands and restoring unchanged BuBu backups.
 9. After installation, record management and bundled command help should work offline.
 10. Each instance should serve one user and rely on the operating system's account and file permissions for access
     control.
 11. Invalid commands should leave records unchanged. Concurrent instances should reject stale or competing saves
     and preserve the other instance's saved records.
-12. A missing record file should allow startup with sample records in memory. An empty, malformed or unreadable file
-    should allow the window to open while protecting the file from record commands. Commands other than `help`
-    should report the startup-data problem when submitted.
+12. BuBu should protect unreadable or invalid saved records from accidental overwriting and inform the user when
+    a requested operation cannot proceed safely.
 13. At 100% OS display scaling and a maximised window on 1366×768, 1440×900 and 1920×1080 screens, the command input,
-    feedback and all three record views should be readable. Check records with maximum accepted field lengths,
-    using wrapping and vertical scrolling to access long content. Verify this on each tested OS from requirement 1.
+    feedback and all three record views should be readable, with long record content accessible through wrapping
+    and scrolling.
 
-For performance and display testing, record the release version, test dataset, environment and results.
+**Testing note:** Record the release version, dataset, OS version, processor architecture, Java distribution,
+hardware and results. Use the dataset in requirement 2 for capacity and performance checks.
+
+* Measure response time from pressing Enter until feedback and the active list are updated, using one warm-up
+  run followed by ten valid runs per operation.
+* Sample the Java process's resident memory once per second for ten minutes, including JavaFX memory, and record
+  the monitoring tool used.
+* Verify saved records and their relationships by restarting from the same folder.
+* Check each target screen resolution on each supported OS, using records with maximum accepted field lengths.
+
+The [saving-data manual tests](#saving-data) cover missing files, unreadable data and conflicting saves.
 
 ### Glossary
 
