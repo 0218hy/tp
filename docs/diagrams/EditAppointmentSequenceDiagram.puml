@@ -45,7 +45,9 @@ note right of command
 end note
 command -> model ++: setAppointments(replacement)
 model --> command --: replacement accepted
-command -> model : updateFilteredAppointmentList(SHOW_ALL)
+note right of command
+  The active appointment filter is preserved.
+end note
 
 create result
 command -> result ++: create(success message)
