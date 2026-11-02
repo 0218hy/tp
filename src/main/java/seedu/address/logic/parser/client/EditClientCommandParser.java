@@ -60,10 +60,22 @@ public class EditClientCommandParser implements Parser<EditClientCommand> {
                 ArgumentTokenizer.tokenize(" " + args.trim(), PREFIX_IDENTIFIER, PREFIX_NAME,
                         PREFIX_NEW_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG);
 
-        boolean hasIndex = !argMultimap.getPreamble().isEmpty();
-        boolean hasIdentifier = argMultimap.getValue(PREFIX_IDENTIFIER).isPresent();
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_IDENTIFIER, PREFIX_NAME, PREFIX_NEW_PHONE,
                 PREFIX_EMAIL, PREFIX_ADDRESS);
+        validateSelector(argMultimap);
+        Index index = argMultimap.getPreamble().isEmpty() ? null : ParserUtil.parseIndex(argMultimap.getPreamble());
+        Phone identifier = argMultimap.getValue(PREFIX_IDENTIFIER).isPresent()
+                ? parsePhone(argMultimap.getValue(PREFIX_IDENTIFIER).orElseThrow(), MESSAGE_INVALID_CURRENT_PHONE)
+                : null;
+        EditClientDescriptor editClientDescriptor = parseDescriptor(argMultimap);
+        return index != null ? new EditClientCommand(index, editClientDescriptor)
+                : new EditClientCommand(identifier, editClientDescriptor);
+    }
+
+    /** Checks that exactly one nonblank client selector was supplied. */
+    private static void validateSelector(ArgumentMultimap argMultimap) throws ParseException {
+        boolean hasIndex = !argMultimap.getPreamble().isEmpty();
+        boolean hasIdentifier = argMultimap.getValue(PREFIX_IDENTIFIER).isPresent();
         String preamble = argMultimap.getPreamble();
         if (hasIndex && !preamble.matches("[+-]?[0-9]+(?:[.][0-9]+)?")) {
             throw new ParseException(MESSAGE_UNEXPECTED_TEXT);
@@ -77,11 +89,10 @@ public class EditClientCommandParser implements Parser<EditClientCommand> {
         if (hasIdentifier && argMultimap.getValue(PREFIX_IDENTIFIER).orElseThrow().isBlank()) {
             throw new ParseException(MESSAGE_BLANK_IDENTIFIER);
         }
-        Index index = hasIndex ? ParserUtil.parseIndex(preamble) : null;
-        Phone identifier = hasIdentifier
-                ? parsePhone(argMultimap.getValue(PREFIX_IDENTIFIER).orElseThrow(), MESSAGE_INVALID_CURRENT_PHONE)
-                : null;
+    }
 
+    /** Parses supplied update fields and rejects an empty edit. */
+    private EditClientDescriptor parseDescriptor(ArgumentMultimap argMultimap) throws ParseException {
         EditClientDescriptor editClientDescriptor = new EditClientDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
@@ -103,8 +114,7 @@ public class EditClientCommandParser implements Parser<EditClientCommand> {
             throw new ParseException(EditClientCommand.MESSAGE_NOT_EDITED);
         }
 
-        return hasIndex ? new EditClientCommand(index, editClientDescriptor)
-                : new EditClientCommand(identifier, editClientDescriptor);
+        return editClientDescriptor;
     }
     //@@author
 

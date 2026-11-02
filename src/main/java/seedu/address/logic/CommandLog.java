@@ -23,12 +23,12 @@ final class CommandLog {
 
     private CommandLog() {}
 
-    static String commandType(String input) {
+    static String getCommandType(String input) {
         String word = input.trim().split("\\s+", 2)[0];
         return COMMANDS.contains(word) ? word : "unknown-command";
     }
 
-    static String rejectionReason(Exception exception) {
+    static String getRejectionReason(Exception exception) {
         String message = exception.getMessage();
         if (Messages.MESSAGE_UNKNOWN_COMMAND.equals(message)) {
             return "unknown command";
@@ -80,7 +80,7 @@ final class CommandLog {
     }
 
     /** Compares saved client values, logging only names of fields that actually changed. */
-    static String changedClientFields(ReadOnlyBubuBook before, ReadOnlyBubuBook after) {
+    static String getChangedClientFields(ReadOnlyBubuBook before, ReadOnlyBubuBook after) {
         if (before.getClientList().size() != after.getClientList().size()) {
             return "";
         }
