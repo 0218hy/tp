@@ -26,6 +26,7 @@ LogicManager -> BuBuParser : parseCommand(commandText)
 activate BuBuParser
 BuBuParser -> DeleteClientCommandParser : parse("1")
 activate DeleteClientCommandParser
+create DeleteClientCommand
 DeleteClientCommandParser -> DeleteClientCommand : create(Index)
 activate DeleteClientCommand
 DeleteClientCommand --> DeleteClientCommandParser
@@ -56,7 +57,7 @@ activate Model
 Model -> BubuBook : removeClient(clientToDelete)
 activate BubuBook
 BubuBook -> UniqueClientList : remove(clientToDelete)
-BubuBook -> AppointmentList : removeAppointmentsForOwner(phone)
+BubuBook -> AppointmentList : removeAppointmentsForOwner(clientToDelete)
 BubuBook -> UniquePetList : removeAllOwnedBy(clientToDelete)
 BubuBook --> Model
 deactivate BubuBook

@@ -13,10 +13,10 @@ Participant "result:CommandResult" as result LOGIC_COLOR
 [-> logic : execute(commandText)
 activate logic
 logic -> parser ++: parseCommand(commandText)
-create dap
+' Parser construction is omitted; parsing is a call on the existing parser.
 parser -> dap ++: parse(arguments)
 create command
-dap -> command ++: target index or date/time
+dap -> command ++: create(target index or date/time)
 command --> dap --
 dap --> parser --: command
 parser --> logic --: command
