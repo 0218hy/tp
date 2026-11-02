@@ -4,48 +4,49 @@
 skinparam dpi 150
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
+skinparam ArrowFontStyle plain
 skinparam classBackgroundColor LOGIC_COLOR
 
 package Logic as LogicPackage {
     class "<<interface>>\nLogic" as Logic
     class LogicManager
-    class BuBuParser
+
+    package "Parser classes" as ParserClasses {
+        class BuBuParser
+        class XYZCommandParser
+    }
+
     abstract class Command
+    class XYZCommand
     class CommandResult
     enum "CommandResult.DisplayType" as DisplayType <<enumeration>>
-
-    package "Example commands" {
-        class EditClientCommand
-        class EditPetCommand
-        class EditAppointmentCommand
-    }
 }
 
-class "<<interface>>\nModel" as Model MODEL_COLOR
-class "<<interface>>\nStorage" as Storage STORAGE_COLOR
+package Model as ModelPackage {
+    class "<<interface>>\nModel" as Model MODEL_COLOR
+}
+package Storage as StoragePackage {
+    class "<<interface>>\nStorage" as Storage STORAGE_COLOR
+}
 
 LogicManager .up.|> Logic
-LogicManager --> "1" BuBuParser
+LogicManager -right-> "1" BuBuParser
+BuBuParser ..> XYZCommandParser : <<create>>
+XYZCommandParser ..> XYZCommand : <<create>>
+XYZCommand -up-|> Command
+LogicManager ..> Command : execute(model)
+Command ..> Model : uses
+Command ..> CommandResult : returns
 LogicManager --> "1" Model
 LogicManager --> "1" Storage
-LogicManager ..> Command : executes
-BuBuParser ..> Command : returns
-Command ..> Model : execute(model)
-Command ..> CommandResult : returns
 Logic ..> CommandResult : returns
 CommandResult --> "1" DisplayType
-LogicManager ..> DisplayType : tracks current list
 
-EditClientCommand -up-|> Command
-EditPetCommand -up-|> Command
-EditAppointmentCommand -up-|> Command
-
-note bottom of BuBuParser
-  Feature parsers are expanded
-  in the parser class diagram.
-end note
-
-note bottom of DisplayType
-  CLIENTS, PETS, APPOINTMENTS, UNCHANGED
-end note
+legend bottom
+  Partial overview; parser helpers are expanded in the next class diagram.
+  XYZ stands for a feature command, e.g. AddClient, EditPet or ListAppointments.
+  XYZCommand and XYZCommandParser are placeholders, not additional classes.
+  BuBuParser creates HelpCommand, ExitCommand and ClearCommand directly (omitted).
+  DisplayType: CLIENTS, PETS, APPOINTMENTS, UNCHANGED.
+endlegend
 @enduml
