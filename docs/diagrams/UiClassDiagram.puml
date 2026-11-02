@@ -12,7 +12,7 @@ skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
 
 package UI {
-interface Ui
+interface Ui <<interface>>
 class UiManager
 class MainWindow
 class CommandBox
