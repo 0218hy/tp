@@ -231,26 +231,27 @@ public class EditAppointmentCommand extends Command {
         EndTime endTime = descriptor.getEndTime().orElse(appointmentToEdit.getEndTime());
         Service service = descriptor.getService().orElse(appointmentToEdit.getService());
 
-        long matchingOwners = model.getBubuBook().getClientList().stream()
+        List<Client> matchingOwners = model.getBubuBook().getClientList().stream()
                 .filter(client -> client.getPhone().equals(ownerPhone))
-                .count();
-        if (matchingOwners != 1) {
+                .toList();
+        if (matchingOwners.size() != 1) {
             throw new CommandException(MESSAGE_OWNER_NOT_FOUND);
         }
-        Client owner = model.getBubuBook().getClientList().stream()
-                .filter(client -> client.getPhone().equals(ownerPhone))
-                .findFirst()
-                .orElseThrow();
+        Client owner = matchingOwners.get(0);
 
         Pet pet = model.getBubuBook().getPetList().stream()
                 .filter(candidate -> candidate.getOwner().equals(owner)
                         && candidate.getName().getNormalizedName().equals(petName.getNormalizedName()))
                 .findFirst()
-                .orElse(null);
-        if (pet == null) {
-            throw new CommandException(MESSAGE_PET_NOT_FOUND);
-        }
+                .orElseThrow(() -> new CommandException(MESSAGE_PET_NOT_FOUND));
 
+        validateDuration(startTime, endTime, descriptor);
+        return new Appointment(owner, pet, date, startTime, endTime, service);
+    }
+
+    /** Validates the requested duration, retaining the specific error for a single edited time field. */
+    private static void validateDuration(StartTime startTime, EndTime endTime,
+                                         EditAppointmentDescriptor descriptor) throws CommandException {
         if (!endTime.isAtLeastThirtyMinutesAfter(startTime)) {
             if (descriptor.getStartTime().isPresent() && descriptor.getEndTime().isEmpty()) {
                 throw new CommandException(MESSAGE_INVALID_START_TIME);
@@ -260,8 +261,6 @@ public class EditAppointmentCommand extends Command {
             }
             throw new CommandException(MESSAGE_INVALID_DURATION);
         }
-
-        return new Appointment(owner, pet, date, startTime, endTime, service);
     }
 
     /** Formats an appointment for the command result message. */
