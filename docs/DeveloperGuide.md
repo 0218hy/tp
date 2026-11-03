@@ -158,6 +158,7 @@ The UI calls the `Logic` interface. `LogicManager` implements that interface and
 execution, and saving.
 
 #### Main classes
+{:no_toc}
 
 | Class | Responsibility |
 | --- | --- |
@@ -182,6 +183,7 @@ subpackages are omitted, and the Model and Storage boxes show only the interface
 All diagrams in this section can be opened at full size by clicking them.
 
 #### Command execution
+{:no_toc}
 
 A command passes through five stages:
 
@@ -207,6 +209,7 @@ The model also removes the selected client's pets and appointments.
 *Figure: `delete-client 1`, with phone-based selection shown as an alternative. Storage calls are summarized in the note.*
 
 #### Parsing command arguments
+{:no_toc}
 
 `BuBuParser` separates the command word from its arguments and selects the corresponding feature parser.
 Each feature parser implements `Parser<T>` for its command type. For example, `EditPetCommandParser`
@@ -233,6 +236,7 @@ omitted. For example, `EditAppointmentCommandParser` uses all three parsing util
 accepts an index, an owner phone number, and a pet name.
 
 #### Selecting records and displaying results
+{:no_toc}
 
 Commands select records in one of two ways:
 
@@ -263,6 +267,7 @@ being interpreted as a client index. After a successful command, both the manage
 [Stable Record Selection and Displayed Indexes](#stable-record-selection-and-displayed-indexes).
 
 #### Editing a client: `edit-client`
+{:no_toc}
 
 The example `edit-client i/91234567 p/89998888` changes a client's phone number. The command finds the
 client by their current phone number and updates linked records according to the historical snapshot rules.
@@ -273,6 +278,7 @@ The active client filter is preserved, and the result selects the client list.
 *Figure: `edit-client i/91234567 p/89998888`. After success, subsequent identifier-based commands use `i/89998888`.*
 
 #### Editing an appointment: `edit-appointment`
+{:no_toc}
 
 The diagram below illustrates two forms of the same command:
 
@@ -294,6 +300,7 @@ validates the replacement schedule, including overlaps, before applying it. The 
 record type unchanged.
 
 #### Deleting an appointment: `delete-appointment`
+{:no_toc}
 
 The diagram below illustrates these two command forms:
 
