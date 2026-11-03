@@ -121,6 +121,10 @@ The `UI` component,
 
 `CommandBox` invokes a `CommandExecutor` callback supplied by `MainWindow`. This callback calls `Logic.execute`, updates `ResultDisplay` with success or error feedback, and handles display changes, help, and exit requests. `MainWindow` also restores and saves window settings through `Logic`; `StatusBarFooter` displays the data file path supplied at startup.
 
+For `exit`, `ExitCommand` returns an acknowledgement with the exit flag set. `MainWindow` sets the feedback text
+and immediately calls `handleExit()`, which stores the current window settings in the model and hides the stage.
+The acknowledgement may not be visibly rendered before the window closes.
+
 `MainWindow` creates all three list panels once and keeps them bound to the model's observable lists. It shows exactly
 one panel at a time, initially clients, using the `DisplayType` carried by `CommandResult`: `CLIENTS`, `PETS`, or `APPOINTMENTS`.
 
