@@ -804,11 +804,11 @@ exit
 #### Examples
 
 - `exit`<br>
-  **Feedback** — `Exiting BuBu as requested ...`
+  **Result** — BuBu closes immediately.
 
 #### Success and other behavior
 
-* On success, BuBu displays `Exiting BuBu as requested ...` and closes.
+* On success, BuBu closes immediately. The exit acknowledgement may not be visible before the window closes.
 * `exit` does not save record data. Record changes are saved when the commands that make them succeed. During shutdown, BuBu attempts to save window preferences separately in `preferences.json`. Session command history is not retained.
 
 #### Common issues

@@ -15,7 +15,7 @@ Add client
   Restrictions:
     NAME: required; 2–60 Unicode code points after NFC normalization; Unicode letters/combining marks, spaces, apostrophes, hyphens, and full stops.
     PHONE_NUMBER: required; 8 digits, starting with 8 or 9; unique across clients.
-    EMAIL: required; at most 254 characters, one @, no whitespace, non-empty local/domain parts, and a dotted domain; unique across clients. Domain matching is case-insensitive; local-part matching is case-sensitive.
+    EMAIL: required; at most 254 characters, one @, no whitespace, non-empty local/domain parts, and a dotted domain; unique across clients. Email addresses are compared case-insensitively throughout; the entered spelling is preserved for display and storage.
     ADDRESS: required; 5–120 characters; English letters, digits, spaces, commas, full stops, apostrophes, hyphens, or #.
     TAG: optional; non-empty alphanumeric text without spaces. Repeat t/ for multiple tags. Duplicate tags are stored once.
     Required fields cannot be blank. Each of n/, i/, e/, and a/ may appear once; surrounding whitespace is trimmed.
@@ -109,4 +109,4 @@ Exit
   Restrictions: Takes no parameters; extra text is ignored. Does not write record data. Shutdown attempts to save window preferences separately in preferences.json.
 
 Command input
-  Press Up/Down to recall commands from the current session. Up stops at the oldest command; Down past the newest restores a blank prompt. A partially typed command is retained while you navigate.
+  Press Up/Down to recall commands from the current session. Up stops at the oldest command. Down past the newest restores your saved unfinished command (draft), if one exists; press Down again to clear the command box. Without a saved draft, moving past the newest command shows a blank box immediately. A partially typed command is retained while you navigate.
