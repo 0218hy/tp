@@ -1631,7 +1631,7 @@ below, so the book contains clients, Mochi, and a saved appointment. Run these s
    4. Test case: `delete-client 0`<br>
       Expected: No client is deleted. BuBu reports `Client index must be a positive whole number.`
 
-   5. Test case: `delete-client 999` when fewer than 999 clients are displayed.<br>
+   5. Test case: Run `list-clients`, then enter `delete-client 999` when fewer than 999 clients are displayed.<br>
       Expected: No client is deleted. The status message is `The person index provided is invalid.`
 
 2. Deleting by phone number
